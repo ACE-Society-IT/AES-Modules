@@ -209,7 +209,8 @@ export default function LandingPage() {
                   animate={{ opacity: 1, width: 'auto', x: 0 }}
                   exit={{ opacity: 0, width: 0, x: -8 }}
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="font-display font-bold tracking-tight text-[var(--text-main)] text-lg sm:text-xl whitespace-nowrap overflow-hidden hidden sm:inline-block"
+                  className="font-display font-bold tracking-tight text-lg sm:text-xl whitespace-nowrap overflow-hidden hidden sm:inline-block transition-colors"
+                  style={{ color: theme === 'aes' ? '#F1CA7E' : 'var(--text-main)' }}
                 >
                   INVESTOMANIA
                 </motion.span>
@@ -218,7 +219,12 @@ export default function LandingPage() {
 
             <button
               onClick={(e) => { e.stopPropagation(); navigate('/'); }}
-              className="hidden md:inline-flex items-center gap-1 text-[11px] font-rounded font-bold px-3 py-1 rounded-full border border-[var(--border-soft)] text-[var(--text-sub)] hover:text-[var(--text-main)] hover:border-[var(--border-active)] transition-all cursor-pointer"
+              className="all-arenas-btn hidden md:inline-flex items-center gap-1 text-[11px] font-rounded font-bold px-3 py-1 rounded-full border transition-all cursor-pointer"
+              style={{
+                color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)',
+                borderColor: theme === 'aes' ? 'rgba(241, 202, 126, 0.35)' : 'var(--border-soft)',
+                backgroundColor: theme === 'aes' ? 'rgba(112, 16, 32, 0.5)' : 'transparent'
+              }}
               title="Return to Alpha Ace 2026 Module Selection Hub"
             >
               <span>← All Arenas</span>
@@ -226,30 +232,55 @@ export default function LandingPage() {
           </div>
 
           {/* Scroll Navigation Links (Constant Size) */}
-          <nav className="hidden lg:flex items-center gap-5 xl:gap-6 font-rounded font-bold text-sm text-[var(--text-sub)]">
-            <button onClick={() => scrollToSection('overview')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-6 font-rounded font-bold text-sm">
+            <button 
+              onClick={() => scrollToSection('overview')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               Overview
             </button>
-            <button onClick={() => scrollToSection('metrics')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+            <button 
+              onClick={() => scrollToSection('metrics')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               Metrics
             </button>
-            <button onClick={() => scrollToSection('rules-compulsory')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+            <button 
+              onClick={() => scrollToSection('rules-compulsory')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               Rules
             </button>
-            <button onClick={() => scrollToSection('faq')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+            <button 
+              onClick={() => scrollToSection('faq')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               FAQ
             </button>
-            <button onClick={() => scrollToSection('terminal')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+            <button 
+              onClick={() => scrollToSection('terminal')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               Terminal
             </button>
-            <button onClick={() => scrollToSection('rounds')} className="hover:text-[var(--text-main)] transition-colors cursor-pointer">
+            <button 
+              onClick={() => scrollToSection('rounds')} 
+              className="transition-colors cursor-pointer"
+              style={{ color: theme === 'aes' ? '#E8DCC6' : 'var(--text-sub)' }}
+            >
               3 Rounds
             </button>
             <a
               href="https://alphaace.com.pk/"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-[var(--chart-stroke)] font-bold hover:underline"
+              className="inline-flex items-center gap-1 font-bold hover:underline"
+              style={{ color: '#F1CA7E' }}
             >
               <span>AES 2026</span>
               <IconExternalLink className="w-3.5 h-3.5" />
@@ -261,24 +292,29 @@ export default function LandingPage() {
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={toggleTheme}
-              aria-label="Toggle Theme (Light, Dark, AES Mix)"
-              className="rounded-full border border-[var(--border-soft)] bg-[var(--bg-card)] text-[var(--text-main)] font-rounded font-bold flex items-center gap-1.5 cursor-pointer transition-all px-3.5 py-2 text-xs"
+              aria-label="Toggle Theme (Light, Dark, AES Theme)"
+              className="rounded-full border font-rounded font-bold flex items-center gap-1.5 cursor-pointer transition-all px-3.5 py-2 text-xs shadow-xs"
+              style={{
+                backgroundColor: theme === 'aes' ? '#701020' : theme === 'dark' ? '#1A090E' : '#FFFFFF',
+                color: theme === 'aes' ? '#F1CA7E' : theme === 'dark' ? '#E8DCC6' : '#5A0D1B',
+                borderColor: theme === 'aes' ? '#F1CA7E' : 'var(--border-soft)'
+              }}
               title="Click to cycle themes: White, Dark, AES Theme"
             >
               {theme === 'aes' ? (
                 <>
-                  <IconSun className="w-3.5 h-3.5 text-[#89192C]" />
-                  <span className="hidden sm:inline">AES Theme</span>
+                  <IconSun className="w-3.5 h-3.5 text-[#F1CA7E]" />
+                  <span className="hidden sm:inline font-bold">AES Theme</span>
                 </>
               ) : theme === 'dark' ? (
                 <>
-                  <IconSun className="w-3.5 h-3.5 text-[#C4B8BC]" />
-                  <span className="hidden sm:inline">White</span>
+                  <IconSun className="w-3.5 h-3.5 text-[#D9BB7C]" />
+                  <span className="hidden sm:inline font-bold">White</span>
                 </>
               ) : (
                 <>
-                  <IconMoon className="w-3.5 h-3.5 text-[var(--btn-primary-bg)]" />
-                  <span className="hidden sm:inline">Dark</span>
+                  <IconMoon className="w-3.5 h-3.5 text-[#881B30]" />
+                  <span className="hidden sm:inline font-bold">Dark</span>
                 </>
               )}
             </motion.button>
@@ -287,8 +323,13 @@ export default function LandingPage() {
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={() => navigate('/investomania/market')}
-                style={{ boxShadow: 'var(--btn-primary-shadow)' }}
-                className="rounded-full font-rounded font-bold bg-[var(--btn-primary-bg)] hover:brightness-110 text-[var(--btn-primary-text)] cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
+                style={{
+                  backgroundColor: theme === 'aes' ? '#F1CA7E' : 'var(--btn-primary-bg)',
+                  color: theme === 'aes' ? '#5A0D1B' : 'var(--btn-primary-text)',
+                  border: theme === 'aes' ? '1px solid #F1CA7E' : 'none',
+                  boxShadow: 'var(--btn-primary-shadow)'
+                }}
+                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
               >
                 Floor ({team.name})
               </motion.button>
@@ -296,8 +337,13 @@ export default function LandingPage() {
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 onClick={() => navigate('/investomania/login')}
-                style={{ boxShadow: 'var(--btn-primary-shadow)' }}
-                className="rounded-full font-rounded font-bold bg-[var(--btn-primary-bg)] hover:brightness-110 text-[var(--btn-primary-text)] cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
+                style={{
+                  backgroundColor: theme === 'aes' ? '#F1CA7E' : 'var(--btn-primary-bg)',
+                  color: theme === 'aes' ? '#5A0D1B' : 'var(--btn-primary-text)',
+                  border: theme === 'aes' ? '1px solid #F1CA7E' : 'none',
+                  boxShadow: 'var(--btn-primary-shadow)'
+                }}
+                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
               >
                 Log In
               </motion.button>

@@ -11,16 +11,18 @@ import {
 } from 'recharts';
 
 // Tactile Button (EasyUI-style physics: scale 0.97 on press, no cartoon bounce)
-export function TactileButton({ children, onClick, className = '', disabled = false, type = 'button', title }) {
+export function TactileButton({ children, onClick, className = '', disabled = false, type = 'button', title, style, ...props }) {
   return (
     <motion.button
       type={type}
       title={title}
       disabled={disabled}
       onClick={onClick}
+      style={style}
       whileTap={disabled ? undefined : { scale: 0.97 }}
       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
       className={`cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      {...props}
     >
       {children}
     </motion.button>

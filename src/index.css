@@ -939,11 +939,11 @@ html[data-theme="light"] .dynamic-floating-nav {
 }
 
 html[data-theme="aes"] .dynamic-floating-nav {
-  background-color: #5A0D1B !important;
-  background-image: none !important;
-  border: 2px solid #F1CA7E !important;
-  box-shadow: none !important;
-  filter: none !important;
+  background-color: rgba(90, 13, 27, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1.5px solid rgba(241, 202, 126, 0.6) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(241, 202, 126, 0.12) !important;
 }
 
 /* =========================================================================

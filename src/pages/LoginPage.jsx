@@ -41,7 +41,10 @@ export default function LoginPage() {
             alt="Investomania Logo"
             className="w-10 h-10 rounded-full object-contain border border-[var(--border-soft)] p-0.5 bg-[var(--bg-card)] group-hover:scale-105 transition-transform shrink-0"
           />
-          <span className="font-display text-xl font-bold tracking-tight" style={{ color: 'var(--text-main)' }}>
+          <span 
+            className="font-display text-xl font-bold tracking-tight transition-colors" 
+            style={{ color: theme === 'light' ? 'var(--text-main)' : '#F1CA7E' }}
+          >
             Investomania
           </span>
         </div>
@@ -49,28 +52,41 @@ export default function LoginPage() {
         <div className="flex items-center gap-2">
           <TactileButton
             onClick={() => navigate('/')}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold capsule-card cursor-pointer"
+            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
+            style={{
+              backgroundColor: theme === 'aes' ? '#701020' : 'var(--bg-card)',
+              color: theme === 'aes' ? '#F8EEE1' : 'var(--text-main)',
+              borderColor: theme === 'aes' ? 'rgba(241, 202, 126, 0.35)' : 'var(--border-soft)'
+            }}
           >
             ← All Modules
           </TactileButton>
           <TactileButton
             onClick={() => navigate('/investomania/leaderboard')}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold capsule-card cursor-pointer"
+            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
+            style={{
+              backgroundColor: theme === 'aes' ? '#701020' : 'var(--bg-card)',
+              color: theme === 'aes' ? '#F8EEE1' : 'var(--text-main)',
+              borderColor: theme === 'aes' ? 'rgba(241, 202, 126, 0.35)' : 'var(--border-soft)'
+            }}
           >
             Leaderboard
           </TactileButton>
           <TactileButton
             onClick={toggleTheme}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold flex items-center gap-2 border transition-all cursor-pointer"
+            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold flex items-center gap-2 border transition-all cursor-pointer shadow-xs"
             style={{
-              backgroundColor: 'var(--theme-btn-bg)',
-              color: 'var(--theme-btn-text)',
-              borderColor: 'var(--theme-btn-border)'
+              backgroundColor: theme === 'aes' ? '#701020' : theme === 'dark' ? '#240E15' : '#FFFFFF',
+              color: theme === 'aes' ? '#F1CA7E' : theme === 'dark' ? '#E8DCC6' : '#5A0D1B',
+              borderColor: theme === 'aes' ? '#F1CA7E' : 'var(--theme-btn-border)'
             }}
-            title="Click to cycle themes"
+            title="Click to cycle themes: White, Dark Maroon, AES Theme"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-[var(--chart-stroke)]" />
-            <span>
+            <span 
+              className="w-2.5 h-2.5 rounded-full shrink-0" 
+              style={{ backgroundColor: theme === 'aes' ? '#F1CA7E' : theme === 'dark' ? '#D9BB7C' : '#881B30' }}
+            />
+            <span className="font-bold">
               {theme === 'aes'
                 ? 'AES Theme'
                 : theme === 'dark'
