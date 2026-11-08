@@ -129,6 +129,8 @@ const StockCard = React.memo(function StockCard({
 export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
   const assets = gameState?.assets || [];
   const isTradingOpen = gameState?.phase === 'TRADING' && !gameState?.isPaused;
+  const isRound3 = Number(gameState?.currentRound) === 3;
+  const isTradeExecutionAllowed = isTradingOpen && !isRound3;
 
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -557,11 +559,13 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
 
                       <TactileButton
                         type="submit"
-                        disabled={!isTradingOpen || isExecuting}
+                        disabled={!isTradeExecutionAllowed || isExecuting}
                         className="w-2/3 rounded-full py-3 btn-primary font-display font-semibold text-sm shadow-md"
                       >
                         {isExecuting
                           ? 'Executing Order...'
+                          : isRound3
+                          ? 'Trading Closed in Round 3 (Smuggle Funds)'
                           : !isTradingOpen
                           ? 'Floor Closed (Decrypting Crisis)'
                           : `Confirm ${tradeSide} ${tradeQty} ${selectedStock.symbol}`}

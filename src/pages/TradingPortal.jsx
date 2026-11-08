@@ -126,6 +126,8 @@ export default function TradingPortal({ activeTab = 'market' }) {
 
   const isTradingOpen = gameState?.phase === 'TRADING' && !gameState?.isPaused;
   const isRound3 = Number(gameState?.currentRound) === 3;
+  // In Round 3, trading floor is closed - no more stock/asset trades, only offshore smuggling
+  const isTradeExecutionAllowed = isTradingOpen && !isRound3;
 
   // Dynamic Concise Category Filter: Fuel & Power merged, Arrows on categories, NO arrow on ALL in top area
   const categoryFilters = useMemo(() => {
@@ -505,7 +507,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   <h2 className="text-base sm:text-lg font-bold font-display mt-0.5" style={{ color: 'var(--text-main)' }}>
                     {gameState.currentRound === 1 && 'Round 1: PSX Equities Trading Floor'}
                     {gameState.currentRound === 2 && 'Round 2: Commodities & FX Trading Floor'}
-                    {gameState.currentRound === 3 && 'Round 3: Multi-Asset Floor + Offshore Tax Havens'}
+                    {gameState.currentRound === 3 && 'Round 3: Offshore Tax Havens & Capital Smuggling'}
                   </h2>
                 </div>
               </div>
@@ -555,7 +557,8 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   <IconClock className="w-4 h-4" />
                   <div>
                     <span className="text-[10px] uppercase block text-[var(--text-sub)] leading-none font-rounded font-bold">
-                      {gameState.phase === 'TRADING' && (gameState.isUntimed ? 'Floor Open (Untimed)' : 'Trading Floor Open')}
+                      {isRound3 && gameState.phase === 'TRADING' && 'Smuggling Windows Open · Trading Closed'}
+                      {!isRound3 && gameState.phase === 'TRADING' && (gameState.isUntimed ? 'Floor Open (Untimed)' : 'Trading Floor Open')}
                       {(gameState.phase === 'DECRYPT' || gameState.phase === 'DECRYPTING') && 'Floor Locked · Decrypting'}
                       {gameState.phase === 'IDLE' && 'Waiting for Round'}
                       {gameState.phase === 'PRE_ROUND' && 'Pre-Round Staging'}
@@ -584,6 +587,30 @@ export default function TradingPortal({ activeTab = 'market' }) {
               {/* TAB 1: TRADING FLOOR (Only Tab That Displays Detailed Cards + Side-by-Side Chart & Crisis Feed) */}
               {(currentTab === 'market' || !['stocks', 'crisis', 'portfolio', 'leaderboard', 'rules', 'tax'].includes(currentTab)) && (
             <div className="space-y-6">
+              {/* Round 3 Notice Banner: Trading Floor Closed, Move to Smuggling */}
+              {isRound3 && (
+                <div className="surface-box rounded-[24px] p-4 sm:p-5 border-2 border-[#881B30] bg-[#881B30]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#881B30] text-white flex items-center justify-center shrink-0 font-bold">
+                      <IconAlert className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-display font-bold text-sm sm:text-base" style={{ color: 'var(--text-main)' }}>
+                        Round 3: Exchange Trading Floor Closed
+                      </div>
+                      <p className="text-xs font-rounded font-semibold text-[var(--text-sub)] mt-0.5">
+                        Trading in equities and currencies has ended. You must smuggle your liquid cash through offshore tax havens before audit limits strike!
+                      </p>
+                    </div>
+                  </div>
+                  <TactileButton
+                    onClick={() => navigate('/investomania/tax')}
+                    className="rounded-full px-5 py-2.5 btn-primary font-rounded font-bold text-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-md hover:scale-105 transition-transform"
+                  >
+                    <span>Open Smuggling Map →</span>
+                  </TactileButton>
+                </div>
+              )}
               {/* 1. TOP 4 STATS CARDS - FLUID RESPONSIVE ACROSS ALL SCREEN SIZES */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
                 {/* Card 1: Total Net Worth */}
@@ -880,16 +907,28 @@ export default function TradingPortal({ activeTab = 'market' }) {
                             </div>
 
                             {/* Tactile Button to Open Window Popup Trade Modal */}
-                            <TactileButton
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenTrade(item);
-                              }}
-                              className="rounded-full px-5 py-2.5 font-rounded font-extrabold text-xs flex items-center gap-2 cursor-pointer btn-primary shadow-md hover:scale-105 transition-transform"
-                            >
-                              <IconTrade className="w-4 h-4 text-white" />
-                              <span>Trade</span>
-                            </TactileButton>
+                            {isRound3 ? (
+                              <TactileButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/investomania/tax');
+                                }}
+                                className="rounded-full px-4 py-2 font-rounded font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-[#881B30] text-[#881B30] bg-[#881B30]/10 hover:bg-[#881B30] hover:text-white transition-colors"
+                              >
+                                <span>Smuggle</span>
+                              </TactileButton>
+                            ) : (
+                              <TactileButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTrade(item);
+                                }}
+                                className="rounded-full px-5 py-2.5 font-rounded font-extrabold text-xs flex items-center gap-2 cursor-pointer btn-primary shadow-md hover:scale-105 transition-transform"
+                              >
+                                <IconTrade className="w-4 h-4 text-white" />
+                                <span>Trade</span>
+                              </TactileButton>
+                            )}
                           </div>
                         </motion.div>
                       );
@@ -1348,7 +1387,8 @@ export default function TradingPortal({ activeTab = 'market' }) {
         asset={tradeModalAsset || selectedAsset}
         team={team}
         onPlaceTrade={placeTrade}
-        isTradingOpen={isTradingOpen}
+        isTradingOpen={isTradeExecutionAllowed}
+        isRound3={isRound3}
       />
 
       {/* SIGN OUT CONFIRMATION DIALOG MODAL */}

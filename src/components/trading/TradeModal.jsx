@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TactileButton } from '../ui/EasyComponents.jsx';
 import { IconClose, IconTrade, IconCheck, IconAlert } from '../ui/CustomIcons.jsx';
 
-export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade, isTradingOpen }) {
+export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade, isTradingOpen, isRound3 = false }) {
   const [tradeSide, setTradeSide] = useState('BUY');
   const [tradeQty, setTradeQty] = useState(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +58,10 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
     e.preventDefault();
     if (isHalted) {
       setFeedback({ type: 'error', text: `Trading on ${asset.symbol} is halted by Exchange Circuit Breaker.` });
+      return;
+    }
+    if (isRound3) {
+      setFeedback({ type: 'error', text: 'Trading floor is closed in Round 3. All trades are halted; smuggle your money through Offshore Havens.' });
       return;
     }
     if (!isTradingOpen) {
@@ -317,15 +321,19 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
               {/* Submit Button */}
               <TactileButton
                 type="submit"
-                disabled={!isTradingOpen || isSubmitting}
+                disabled={!isTradingOpen || isSubmitting || isRound3}
                 className={`w-full rounded-full py-3.5 font-display font-semibold text-sm shadow-md flex items-center justify-center gap-2 ${
-                  tradeSide === 'BUY'
+                  isRound3
+                    ? 'bg-neutral-700 opacity-60 cursor-not-allowed text-[#FAF7F5]'
+                    : tradeSide === 'BUY'
                     ? 'bg-[#3B7A57] hover:bg-[#2D6344] text-[#FAF7F5]'
                     : 'bg-[#B83A3A] hover:bg-[#8E2833] text-[#FAF7F5]'
                 }`}
               >
                 {isSubmitting
                   ? 'Routing Order...'
+                  : isRound3
+                  ? 'Trading Floor Closed in Round 3'
                   : !isTradingOpen
                   ? 'Trading Floor Closed'
                   : `Confirm ${tradeSide} ${tradeQty} ${asset.symbol}`}
