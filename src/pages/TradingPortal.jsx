@@ -276,7 +276,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
         <aside className="surface-box rounded-[24px] sm:rounded-[28px] lg:rounded-[32px] p-3.5 sm:p-4 flex flex-col justify-between w-full h-full shrink-0 gap-2.5 sm:gap-3 shadow-lg">
           <div className="flex flex-col items-stretch gap-2.5 sm:gap-3 w-full min-h-0 flex-1">
             {/* Brand Header + Mobile/Tablet Quick Actions */}
-            <div className="flex items-center justify-between gap-3 w-full shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 w-full shrink-0">
               <div
                 onClick={() => navigate('/investomania')}
                 className="flex items-center gap-2.5 sm:gap-3 px-1 pt-1 shrink-0 cursor-pointer group"
@@ -285,23 +285,23 @@ export default function TradingPortal({ activeTab = 'market' }) {
                 <img
                   src="/InvestomaniaLogo.png"
                   alt="Investomania Logo"
-                  className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-contain shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-contain shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                 />
-                <div className="block">
-                  <div className="font-display text-base sm:text-lg font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
+                <div className="block min-w-0">
+                  <div className="font-display text-sm sm:text-lg font-bold leading-tight truncate" style={{ color: 'var(--text-main)' }}>
                     Investomania
                   </div>
-                  <span className="text-[11px] sm:text-xs font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
+                  <span className="text-[10px] sm:text-xs font-rounded font-semibold block truncate" style={{ color: 'var(--text-sub)' }}>
                     Round {gameState.currentRound} Floor
                   </span>
                 </div>
               </div>
 
               {/* Mobile / Tablet Header Controls (Menu Window, Theme & Sign Out) */}
-              <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="flex lg:hidden items-center justify-end gap-1.5 sm:gap-2 shrink-0">
                 <TactileButton
                   onClick={() => setIsMobileNavOpen(true)}
-                  className="rounded-full py-1.5 px-3 text-xs font-rounded font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer shadow-sm"
+                  className="rounded-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs font-rounded font-bold flex items-center justify-center gap-1.5 border transition-all cursor-pointer shadow-sm"
                   style={{
                     backgroundColor: 'var(--tab-active-bg)',
                     color: 'var(--tab-active-text)',
@@ -309,13 +309,13 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   }}
                   title="Open Navigation Menu Window"
                 >
-                  <Menu className="w-3.5 h-3.5" />
+                  <Menu className="w-3.5 h-3.5 shrink-0" />
                   <span>Floor Menu</span>
                 </TactileButton>
 
                 <TactileButton
                   onClick={toggleTheme}
-                  className="rounded-full py-1.5 px-2.5 sm:px-3 text-xs font-rounded font-semibold flex items-center justify-center gap-1 border transition-all cursor-pointer"
+                  className="rounded-full py-1.5 px-2 sm:px-3 text-xs font-rounded font-semibold flex items-center justify-center gap-1 border transition-all cursor-pointer"
                   style={{
                     backgroundColor: 'var(--theme-btn-bg)',
                     color: 'var(--theme-btn-text)',
@@ -340,7 +340,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                     color: 'var(--btn-signout-text)',
                     borderColor: 'var(--btn-signout-border)'
                   }}
-                  className="rounded-full py-1.5 px-2.5 sm:px-3 text-[11px] sm:text-xs font-rounded font-bold text-center transition-all border cursor-pointer hover:brightness-105"
+                  className="rounded-full py-1.5 px-2 sm:px-3 text-[11px] sm:text-xs font-rounded font-bold text-center transition-all border cursor-pointer hover:brightness-105 shrink-0"
                 >
                   Sign Out
                 </TactileButton>
@@ -348,14 +348,14 @@ export default function TradingPortal({ activeTab = 'market' }) {
             </div>
 
             {/* Mobile & Tablet Compact Active Team Banner */}
-            <div className="capsule-card rounded-2xl px-3.5 py-2 flex lg:hidden items-center justify-between gap-3 text-xs font-rounded border border-[var(--border-soft)] shrink-0 w-full">
-              <div className="flex items-center gap-2 truncate">
+            <div className="capsule-card rounded-2xl px-3 py-2 flex lg:hidden items-center justify-between gap-2 text-xs font-rounded border border-[var(--border-soft)] shrink-0 w-full min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <span className="w-2 h-2 rounded-full bg-[#2E7D52] shrink-0" />
-                <span className="font-bold truncate" style={{ color: 'var(--text-main)' }}>
+                <span className="font-bold truncate text-[11px] sm:text-xs" style={{ color: 'var(--text-main)' }}>
                   {team?.name || 'Trading Desk'}
                 </span>
               </div>
-              <div className="flex items-center gap-2.5 font-mono text-[11px] sm:text-xs shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2.5 font-mono text-[10px] sm:text-xs shrink-0 whitespace-nowrap">
                 <span>Cash: <strong style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong></span>
                 {((team?.round1Profit || 0) > 0 || (team?.round2Profit || 0) > 0) && (
                   <span className="text-[#2E7D52] hidden sm:inline font-bold">

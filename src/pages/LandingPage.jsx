@@ -181,20 +181,20 @@ export default function LandingPage() {
           - Constant height, constant logo, constant typography and button size
           - Only horizontal length decreases with scroll
           ===================================================================== */}
-      <div className="fixed top-3 sm:top-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+      <div className="fixed top-2.5 sm:top-4 inset-x-0 z-50 flex justify-center px-2.5 sm:px-4 pointer-events-none">
         <motion.header
           animate={{
             maxWidth: isScrolled ? '900px' : '1180px'
           }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="dynamic-floating-nav rounded-full flex items-center justify-between gap-4 w-full px-6 sm:px-7 py-3 pointer-events-auto shadow-2xl flex-nowrap"
+          className="dynamic-floating-nav rounded-full flex items-center justify-between gap-2 sm:gap-4 w-full px-3 sm:px-7 py-2 sm:py-3 pointer-events-auto shadow-2xl flex-nowrap"
         >
           {/* Brand Logo (Text hides on scroll so only logo shows when navbar smallens) */}
           <div
             onClick={() => scrollToSection('overview')}
-            className="flex items-center gap-2.5 cursor-pointer shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer shrink-0"
           >
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[var(--border-active)] bg-[#1A090E] p-0.5 shrink-0 hover:scale-105 transition-transform flex items-center justify-center">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-[var(--border-active)] bg-[#1A090E] p-0.5 shrink-0 hover:scale-105 transition-transform flex items-center justify-center">
               <picture>
                 <source srcSet="/InvestomaniaLogo.webp" type="image/webp" />
                 <source srcSet="/InvestomaniaLogo.png" type="image/png" />
@@ -208,7 +208,7 @@ export default function LandingPage() {
                   animate={{ opacity: 1, width: 'auto', x: 0 }}
                   exit={{ opacity: 0, width: 0, x: -8 }}
                   transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                  className="font-display font-bold tracking-tight text-lg sm:text-xl whitespace-nowrap overflow-hidden hidden sm:inline-block transition-colors"
+                  className="font-display font-bold tracking-tight text-base sm:text-xl whitespace-nowrap overflow-hidden hidden sm:inline-block transition-colors"
                   style={{ color: theme === 'aes' ? '#F1CA7E' : 'var(--text-main)' }}
                 >
                   INVESTOMANIA
@@ -287,12 +287,12 @@ export default function LandingPage() {
           </nav>
 
           {/* Theme Switcher + Log In CTA (No redundant Enter Floor button, preventing overflow) */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={toggleTheme}
               aria-label="Toggle Theme (Light, Dark, AES Theme)"
-              className="rounded-full border font-rounded font-bold flex items-center gap-1.5 cursor-pointer transition-all px-3.5 py-2 text-xs shadow-xs"
+              className="rounded-full border font-rounded font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all p-2 sm:px-3.5 sm:py-2 text-xs shadow-xs"
               style={{
                 backgroundColor: theme === 'aes' ? '#701020' : theme === 'dark' ? '#1A090E' : '#FFFFFF',
                 color: theme === 'aes' ? '#F1CA7E' : theme === 'dark' ? '#E8DCC6' : '#5A0D1B',
@@ -328,9 +328,10 @@ export default function LandingPage() {
                   border: theme === 'aes' ? '1px solid #F1CA7E' : 'none',
                   boxShadow: 'var(--btn-primary-shadow)'
                 }}
-                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
+                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm shrink-0"
               >
-                Floor ({team.name})
+                <span className="hidden sm:inline">Floor ({team.name})</span>
+                <span className="inline sm:hidden">Floor</span>
               </motion.button>
             ) : (
               <motion.button
@@ -342,7 +343,7 @@ export default function LandingPage() {
                   border: theme === 'aes' ? '1px solid #F1CA7E' : 'none',
                   boxShadow: 'var(--btn-primary-shadow)'
                 }}
-                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-5 py-2 text-xs sm:text-sm"
+                className="rounded-full font-rounded font-bold hover:brightness-110 cursor-pointer transition-all px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm shrink-0"
               >
                 Log In
               </motion.button>

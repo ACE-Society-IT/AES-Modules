@@ -31,28 +31,28 @@ export default function LoginPage() {
   return (
     <div className="w-full min-h-screen flex flex-col justify-between p-4 sm:p-8">
       {/* Top Header */}
-      <header className="w-full max-w-6xl mx-auto flex items-center justify-between gap-4 py-2">
+      <header className="w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 py-2">
         <div
           onClick={() => navigate('/investomania')}
-          className="flex items-center gap-3 cursor-pointer group select-none"
+          className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none"
         >
           <img
             src="/InvestomaniaLogo.png"
             alt="Investomania Logo"
-            className="w-10 h-10 rounded-full object-contain border border-[var(--border-soft)] p-0.5 bg-[var(--bg-card)] group-hover:scale-105 transition-transform shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-contain border border-[var(--border-soft)] p-0.5 bg-[var(--bg-card)] group-hover:scale-105 transition-transform shrink-0"
           />
           <span 
-            className="font-display text-xl font-bold tracking-tight transition-colors" 
+            className="font-display text-lg sm:text-xl font-bold tracking-tight transition-colors" 
             style={{ color: theme === 'light' ? 'var(--text-main)' : '#F1CA7E' }}
           >
             Investomania
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
           <TactileButton
             onClick={() => navigate('/')}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
+            className="rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
             style={{
               backgroundColor: theme === 'aes' ? '#701020' : 'var(--bg-card)',
               color: theme === 'aes' ? '#F8EEE1' : 'var(--text-main)',
@@ -63,7 +63,7 @@ export default function LoginPage() {
           </TactileButton>
           <TactileButton
             onClick={() => navigate('/investomania/leaderboard')}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
+            className="rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-rounded font-semibold border transition-all cursor-pointer shadow-xs"
             style={{
               backgroundColor: theme === 'aes' ? '#701020' : 'var(--bg-card)',
               color: theme === 'aes' ? '#F8EEE1' : 'var(--text-main)',
@@ -74,7 +74,7 @@ export default function LoginPage() {
           </TactileButton>
           <TactileButton
             onClick={toggleTheme}
-            className="rounded-full px-4 py-2 text-xs font-rounded font-semibold flex items-center gap-2 border transition-all cursor-pointer shadow-xs"
+            className="rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-rounded font-semibold flex items-center gap-1.5 sm:gap-2 border transition-all cursor-pointer shadow-xs"
             style={{
               backgroundColor: theme === 'aes' ? '#701020' : theme === 'dark' ? '#240E15' : '#FFFFFF',
               color: theme === 'aes' ? '#F1CA7E' : theme === 'dark' ? '#E8DCC6' : '#5A0D1B',
