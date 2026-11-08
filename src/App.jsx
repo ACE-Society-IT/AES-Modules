@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GameProvider, useGame } from './context/GameContext.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 
 // Code-Split Dynamic Lazy Imports for Ultra-Fast Initial Bundle
 const ModuleSelectorPage = lazy(() => import('./pages/ModuleSelectorPage.jsx'));
@@ -12,10 +13,10 @@ const EmpirePortalShell = lazy(() => import('./defend-the-empire/components/Empi
 
 function AppLoadingFallback({ message = 'Connecting to Investomania Floor...' }) {
   return (
-    <div className="w-full min-h-screen flex items-center justify-center p-6 bg-[#0B0204] text-[#F1CA7E]">
-      <div className="p-8 rounded-2xl border border-[#3A2418] bg-[#1A120E] text-center max-w-sm w-full space-y-3 shadow-xl">
-        <div className="w-8 h-8 mx-auto border-2 border-[#D9BB7C] border-t-transparent rounded-full animate-spin" />
-        <p className="font-rounded font-bold text-sm text-[#F7F2EA]">{message}</p>
+    <div className="w-full min-h-screen flex items-center justify-center p-6 bg-[#5A0D1B] text-[#F1CA7E]">
+      <div className="p-8 rounded-2xl border border-[rgba(241,202,126,0.35)] bg-[#701020] text-center max-w-sm w-full space-y-3 shadow-2xl">
+        <div className="w-8 h-8 mx-auto border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
+        <p className="font-rounded font-bold text-sm text-[#F8EEE1]">{message}</p>
       </div>
     </div>
   );
@@ -33,10 +34,11 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <GameProvider>
-      <BrowserRouter>
-        <Suspense fallback={<AppLoadingFallback />}>
-          <Routes>
+    <ErrorBoundary>
+      <GameProvider>
+        <BrowserRouter>
+          <Suspense fallback={<AppLoadingFallback />}>
+            <Routes>
             {/* Main Entrance (app.alphaace.pk): AES Theme Module Selector */}
             <Route path="/" element={<ModuleSelectorPage />} />
 
@@ -88,5 +90,6 @@ export default function App() {
         </Suspense>
       </BrowserRouter>
     </GameProvider>
+  </ErrorBoundary>
   );
 }

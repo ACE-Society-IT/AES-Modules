@@ -111,13 +111,12 @@ export default function LandingPage() {
   const { theme, toggleTheme, team } = useGame();
   const scrollContainerRef = useRef(null);
   const [isScrolled, setIsScrolled] = React.useState(false);
-  const [scrollBlurRatio, setScrollBlurRatio] = React.useState(0);
 
+  // Performance-optimized scroll handler: only dispatches state when threshold crosses
   const handleScroll = () => {
     if (scrollContainerRef.current) {
-      const top = scrollContainerRef.current.scrollTop;
-      setIsScrolled(top > 40);
-      setScrollBlurRatio(Math.min(1, top / 350));
+      const scrolled = scrollContainerRef.current.scrollTop > 40;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
     }
   };
 
@@ -462,9 +461,9 @@ export default function LandingPage() {
         id="metrics"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={revealVariant}
-        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-between gap-6 landing-section-gradient overflow-hidden"
+        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-between gap-6 landing-section-gradient overflow-hidden content-auto"
       >
         {/* Soft blurred edge transitions */}
         <div className="section-seam-blur-top" aria-hidden="true" />
@@ -611,9 +610,9 @@ export default function LandingPage() {
         id="rules-compulsory"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={revealVariant}
-        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-between gap-6 landing-section-gradient-alt overflow-hidden"
+        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-between gap-6 landing-section-gradient-alt overflow-hidden content-auto"
       >
         {/* Soft blurred edge transitions */}
         <div className="section-seam-blur-top" aria-hidden="true" />
@@ -784,9 +783,9 @@ export default function LandingPage() {
         id="terminal"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={revealVariant}
-        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-center landing-section-gradient overflow-hidden"
+        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-8 sm:pb-10 flex flex-col justify-center landing-section-gradient overflow-hidden content-auto"
       >
         {/* Soft blurred edge transitions */}
         <div className="section-seam-blur-top" aria-hidden="true" />
@@ -968,9 +967,9 @@ export default function LandingPage() {
         id="rounds"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={revealVariant}
-        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-6 sm:pb-8 flex flex-col justify-between gap-6 landing-section-gradient-alt overflow-hidden"
+        className="relative min-h-screen lg:h-screen w-full px-4 sm:px-8 lg:px-14 xl:px-20 pt-28 sm:pt-32 pb-6 sm:pb-8 flex flex-col justify-between gap-6 landing-section-gradient-alt overflow-hidden content-auto"
       >
         {/* Soft blurred edge transition */}
         <div className="section-seam-blur-top" aria-hidden="true" />

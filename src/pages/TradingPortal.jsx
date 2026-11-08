@@ -171,25 +171,27 @@ export default function TradingPortal({ activeTab = 'market' }) {
     return list;
   }, [assets]);
 
-  const filteredAssets = assets.filter((a) => {
-    let matchesCat = true;
-    if (categoryFilter !== 'ALL') {
-      if (categoryFilter.startsWith('SEC:')) {
-        const targetSec = categoryFilter.replace('SEC:', '');
-        matchesCat = normalizeCategorySector(a.sector) === targetSec;
-      } else {
-        matchesCat = a.category === categoryFilter;
+  const filteredAssets = useMemo(() => {
+    return assets.filter((a) => {
+      let matchesCat = true;
+      if (categoryFilter !== 'ALL') {
+        if (categoryFilter.startsWith('SEC:')) {
+          const targetSec = categoryFilter.replace('SEC:', '');
+          matchesCat = normalizeCategorySector(a.sector) === targetSec;
+        } else {
+          matchesCat = a.category === categoryFilter;
+        }
       }
-    }
-    const q = searchQuery.trim().toLowerCase();
-    const matchesSearch =
-      !q ||
-      a.symbol.toLowerCase().includes(q) ||
-      a.name.toLowerCase().includes(q) ||
-      normalizeCategorySector(a.sector).toLowerCase().includes(q) ||
-      a.sector.toLowerCase().includes(q);
-    return matchesCat && matchesSearch;
-  });
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        a.symbol.toLowerCase().includes(q) ||
+        a.name.toLowerCase().includes(q) ||
+        normalizeCategorySector(a.sector).toLowerCase().includes(q) ||
+        a.sector.toLowerCase().includes(q);
+      return matchesCat && matchesSearch;
+    });
+  }, [assets, categoryFilter, searchQuery]);
 
   // Top Metrics calculation (matching Investor Forum's OverviewView layout)
   const initialBudget = Number(team?.initialRoundBudget || 100000);
@@ -350,14 +352,14 @@ export default function TradingPortal({ activeTab = 'market' }) {
               <div className="flex items-center gap-2 truncate">
                 <span className="w-2 h-2 rounded-full bg-[#2E7D52] shrink-0" />
                 <span className="font-bold truncate" style={{ color: 'var(--text-main)' }}>
-                  {team.name}
+                  {team?.name || 'Trading Desk'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5 font-mono text-[11px] sm:text-xs shrink-0">
-                <span>Cash: <strong style={{ color: 'var(--text-main)' }}>PKR {Number(team.cash).toLocaleString()}</strong></span>
-                {(team.round1Profit > 0 || team.round2Profit > 0) && (
+                <span>Cash: <strong style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong></span>
+                {((team?.round1Profit || 0) > 0 || (team?.round2Profit || 0) > 0) && (
                   <span className="text-[#2E7D52] hidden sm:inline font-bold">
-                    +PKR {Number((team.round1Profit || 0) + (team.round2Profit || 0)).toLocaleString()}
+                    +PKR {Number((team?.round1Profit || 0) + (team?.round2Profit || 0)).toLocaleString()}
                   </span>
                 )}
               </div>
@@ -367,18 +369,18 @@ export default function TradingPortal({ activeTab = 'market' }) {
             <div className="capsule-card rounded-[24px] p-3.5 hidden lg:block border border-[var(--border-soft)] shrink-0">
               <div className="flex items-center justify-between text-xs font-rounded mb-1">
                 <span className="font-bold truncate" style={{ color: 'var(--text-main)' }}>
-                  {team.name}
+                  {team?.name || 'Trading Desk'}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[#2E7D52] font-bold">
                   <span className="w-2 h-2 rounded-full bg-[#2E7D52]" /> Online
                 </span>
               </div>
               <div className="text-xs font-rounded font-bold" style={{ color: 'var(--text-sub)' }}>
-                Cash: <strong style={{ color: 'var(--text-main)' }}>PKR {Number(team.cash).toLocaleString()}</strong>
+                Cash: <strong style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong>
               </div>
-              {(team.round1Profit > 0 || team.round2Profit > 0) && (
+              {((team?.round1Profit || 0) > 0 || (team?.round2Profit || 0) > 0) && (
                 <div className="text-xs font-rounded text-[#2E7D52] mt-0.5">
-                  Carryover: +PKR {Number((team.round1Profit || 0) + (team.round2Profit || 0)).toLocaleString()}
+                  Carryover: +PKR {Number((team?.round1Profit || 0) + (team?.round2Profit || 0)).toLocaleString()}
                 </div>
               )}
             </div>
@@ -820,7 +822,8 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   {filteredAssets.length > 0 ? (
                     filteredAssets.map((item, idx) => {
                       const isUp = (item.changePercent || 0) >= 0;
-                      const heldQty = team.holdings?.[item.symbol]?.quantity || 0;
+                      const pos = team?.holdings?.[item.symbol];
+                      const heldQty = typeof pos === 'object' ? Number(pos?.quantity || 0) : Number(pos || 0);
                       const isSelected = selectedAsset?.symbol === item.symbol;
 
                       return (
@@ -1171,7 +1174,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                       Portfolio Allocation Breakdown
                     </h2>
                     <span className="text-xs font-rounded font-bold" style={{ color: 'var(--text-sub)' }}>
-                      Initial Round Budget: PKR {Number(team.initialRoundBudget || 100000).toLocaleString()}
+                      Initial Round Budget: PKR {Number(team?.initialRoundBudget || 100000).toLocaleString()}
                     </span>
                   </div>
                   <div className="text-right">

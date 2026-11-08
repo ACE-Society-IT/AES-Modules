@@ -26,6 +26,106 @@ export function normalizeCategorySector(sector = '') {
   return sector || 'Other';
 }
 
+// Memoized Stock Card Component for 60fps scrolling on low-end hardware
+const StockCard = React.memo(function StockCard({
+  stock,
+  isUp,
+  userHoldings,
+  idx,
+  onOpenTrade
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.22,
+        delay: Math.min(idx * 0.02, 0.3),
+        ease: [0.22, 1, 0.36, 1]
+      }}
+      whileHover={{ y: -3, transition: { duration: 0.15 } }}
+      onClick={() => onOpenTrade(stock)}
+      className="surface-box rounded-[28px] p-5 space-y-3.5 cursor-pointer border border-[var(--border-soft)] hover:border-[var(--border-active)] transition-all relative flex flex-col justify-between"
+      style={{ contain: 'content' }}
+    >
+      {/* Header: Symbol + Category Tag */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-full bg-[var(--border-active)]/15 text-[var(--border-active)] border border-[var(--border-active)]/30 flex items-center justify-center font-rounded font-bold text-xs shadow-sm">
+            {stock.symbol.slice(0, 4)}
+          </div>
+          <div>
+            <h4 className="font-display font-semibold text-sm leading-tight" style={{ color: 'var(--text-main)' }}>
+              {stock.name}
+            </h4>
+            <span className="text-[11px] font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
+              {stock.symbol} • {normalizeCategorySector(stock.sector)}
+            </span>
+          </div>
+        </div>
+
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[11px] font-rounded font-bold flex items-center gap-1 ${
+            stock.isHalted
+              ? 'bg-[#B83A3A] text-white'
+              : isUp
+              ? 'bg-[#3B7A57]/15 text-[#2D6344]'
+              : 'bg-[#B83A3A]/15 text-[#B83A3A]'
+          }`}
+        >
+          {stock.isHalted ? (
+            <span>HALTED</span>
+          ) : (
+            <>
+              <span>{isUp ? '↑' : '↓'}</span>
+              <span>{isUp ? '+' : ''}{Number(stock.changePercent || 0).toFixed(2)}%</span>
+            </>
+          )}
+        </span>
+      </div>
+
+      {/* Brief Description */}
+      <p className="text-[11px] font-rounded leading-relaxed line-clamp-2" style={{ color: 'var(--text-sub)' }}>
+        {stock.description || `${stock.name} listed in the ${stock.sector} market.`}
+      </p>
+
+      {/* Dynamic Mini Graph Icon Area */}
+      <div className="rounded-2xl capsule-inset p-3 flex items-center justify-between gap-2">
+        <div className="w-full">
+          <MiniSparkline series={stock.history || [stock.basePrice, stock.price]} isPositive={isUp} />
+        </div>
+        <span className="text-[10px] font-rounded font-bold opacity-75 shrink-0">
+          Live
+        </span>
+      </div>
+
+      {/* Price & Action Row */}
+      <div className="flex items-center justify-between pt-1 border-t border-[var(--border-soft)] text-xs font-rounded">
+        <div>
+          <span className="text-[10px] block opacity-75" style={{ color: 'var(--text-sub)' }}>
+            Market Price
+          </span>
+          <strong className="text-sm font-bold font-mono" style={{ color: 'var(--text-main)' }}>
+            PKR {Number(stock.price).toFixed(2)}
+          </strong>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {userHoldings > 0 && (
+            <span className="rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-2.5 py-1 text-xs font-bold font-mono">
+              {userHoldings}u
+            </span>
+          )}
+          <span className="rounded-full px-4 py-2 font-extrabold text-xs shadow-md btn-primary flex items-center gap-1.5 transition-transform hover:scale-105">
+            <span>Trade</span>
+            <span className="text-[13px] leading-none">→</span>
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
 export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
   const assets = gameState?.assets || [];
   const isTradingOpen = gameState?.phase === 'TRADING' && !gameState?.isPaused;
@@ -230,97 +330,18 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4">
           {filteredAssets.map((stock, idx) => {
             const isUp = (stock.changePercent || 0) >= 0;
-            const userHoldings = team.holdings?.[stock.symbol]?.quantity || 0;
+            const pos = team?.holdings?.[stock.symbol];
+            const userHoldings = typeof pos === 'object' ? Number(pos?.quantity || 0) : Number(pos || 0);
 
             return (
-              <motion.div
+              <StockCard
                 key={stock.symbol}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.22,
-                  delay: Math.min(idx * 0.03, 0.4),
-                  ease: [0.22, 1, 0.36, 1]
-                }}
-                whileHover={{ y: -3, transition: { duration: 0.15 } }}
-                onClick={() => handleOpenTradeModal(stock)}
-                className="surface-box rounded-[28px] p-5 space-y-3.5 cursor-pointer border border-[var(--border-soft)] hover:border-[var(--border-active)] transition-all relative flex flex-col justify-between"
-              >
-                {/* Header: Symbol + Category Tag */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-full bg-[var(--border-active)]/15 text-[var(--border-active)] border border-[var(--border-active)]/30 flex items-center justify-center font-rounded font-bold text-xs shadow-sm">
-                      {stock.symbol.slice(0, 4)}
-                    </div>
-                    <div>
-                      <h4 className="font-display font-semibold text-sm leading-tight" style={{ color: 'var(--text-main)' }}>
-                        {stock.name}
-                      </h4>
-                      <span className="text-[11px] font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
-                        {stock.symbol} • {normalizeCategorySector(stock.sector)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-rounded font-bold flex items-center gap-1 ${
-                      stock.isHalted
-                        ? 'bg-[#B83A3A] text-white'
-                        : isUp
-                        ? 'bg-[#3B7A57]/15 text-[#2D6344]'
-                        : 'bg-[#B83A3A]/15 text-[#B83A3A]'
-                    }`}
-                  >
-                    {stock.isHalted ? (
-                      <span>HALTED</span>
-                    ) : (
-                      <>
-                        <span>{isUp ? '↑' : '↓'}</span>
-                        <span>{isUp ? '+' : ''}{Number(stock.changePercent || 0).toFixed(2)}%</span>
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                {/* Brief Description */}
-                <p className="text-[11px] font-rounded leading-relaxed line-clamp-2" style={{ color: 'var(--text-sub)' }}>
-                  {stock.description || `${stock.name} listed in the ${stock.sector} market.`}
-                </p>
-
-                {/* Dynamic Mini Graph Icon Area */}
-                <div className="rounded-2xl capsule-inset p-3 flex items-center justify-between gap-2">
-                  <div className="w-full">
-                    <MiniSparkline series={stock.history || [stock.basePrice, stock.price]} isPositive={isUp} />
-                  </div>
-                  <span className="text-[10px] font-rounded font-bold opacity-75 shrink-0">
-                    Live
-                  </span>
-                </div>
-
-                {/* Price & Action Row */}
-                <div className="flex items-center justify-between pt-1 border-t border-[var(--border-soft)] text-xs font-rounded">
-                  <div>
-                    <span className="text-[10px] block opacity-75" style={{ color: 'var(--text-sub)' }}>
-                      Market Price
-                    </span>
-                    <strong className="text-sm font-bold font-mono" style={{ color: 'var(--text-main)' }}>
-                      PKR {Number(stock.price).toFixed(2)}
-                    </strong>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {userHoldings > 0 && (
-                      <span className="rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-2.5 py-1 text-xs font-bold font-mono">
-                        {userHoldings}u
-                      </span>
-                    )}
-                    <span className="rounded-full px-4 py-2 font-extrabold text-xs shadow-md btn-primary flex items-center gap-1.5 transition-transform hover:scale-105">
-                      <span>Trade</span>
-                      <span className="text-[13px] leading-none">→</span>
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
+                stock={stock}
+                isUp={isUp}
+                userHoldings={userHoldings}
+                idx={idx}
+                onOpenTrade={handleOpenTradeModal}
+              />
             );
           })}
         </div>
@@ -460,7 +481,7 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
                         </label>
                         <span style={{ color: 'var(--text-sub)' }}>
                           {tradeSide === 'BUY' ? (
-                            <>Available: <strong className="font-mono" style={{ color: 'var(--text-main)' }}>PKR {Number(team.cash || 0).toLocaleString()}</strong></>
+                            <>Available: <strong className="font-mono" style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong></>
                           ) : (
                             <>Holdings: <strong className="font-mono text-[var(--border-active)] font-bold">{heldQty} units</strong></>
                           )}

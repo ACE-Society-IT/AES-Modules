@@ -20,8 +20,8 @@ export function GameProvider({ children }) {
     }
   });
 
-  // Support 3 modes: 'light' (Classic White), 'dark' (Classic Maroon Obsidian), 'aes' (AES Crimson Canvas + Crisp White Cards)
-  const [theme, setTheme] = useState(() => sessionStorage.getItem('investomania_theme') || 'light');
+  // Support 3 modes: 'aes' (AES Crimson Canvas), 'dark' (Maroon Obsidian), 'light' (Classic White)
+  const [theme, setTheme] = useState(() => sessionStorage.getItem('investomania_theme') || 'aes');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);

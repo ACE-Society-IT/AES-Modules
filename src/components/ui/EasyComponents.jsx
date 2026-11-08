@@ -113,8 +113,8 @@ export function MorphingPillTabs({ tabs, activeTab, onChange, layoutId = 'pillTa
   );
 }
 
-// EasyUI-style Full-Width Responsive Mini Sparkline with Area Fill
-export function MiniSparkline({ series = [], isPositive = true, className = 'w-full h-8' }) {
+// EasyUI-style Full-Width Responsive Mini Sparkline with Area Fill (Memoized for high-performance scrolling)
+export const MiniSparkline = React.memo(function MiniSparkline({ series = [], isPositive = true, className = 'w-full h-8' }) {
   const gradId = useId();
   const safe = series && series.length >= 2 ? series : [100, 100];
 
@@ -173,7 +173,7 @@ export function MiniSparkline({ series = [], isPositive = true, className = 'w-f
       />
     </svg>
   );
-}
+});
 
 // High-fidelity Financial Market Simulation Engine for Tournament Rounds & Crises
 export function generateRealisticStockTrajectory(asset) {
@@ -410,8 +410,8 @@ function ChartTooltip({ active, payload }) {
   );
 }
 
-// Interactive Recharts Area Trajectory Graph Component (EasyUI-style area glow)
-export function AreaTrajectoryGraph({ asset }) {
+// Interactive Recharts Area Trajectory Graph Component (EasyUI-style area glow, Memoized for performance)
+export const AreaTrajectoryGraph = React.memo(function AreaTrajectoryGraph({ asset }) {
   const gradId = useId();
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
@@ -578,4 +578,4 @@ export function AreaTrajectoryGraph({ asset }) {
       </div>
     </div>
   );
-}
+});

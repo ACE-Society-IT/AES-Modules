@@ -936,8 +936,10 @@ input[type="range"]:active::-webkit-slider-thumb {
 .dynamic-floating-nav {
   border-radius: 9999px !important;
   box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  will-change: max-width;
+  transform: translateZ(0);
 }
 
 html[data-theme="dark"] .dynamic-floating-nav {
@@ -953,20 +955,21 @@ html[data-theme="light"] .dynamic-floating-nav {
 
 html[data-theme="aes"] .dynamic-floating-nav {
   background-color: rgba(90, 13, 27, 0.94) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   border: 1.5px solid rgba(241, 202, 126, 0.6) !important;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(241, 202, 126, 0.12) !important;
 }
 
 /* =========================================================================
-   GLOWING ARC GRADIENT AT BOTTOM OF TOP SECTION (MASSIVE, ULTRA-GLOWING & BLURRED)
+   GLOWING ARC GRADIENT AT BOTTOM OF TOP SECTION (MASSIVE & ULTRA-GLOWING)
+   Optimized for low-end GPUs: smooth radial gradient replaces heavy blur filter
    ========================================================================= */
 .glowing-arc-bottom {
   position: absolute;
   bottom: -40px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   width: 170%;
   max-width: 2400px;
   height: 480px;
@@ -976,8 +979,6 @@ html[data-theme="aes"] .dynamic-floating-nav {
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;
-  filter: blur(48px);
-  -webkit-filter: blur(48px);
 }
 
 html[data-theme="dark"] .glowing-arc-bottom {
@@ -1104,45 +1105,58 @@ html[data-theme="light"] .velocity-accent {
 }
 
 /* =========================================================================
-   BLURRED SECTION SEAM TRANSITIONS (PURE 64PX GAUSSIAN BACKDROP BLUR)
-   Seamlessly blurs across section boundaries to eliminate visible lines
+   BLURRED SECTION SEAM TRANSITIONS (GPU-OPTIMIZED GRADIENT FEATHERING)
+   Seamlessly feathers across section boundaries with zero backdrop-filter lag
    ========================================================================= */
 .section-seam-blur-top {
   position: absolute;
   top: 0;
   inset-x: 0;
-  height: 260px;
+  height: 180px;
   pointer-events: none;
   z-index: 5;
-  backdrop-filter: blur(64px);
-  -webkit-backdrop-filter: blur(64px);
-  background: linear-gradient(to bottom, rgba(13, 4, 7, 0.45) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(13, 4, 7, 0.65) 0%, rgba(13, 4, 7, 0.25) 50%, transparent 100%);
+  transform: translateZ(0);
 }
 
 .section-seam-blur-bottom {
   position: absolute;
   bottom: 0;
   inset-x: 0;
-  height: 260px;
+  height: 180px;
   pointer-events: none;
   z-index: 5;
-  backdrop-filter: blur(64px);
-  -webkit-backdrop-filter: blur(64px);
-  background: linear-gradient(to top, rgba(13, 4, 7, 0.45) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(13, 4, 7, 0.65) 0%, rgba(13, 4, 7, 0.25) 50%, transparent 100%);
+  transform: translateZ(0);
 }
 
 html[data-theme="light"] .section-seam-blur-top {
-  background: linear-gradient(to bottom, rgba(255, 253, 252, 0.5) 0%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(255, 253, 252, 0.8) 0%, rgba(255, 253, 252, 0.3) 50%, transparent 100%);
 }
 
 html[data-theme="light"] .section-seam-blur-bottom {
-  background: linear-gradient(to top, rgba(255, 253, 252, 0.5) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(255, 253, 252, 0.8) 0%, rgba(255, 253, 252, 0.3) 50%, transparent 100%);
 }
 
-/* IN AES THEME: Remove blurred seam overlays completely so background stays pure solid */
+/* IN AES THEME: Remove seam overlays completely so background stays pure solid */
 html[data-theme="aes"] .section-seam-blur-top,
 html[data-theme="aes"] .section-seam-blur-bottom {
   display: none !important;
+}
+
+/* =========================================================================
+   PERFORMANCE ACCELERATION FOR LOW-END DEVICES
+   - Content visibility skips layout/paint passes for offscreen landing sections
+   - GPU compositing boundaries for independent rendering units
+   ========================================================================= */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 750px;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* =========================================================================

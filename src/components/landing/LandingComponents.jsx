@@ -104,20 +104,19 @@ export function EasySpotlightCard({
   spotlightColor = 'rgba(217, 30, 68, 0.18)'
 }) {
   const cardRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ x: -200, y: -200, opacity: 0 });
 
+  // High-performance direct CSS variable injection (zero React state updates on mouse move)
   const handleMouseMove = (e) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-      opacity: 1
-    });
+    cardRef.current.style.setProperty('--spotlight-x', `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty('--spotlight-y', `${e.clientY - rect.top}px`);
+    cardRef.current.style.setProperty('--spotlight-opacity', '1');
   };
 
   const handleMouseLeave = () => {
-    setMousePos((prev) => ({ ...prev, opacity: 0 }));
+    if (!cardRef.current) return;
+    cardRef.current.style.setProperty('--spotlight-opacity', '0');
   };
 
   return (
@@ -136,13 +135,19 @@ export function EasySpotlightCard({
       }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className={`relative overflow-hidden group ${className}`}
+      style={{
+        contain: 'content',
+        '--spotlight-opacity': 0,
+        '--spotlight-x': '-200px',
+        '--spotlight-y': '-200px'
+      }}
     >
-      {/* EasyUI Cursor Tracking Spotlight */}
+      {/* EasyUI Cursor Tracking Spotlight (Composited on GPU via CSS Custom Properties) */}
       <div
         className="pointer-events-none absolute -inset-px transition-opacity duration-300 z-10 rounded-[inherit]"
         style={{
-          opacity: mousePos.opacity,
-          background: `radial-gradient(380px circle at ${mousePos.x}px ${mousePos.y}px, ${spotlightColor}, transparent 80%)`
+          opacity: 'var(--spotlight-opacity, 0)',
+          background: `radial-gradient(380px circle at var(--spotlight-x, -200px) var(--spotlight-y, -200px), ${spotlightColor}, transparent 80%)`
         }}
       />
       <div className="relative z-10 h-full flex flex-col justify-between">{children}</div>
