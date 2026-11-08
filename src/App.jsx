@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GameProvider, useGame } from './context/GameContext.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
@@ -11,6 +11,27 @@ const TradingPortal = lazy(() => import('./pages/TradingPortal.jsx'));
 const ProjectorView = lazy(() => import('./pages/ProjectorView.jsx'));
 const EmpirePortalShell = lazy(() => import('./defend-the-empire/components/EmpirePortalShell.jsx'));
 const MarketMonopolyApp = lazy(() => import('./market-monopoly/components/MarketMonopolyApp.jsx'));
+
+function PageTitleSync() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    if (path === '/' || path === '') {
+      document.title = 'AES Modules';
+    } else if (path.startsWith('/market-monopoly')) {
+      document.title = 'Market Monopoly';
+    } else if (path.startsWith('/defend-the-empire')) {
+      document.title = 'Defend The Empire';
+    } else if (path.startsWith('/investomania')) {
+      document.title = 'Investomania';
+    } else {
+      document.title = 'AES Modules';
+    }
+  }, [location.pathname]);
+
+  return null;
+}
 
 function AppLoadingFallback({ message = 'Connecting to Investomania Floor...' }) {
   return (
@@ -38,6 +59,7 @@ export default function App() {
     <ErrorBoundary>
       <GameProvider>
         <BrowserRouter>
+          <PageTitleSync />
           <Suspense fallback={<AppLoadingFallback />}>
             <Routes>
               {/* Main Entrance (app.alphaace.pk): AES Theme Module Selector */}
