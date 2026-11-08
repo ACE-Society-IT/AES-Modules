@@ -10,6 +10,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const TradingPortal = lazy(() => import('./pages/TradingPortal.jsx'));
 const ProjectorView = lazy(() => import('./pages/ProjectorView.jsx'));
 const EmpirePortalShell = lazy(() => import('./defend-the-empire/components/EmpirePortalShell.jsx'));
+const MarketMonopolyApp = lazy(() => import('./market-monopoly/components/MarketMonopolyApp.jsx'));
 
 function AppLoadingFallback({ message = 'Connecting to Investomania Floor...' }) {
   return (
@@ -43,7 +44,7 @@ export default function App() {
               <Route path="/" element={<ModuleSelectorPage />} />
 
               {/* Module 1: Investomania Separate Landing & Sub-pages */}
-              <Route path="/investomania" element={<LandingPage />} />
+              <Route path="/investomania" element={<LoginPage />} />
               <Route path="/investomania/landing" element={<LandingPage />} />
               <Route path="/investomania/login" element={<LoginPage />} />
 
@@ -70,16 +71,7 @@ export default function App() {
 
               {/* Defend the Empire Participant Module */}
               <Route path="/defend-the-empire" element={<EmpirePortalShell />} />
-              <Route
-                path="/market-monopoly"
-                element={
-                  <div style={{ minHeight: '100vh', background: '#0B0204', color: '#F1CA7E', padding: '40px', textAlign: 'center', fontFamily: 'Cinzel, serif' }}>
-                    <h2>Market Monopoly · Landing Page</h2>
-                    <p style={{ color: '#C4B8A3', marginTop: '12px' }}>Drop your Market Monopoly module code inside <code>modules/Market Monopoly</code>.</p>
-                    <a href="/" style={{ color: '#FFFFFF', marginTop: '20px', display: 'inline-block' }}>← Return to Module Selector</a>
-                  </div>
-                }
-              />
+              <Route path="/market-monopoly/*" element={<MarketMonopolyApp />} />
 
               {/* Explicitly Block & Redirect Any Admin Access Attempts from Modules */}
               <Route path="/admin" element={<Navigate to="/" replace />} />

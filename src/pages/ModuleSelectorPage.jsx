@@ -100,10 +100,10 @@ export default function ModuleSelectorPage() {
 
               <div style={{ marginTop: '36px' }}>
                 <button
-                  onClick={() => navigate('/investomania')}
+                  onClick={() => navigate('/investomania/login')}
                   style={{ width: '100%', padding: '14px 26px', borderRadius: '9999px', fontWeight: 700, fontSize: '13px', letterSpacing: '0.04em', border: 'none', background: '#f1ca7e', color: '#5a0d1b', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease-out' }}
                 >
-                  View Investomania Arena →
+                  Enter Investomania Arena →
                 </button>
               </div>
             </div>

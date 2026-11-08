@@ -90,6 +90,13 @@ html[data-theme="light"] {
   --btn-signout-hover: #6B1527;
   --map-bg: #FFF3F5;
   --map-dot: #881B30;
+
+  /* Resource Icon / Badge Colors per Theme */
+  --resource-icon-bg: #FFF0F3;
+  --resource-icon-color: #881B30;
+  --resource-badge-bg: #FFF0F3;
+  --resource-badge-text: #881B30;
+  --resource-badge-border: rgba(136, 27, 48, 0.22);
 }
 
 /* =========================================================================
@@ -143,6 +150,13 @@ html[data-dark-variant="classic"] {
   --btn-signout-hover: #6B1527;
   --map-bg: #120509;
   --map-dot: #881B30;
+
+  /* Resource Icon / Badge Colors per Theme */
+  --resource-icon-bg: #2B0A12;
+  --resource-icon-color: #F1CA7E;
+  --resource-badge-bg: #240E15;
+  --resource-badge-text: #F1CA7E;
+  --resource-badge-border: #52111E;
 }
 
 /* =========================================================================
@@ -254,6 +268,13 @@ html[data-theme="aes"] {
   --btn-signout-hover: #5A0D1B;
   --map-bg: #E8DCC6;
   --map-dot: #701020;
+
+  /* Resource Icon / Badge Colors per Theme */
+  --resource-icon-bg: #701020;
+  --resource-icon-color: #F1CA7E;
+  --resource-badge-bg: #701020;
+  --resource-badge-text: #F1CA7E;
+  --resource-badge-border: rgba(241, 202, 126, 0.35);
 }
 
 /* Landing Page Typography directly on the deep #5A0D1B page background in AES mode */
@@ -369,8 +390,9 @@ html[data-theme="light"] .capsule-card .text-\[var\(--text-main\)\] {
 }
 
 /* Light Theme SVGs: Crisp brand burgundy on light surfaces */
-html[data-theme="light"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]),
-html[data-theme="light"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]) {
+html[data-theme="light"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]),
+html[data-theme="light"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]),
+html[data-theme="light"] .capsule-inset svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]) {
   color: #881B30;
 }
 
@@ -438,8 +460,9 @@ html[data-theme="aes"] .capsule-card .text-\[var\(--chart-stroke\)\] {
   color: #701020 !important;
 }
 
-html[data-theme="aes"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]),
-html[data-theme="aes"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]) {
+html[data-theme="aes"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]),
+html[data-theme="aes"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]),
+html[data-theme="aes"] .capsule-inset svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]):not([class*="utility-icon"]):not([data-utility-icon]) {
   color: #701020;
 }
 
