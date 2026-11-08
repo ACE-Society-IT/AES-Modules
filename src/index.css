@@ -963,7 +963,6 @@ html[data-theme="aes"] .dynamic-floating-nav {
 
 /* =========================================================================
    GLOWING ARC GRADIENT AT BOTTOM OF TOP SECTION (MASSIVE & ULTRA-GLOWING)
-   Optimized for low-end GPUs: smooth radial gradient replaces heavy blur filter
    ========================================================================= */
 .glowing-arc-bottom {
   position: absolute;
@@ -979,6 +978,8 @@ html[data-theme="aes"] .dynamic-floating-nav {
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;
+  filter: blur(48px);
+  -webkit-filter: blur(48px);
 }
 
 html[data-theme="dark"] .glowing-arc-bottom {
@@ -1011,9 +1012,26 @@ html[data-theme="light"] .glowing-arc-bottom {
       transparent 100%);
 }
 
-/* IN AES THEME: Remove bottom glowing arc completely per user request */
+/* AES THEME: Glowing Arc in Royal Crimson & Imperial Gold */
 html[data-theme="aes"] .glowing-arc-bottom {
-  display: none !important;
+  display: block !important;
+  border: none !important;
+  box-shadow:
+    0 -12px 90px 35px rgba(241, 202, 126, 0.25),
+    0 -30px 160px 70px rgba(112, 16, 32, 0.80),
+    0 -50px 240px 95px rgba(90, 13, 27, 0.70);
+  background: radial-gradient(ellipse 92% 100% at 50% 100%,
+      rgba(241, 202, 126, 0.75) 0%,
+      rgba(112, 16, 32, 0.85) 35%,
+      rgba(90, 13, 27, 0.75) 65%,
+      transparent 100%);
+}
+
+/* Ambient yellow glow blur behind headline */
+.headline-yellow-glow {
+  filter: blur(60px);
+  -webkit-filter: blur(60px);
+  will-change: transform;
 }
 
 /* =========================================================================

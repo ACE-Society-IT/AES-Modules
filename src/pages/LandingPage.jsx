@@ -380,28 +380,24 @@ export default function LandingPage() {
             <IconExternalLink className="w-3.5 h-3.5 text-[var(--chart-stroke)]" />
           </a>
 
-          {/* Display Headline with Centered Ambient Yellow Glow Gradient (Hidden in Dark Theme Only) */}
+          {/* Display Headline with Centered Ambient Yellow Glow Gradient (Active in All Themes) */}
           <div className="relative inline-block w-full max-w-4xl mx-auto">
-            {theme !== 'dark' && (
-              <>
-                {/* Ambient Intense Yellow Glow Gradient in center behind headline (Preserved for Light & AES Theme) */}
-                <div
-                  className="headline-yellow-glow pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] sm:w-[650px] lg:w-[840px] h-[220px] sm:h-[300px] rounded-full blur-[60px] sm:blur-[80px] -z-10"
-                  style={{
-                    background: 'radial-gradient(ellipse at center, rgba(241, 202, 126, 0.75) 0%, rgba(217, 187, 124, 0.45) 40%, rgba(137, 25, 44, 0.2) 65%, transparent 80%)'
-                  }}
-                  aria-hidden="true"
-                />
-                {/* Core vibrant highlight center dot */}
-                <div
-                  className="headline-yellow-glow pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] sm:w-[360px] h-[100px] sm:h-[150px] rounded-full blur-[35px] -z-10"
-                  style={{
-                    background: 'radial-gradient(ellipse at center, rgba(255, 222, 133, 0.85) 0%, rgba(241, 202, 126, 0.4) 60%, transparent 80%)'
-                  }}
-                  aria-hidden="true"
-                />
-              </>
-            )}
+            {/* Ambient Intense Yellow Glow Gradient in center behind headline */}
+            <div
+              className="headline-yellow-glow pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] sm:w-[650px] lg:w-[840px] h-[220px] sm:h-[300px] rounded-full blur-[60px] sm:blur-[80px] -z-10"
+              style={{
+                background: 'radial-gradient(ellipse at center, rgba(241, 202, 126, 0.75) 0%, rgba(217, 187, 124, 0.45) 40%, rgba(137, 25, 44, 0.2) 65%, transparent 80%)'
+              }}
+              aria-hidden="true"
+            />
+            {/* Core vibrant highlight center dot */}
+            <div
+              className="headline-yellow-glow pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] sm:w-[360px] h-[100px] sm:h-[150px] rounded-full blur-[35px] -z-10"
+              style={{
+                background: 'radial-gradient(ellipse at center, rgba(255, 222, 133, 0.85) 0%, rgba(241, 202, 126, 0.4) 60%, transparent 80%)'
+              }}
+              aria-hidden="true"
+            />
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-display font-bold tracking-tight leading-[1.04] relative z-10 text-[var(--text-main)]">
               The Trading Floor<br />

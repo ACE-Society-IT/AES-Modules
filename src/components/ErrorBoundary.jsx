@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { Component } from 'react';
 
-export class ErrorBoundary extends React.Component {
+export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -12,7 +12,7 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('[Investomania ErrorBoundary caught error]:', error, errorInfo);
-    
+
     // Auto-recover from chunk loading errors (e.g., after a new deployment or cache invalidation)
     const isChunkError =
       error?.name === 'ChunkLoadError' ||
@@ -66,3 +66,5 @@ export class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+export default ErrorBoundary;
