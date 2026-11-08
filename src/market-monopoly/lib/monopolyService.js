@@ -11,7 +11,17 @@ import {
 export const SUPABASE_URL = 'https://dvynsvvmqaibybjdsukb.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2eW5zdnZtcWFpYnliamRzdWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM5NTg1NDIsImV4cCI6MjEwOTUzNDU0Mn0.F_J9N24gb-MDT4NkOoLufVWasvvGiAosRNRZUNiEJQE';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 15
+    }
+  }
+});
 
 export function getInitialStore() {
   return {
@@ -125,13 +135,34 @@ export function hydrateMonopolyState(rawState) {
   };
 }
 
+// Local in-memory caching to avoid redundant network overhead
+let _cachedStore = null;
+let _cachedAt = 0;
+const CACHE_TTL_MS = 1200; // 1.2s cache for read deduplication
+
+export function getCachedMonopolyStore() {
+  if (_cachedStore && Date.now() - _cachedAt < CACHE_TTL_MS) {
+    return _cachedStore;
+  }
+  return null;
+}
+
+export function invalidateMonopolyStoreCache() {
+  _cachedStore = null;
+  _cachedAt = 0;
+}
+
 /**
  * Fetch authoritative Market Monopoly state from Supabase (`public.monopoly_state` row id=1)
  */
-export async function fetchMonopolyStore() {
+export async function fetchMonopolyStore(forceFresh = false) {
+  if (!forceFresh && _cachedStore && Date.now() - _cachedAt < CACHE_TTL_MS) {
+    return _cachedStore;
+  }
+
   const [stateRes, teamsRes] = await Promise.all([
     supabase.from('monopoly_state').select('state_json').eq('id', 1).maybeSingle(),
-    supabase.from('monopoly_teams').select('*').order('updated_at', { ascending: true })
+    supabase.from('monopoly_teams').select('id, name, username, passcode, cash, starting_budget, owned_resources').order('updated_at', { ascending: true })
   ]);
 
   if (stateRes.error) {
@@ -150,6 +181,7 @@ export async function fetchMonopolyStore() {
       }))
     : null;
 
+  let result;
   if (stateRes.data?.state_json && typeof stateRes.data.state_json === 'object') {
     const raw = { ...stateRes.data.state_json };
     if (dbTeams !== null) {
@@ -157,15 +189,19 @@ export async function fetchMonopolyStore() {
     } else if (!Array.isArray(raw.teams)) {
       raw.teams = [];
     }
-    return hydrateMonopolyState(raw);
+    result = hydrateMonopolyState(raw);
+  } else {
+    const initial = getInitialStore();
+    if (dbTeams && dbTeams.length > 0) {
+      initial.teams = dbTeams;
+    }
+    await persistMonopolyStore(initial);
+    result = initial;
   }
 
-  const initial = getInitialStore();
-  if (dbTeams && dbTeams.length > 0) {
-    initial.teams = dbTeams;
-  }
-  await persistMonopolyStore(initial);
-  return initial;
+  _cachedStore = result;
+  _cachedAt = Date.now();
+  return result;
 }
 
 /**
@@ -173,6 +209,10 @@ export async function fetchMonopolyStore() {
  */
 export async function persistMonopolyStore(nextStore) {
   const hydrated = hydrateMonopolyState({ ...nextStore, updatedAt: Date.now() });
+
+  // Update memory cache immediately for instantaneous UI updates
+  _cachedStore = hydrated;
+  _cachedAt = Date.now();
 
   const compact = {
     currentRound: hydrated.currentRound,

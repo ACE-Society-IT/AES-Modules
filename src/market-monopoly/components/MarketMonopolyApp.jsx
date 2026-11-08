@@ -148,9 +148,9 @@ export default function MarketMonopolyApp() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const refreshStore = useCallback(async () => {
+  const refreshStore = useCallback(async (forceFresh = false) => {
     try {
-      const loaded = await fetchMonopolyStore();
+      const loaded = await fetchMonopolyStore(forceFresh);
       setStore(loaded);
     } catch (err) {
       console.error('Supabase refreshStore error:', err);
@@ -158,7 +158,7 @@ export default function MarketMonopolyApp() {
   }, []);
 
   useEffect(() => {
-    refreshStore();
+    refreshStore(true);
 
     const sub = supabase
       .channel('monopoly_client_updates')
@@ -166,12 +166,24 @@ export default function MarketMonopolyApp() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'monopoly_state', filter: 'id=eq.1' },
         () => {
-          refreshStore();
+          refreshStore(true);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'monopoly_teams' },
+        () => {
+          refreshStore(true);
         }
       )
       .subscribe();
 
-    const poll = setInterval(refreshStore, 2500);
+    // Lightweight fallback sync every 5 seconds (realtime handles instant updates)
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshStore(false);
+      }
+    }, 5000);
 
     return () => {
       supabase.removeChannel(sub);
