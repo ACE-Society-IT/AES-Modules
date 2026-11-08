@@ -135,6 +135,7 @@ export default function MarketMonopolyApp() {
 
   const [contextMenu, setContextMenu] = useState(null);
   const [inspectedPropertyId, setInspectedPropertyId] = useState(null);
+  const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -744,161 +745,227 @@ export default function MarketMonopolyApp() {
             {/* ================================================================= */}
             {activeTab === 'land' && (
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-stretch">
-                {/* LEFT 9 COLS: YOUR KARACHI LAND PLOTS (TALL VERTICAL HEIGHT) */}
+                {/* LEFT 9 COLS: BIG UNIFIED KARACHI LAND GRID BOARD */}
                 <div className="xl:col-span-9 flex flex-col">
                   <div className="surface-box rounded-[28px] p-5 border border-[var(--border-card)] min-h-[700px] lg:min-h-[760px] flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3 shrink-0">
-                      <h3 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-                        Your Karachi Land Plots ({currentTeam.propertyCount})
-                      </h3>
+                    <div className="flex flex-wrap items-center justify-between border-b border-[var(--border-soft)] pb-3 shrink-0 gap-2">
+                      <div>
+                        <h3 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
+                          Karachi Master Land Grid ({currentTeam.propertyCount} Owned Plots)
+                        </h3>
+                        <p className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
+                          Click any property plot on the grid to inspect info, view Level 1–3 progression, or attach Bid Resources.
+                        </p>
+                      </div>
                       <span className="capsule-inset font-mono text-xs font-bold px-3 py-1 rounded-full" style={{ color: 'var(--text-main)' }}>
                         Rent Power: Rs {currentTeam.totalRentPower}L
                       </span>
                     </div>
 
-                    {currentTeam.ownedProperties.length === 0 ? (
-                      <div className="flex-1 rounded-[24px] capsule-inset border border-dashed border-[var(--border-card)] flex items-center justify-center p-8">
-                        <span className="font-display text-base font-bold opacity-50" style={{ color: 'var(--text-sub)' }}>
-                          Empty Land
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 content-start">
-                        {currentTeam.ownedProperties.map((prop) => {
-                          const val = computePropertyValuation(prop);
-                          const rent = computePropertyRent(prop);
-                          const attachedIds = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
-                          const lvl = Math.min(3, Math.max(Number(prop.upgradeLevel || 0), attachedIds.length));
-                          const isDropTarget = hoveredPropertyId === prop.id;
+                    {/* BIG UNIFIED LAND ESTATE GRID SURFACE */}
+                    <div
+                      className="flex-1 rounded-[24px] p-4 sm:p-5 border-2 relative overflow-hidden flex flex-col justify-between capsule-inset"
+                      style={{
+                        borderColor: 'var(--border-card)',
+                        backgroundColor: 'var(--bg-inset)'
+                      }}
+                    >
+                      {/* Subtle Architectural Survey Grid Lines Overlay (Theme-Adaptive) */}
+                      <div
+                        className="absolute inset-0 pointer-events-none opacity-60"
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(to right, var(--chart-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--chart-grid) 1px, transparent 1px)',
+                          backgroundSize: '44px 44px'
+                        }}
+                      />
 
-                          return (
-                            <motion.div
-                              key={prop.id}
-                              layout
-                              onDragOver={(e) => onDragOverPlot(e, prop.id)}
-                              onDragLeave={() => setHoveredPropertyId(null)}
-                              onDrop={(e) => onDropOnPlot(e, prop.id)}
-                              onContextMenu={(e) => onPlotContextMenu(e, prop.id)}
-                              className={`capsule-card rounded-[24px] p-4 border-2 transition-all select-none ${
-                                isDropTarget
-                                  ? 'border-[#F1CA7E] scale-[1.01] shadow-xl'
-                                  : 'border-[var(--border-soft)]'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between gap-2 mb-2">
-                                <h4 className="font-display text-base font-bold truncate" style={{ color: 'var(--text-main)' }}>
-                                  {prop.name}
-                                </h4>
-                                <TactileButton
-                                  onClick={(e) => onPlotContextMenu(e, prop.id)}
-                                  className="px-3 py-1 rounded-full text-[11px] font-rounded font-bold btn-primary shrink-0"
-                                >
-                                  Options
-                                </TactileButton>
-                              </div>
+                      {currentTeam.ownedProperties.length === 0 ? (
+                        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center p-8 gap-2">
+                          <div className="w-48 h-28 rounded-2xl overflow-hidden border border-[var(--border-card)] opacity-85">
+                            <LandPlotIllustration category="Residential" level={0} showBadge={false} />
+                          </div>
+                          <span className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
+                            Your Land Grid is Vacant
+                          </span>
+                          <span className="text-xs font-rounded max-w-sm" style={{ color: 'var(--text-sub)' }}>
+                            Acquire properties from the Wheel Spin or Admin Bid to place them onto your Karachi Master Land Grid.
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 content-start">
+                          {currentTeam.ownedProperties.map((prop) => {
+                            const val = computePropertyValuation(prop);
+                            const rent = computePropertyRent(prop);
+                            const attachedIds = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
+                            const lvl = Math.min(3, Math.max(Number(prop.upgradeLevel || 0), attachedIds.length));
+                            const isDropTarget = hoveredPropertyId === prop.id;
+                            const isSelected = Number(inspectedPropertyId) === Number(prop.id);
 
-                              <div className="rounded-2xl overflow-hidden border border-[var(--border-soft)] mb-3">
-                                <LandPlotIllustration
-                                  category={prop.category}
-                                  level={lvl}
-                                  utilityCount={attachedIds.length}
-                                  isHighlighted={isDropTarget}
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-2 mb-3 text-center p-2 rounded-2xl capsule-inset font-mono text-xs">
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-70 block" style={{ color: 'var(--text-sub)' }}>
-                                    Cost
-                                  </span>
-                                  <strong style={{ color: 'var(--text-main)' }}>Rs {prop.purchasePrice}L</strong>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-70 block" style={{ color: 'var(--text-sub)' }}>
-                                    Value
-                                  </span>
-                                  <strong className="text-[#2E7D52]">Rs {val}L</strong>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-70 block" style={{ color: 'var(--text-sub)' }}>
-                                    Rent
-                                  </span>
-                                  <strong style={{ color: 'var(--text-main)' }}>Rs {rent}L</strong>
-                                </div>
-                              </div>
-
-                              {/* Resource Level-Up Progress Line (Max Level 3) */}
-                              <div className="p-2.5 rounded-2xl capsule-inset mb-3 space-y-1.5">
-                                <div className="flex items-center justify-between text-[11px] font-rounded font-bold">
-                                  <span style={{ color: 'var(--text-sub)' }}>
-                                    Level Progress ({attachedIds.length}/3 Resources)
-                                  </span>
-                                  <span className="font-mono text-[#2E7D52]">
-                                    {lvl >= 3 ? 'Level 3 Max' : `Level ${lvl} / 3`}
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  {[1, 2, 3].map((step) => (
-                                    <div
-                                      key={step}
-                                      className={`h-2 rounded-full transition-all duration-300 ${
-                                        lvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Installed Resources */}
-                              <div className="flex items-center gap-1.5 flex-wrap mb-3">
-                                {attachedIds.map((uId) => {
-                                  const util = KARACHI_UTILITIES.find((u) => u.id === Number(uId));
-                                  if (!util) return null;
-                                  return (
-                                    <span
-                                      key={uId}
-                                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-rounded font-bold border transition-colors"
-                                      style={{
-                                        backgroundColor: 'var(--resource-badge-bg)',
-                                        color: 'var(--resource-badge-text)',
-                                        borderColor: 'var(--resource-badge-border)'
-                                      }}
-                                    >
-                                      <UtilityIcon id={util.id} className="w-3 h-3" style={{ color: 'var(--resource-icon-color)' }} />
-                                      <span>{util.name}</span>
-                                    </span>
-                                  );
-                                })}
-
-                                {lvl < 3 && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => onPlotContextMenu(e, prop.id)}
-                                    className="px-2.5 py-0.5 rounded-full text-[11px] font-rounded font-bold border border-dashed border-[var(--border-card)] hover:bg-[var(--bg-inset)] cursor-pointer"
+                            return (
+                              <div
+                                key={prop.id}
+                                onClick={() => setInspectedPropertyId(prop.id)}
+                                onDragOver={(e) => onDragOverPlot(e, prop.id)}
+                                onDragLeave={() => setHoveredPropertyId(null)}
+                                onDrop={(e) => onDropOnPlot(e, prop.id)}
+                                onContextMenu={(e) => onPlotContextMenu(e, prop.id)}
+                                className={`group relative rounded-2xl p-3 transition-all cursor-pointer select-none border-2 capsule-card flex flex-col gap-2.5 ${
+                                  isDropTarget
+                                    ? 'scale-[1.02] shadow-2xl ring-2 ring-[#ECC37A]'
+                                    : isSelected
+                                    ? 'shadow-xl ring-2 ring-[var(--border-active)]'
+                                    : 'hover:shadow-lg'
+                                }`}
+                                style={{
+                                  backgroundColor: 'var(--bg-card)',
+                                  borderColor:
+                                    isDropTarget || isSelected ? 'var(--border-active)' : 'var(--border-card)'
+                                }}
+                              >
+                                {/* Plot Title & Options Header */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <h4
+                                    className="font-display text-sm font-bold truncate"
                                     style={{ color: 'var(--text-main)' }}
                                   >
-                                    + Attach Resource
+                                    {prop.name}
+                                  </h4>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setInspectedPropertyId(prop.id);
+                                    }}
+                                    className="px-2.5 py-0.5 rounded-full text-[10px] font-rounded font-bold bg-[#701020] text-[#F1CA7E] hover:opacity-90 transition-opacity shrink-0"
+                                  >
+                                    Options
                                   </button>
+                                </div>
+
+                                {/* 3D Isometric Plot Tile */}
+                                <div className="rounded-xl overflow-hidden">
+                                  <LandPlotIllustration
+                                    category={prop.category}
+                                    level={lvl}
+                                    utilityCount={attachedIds.length}
+                                    isHighlighted={isDropTarget || isSelected}
+                                  />
+                                </div>
+
+                                {/* Cost / Value / Rent Capsule */}
+                                <div className="capsule-inset rounded-xl px-3 py-1.5 grid grid-cols-3 gap-2 text-center">
+                                  <div>
+                                    <span className="text-[9px] font-rounded block" style={{ color: 'var(--text-sub)' }}>
+                                      Cost
+                                    </span>
+                                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--text-main)' }}>
+                                      Rs {prop.openingValue}L
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[9px] font-rounded block" style={{ color: 'var(--text-sub)' }}>
+                                      Value
+                                    </span>
+                                    <span className="font-mono text-xs font-bold text-[#2E7D52]">
+                                      Rs {val}L
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[9px] font-rounded block" style={{ color: 'var(--text-sub)' }}>
+                                      Rent
+                                    </span>
+                                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--text-main)' }}>
+                                      Rs {rent}L
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* LEVEL PROGRESS BAR (1–3 Resources) */}
+                                <div className="capsule-inset rounded-xl px-3 py-2 space-y-1.5">
+                                  <div className="flex items-center justify-between text-[10px] font-rounded font-bold">
+                                    <span style={{ color: 'var(--text-sub)' }}>
+                                      Level Progress ({attachedIds.length}/3 Resources)
+                                    </span>
+                                    <span className="text-[#2E7D52]">
+                                      {lvl >= 3 ? 'Level 3 Max' : `Level ${lvl} / 3`}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-1.5">
+                                    {[1, 2, 3].map((step) => (
+                                      <div
+                                        key={step}
+                                        className={`h-2 rounded-full transition-all ${
+                                          lvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Attached Resource Badges */}
+                                {attachedIds.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    {attachedIds.map((uId) => {
+                                      const util = KARACHI_UTILITIES.find((u) => u.id === Number(uId));
+                                      if (!util) return null;
+                                      return (
+                                        <span
+                                          key={uId}
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-rounded font-bold"
+                                          style={{
+                                            backgroundColor: 'var(--resource-badge-bg)',
+                                            color: 'var(--resource-badge-text)'
+                                          }}
+                                        >
+                                          <UtilityIcon id={util.id} className="w-2.5 h-2.5" />
+                                          <span className="truncate max-w-[90px]">{util.name}</span>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
                                 )}
-                              </div>
 
-                              <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--border-soft)]">
-                                <span className="text-[11px] font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
-                                  {lvl < 3 ? 'Drop a Bid Resource to level up' : 'Maximum Level 3 Reached'}
-                                </span>
-
-                                <TactileButton
-                                  onClick={() => setInspectedPropertyId(prop.id)}
-                                  className="rounded-full py-1.5 px-3.5 text-xs font-rounded font-bold btn-secondary"
-                                >
-                                  Info
-                                </TactileButton>
+                                {/* Bottom Action Footer */}
+                                <div className="mt-auto pt-1 flex items-center justify-between gap-2 text-[10px] font-rounded font-bold">
+                                  {lvl >= 3 ? (
+                                    <span style={{ color: 'var(--text-sub)' }}>Maximum Level 3 Reached</span>
+                                  ) : (
+                                    <span className="text-[#2E7D52]">+ Click or Drag Resource to Upgrade</span>
+                                  )}
+                                  <span
+                                    className="capsule-inset px-2.5 py-0.5 rounded-full text-[10px] font-rounded font-bold"
+                                    style={{ color: 'var(--text-main)' }}
+                                  >
+                                    Info
+                                  </span>
+                                </div>
                               </div>
-                            </motion.div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Grid Legend Footer */}
+                      <div
+                        className="relative z-10 mt-4 pt-3 border-t border-[var(--border-soft)] flex flex-wrap items-center justify-between gap-2 text-[11px] font-rounded"
+                        style={{ color: 'var(--text-sub)' }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#ECC37A] border border-black/20 inline-block" />
+                            <span style={{ color: 'var(--text-main)' }}>Level 1–3 3D Plots</span>
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#2E7D52] inline-block" />
+                            <span>Click any plot to inspect full info & attach resources</span>
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] font-bold" style={{ color: 'var(--text-main)' }}>
+                          Total Plots on Grid: {currentTeam.ownedProperties.length} / 25
+                        </span>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -1764,67 +1831,110 @@ export default function MarketMonopolyApp() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {filteredCatalogue.map((prop) => {
-                      const owner = store.teams.find((t) => t.id === prop.ownerTeamId);
-                      const rent = computePropertyRent(prop);
+                  {/* BIG 25-PLOT KARACHI LAND GRID BOARD */}
+                  <div
+                    className="rounded-[24px] p-4 sm:p-5 border-2 relative overflow-hidden capsule-inset"
+                    style={{
+                      borderColor: 'var(--border-card)',
+                      backgroundColor: 'var(--bg-inset)'
+                    }}
+                  >
+                    {/* Subtle Architectural Survey Grid Lines Overlay (Theme-Adaptive) */}
+                    <div
+                      className="absolute inset-0 pointer-events-none opacity-60"
+                      style={{
+                        backgroundImage:
+                          'linear-gradient(to right, var(--chart-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--chart-grid) 1px, transparent 1px)',
+                        backgroundSize: '44px 44px'
+                      }}
+                    />
 
-                      return (
-                        <div
-                          key={prop.id}
-                          className="capsule-card rounded-[24px] overflow-hidden flex flex-col justify-between border border-[var(--border-soft)]"
-                        >
-                          {/* Architectural SVG Background Banner */}
-                          <div className="relative w-full h-28 overflow-hidden border-b border-[var(--border-soft)]">
-                            <PropertyCategoryBackdrop category={prop.category} className="w-full h-full" />
-                            <div className="absolute top-2.5 left-3 right-3 flex items-center justify-between gap-2">
-                              <span className="text-[11px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-black/65 text-[#F8EEE1] border border-[#F1CA7E]/40 backdrop-blur-xs">
-                                #{prop.id} · {prop.category}
-                              </span>
-                              {owner ? (
-                                <span className="text-[11px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-[#2E7D52] text-white shadow-sm">
-                                  {owner.name}
+                    <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                      {filteredCatalogue.map((prop) => {
+                        const owner = store.teams.find((t) => t.id === prop.ownerTeamId);
+                        const rent = computePropertyRent(prop);
+                        const attachedIds = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
+                        const plotLvl = owner
+                          ? Math.min(3, Math.max(Number(prop.upgradeLevel || 0), attachedIds.length))
+                          : 3;
+
+                        return (
+                          <div
+                            key={prop.id}
+                            onClick={() => setInspectedPropertyId(prop.id)}
+                            className="group relative rounded-2xl p-3 transition-all cursor-pointer select-none border-2 capsule-card hover:scale-[1.01] hover:shadow-lg flex flex-col gap-2"
+                            style={{
+                              backgroundColor: 'var(--bg-card)',
+                              borderColor: 'var(--border-card)'
+                            }}
+                          >
+                            {/* 3D Isometric Plot Tile */}
+                            <div className="relative rounded-xl overflow-hidden">
+                              <LandPlotIllustration
+                                category={prop.category}
+                                level={plotLvl}
+                                utilityCount={attachedIds.length}
+                                showBadge={false}
+                              />
+                              <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1.5">
+                                <span className="text-[10px] font-rounded font-bold px-2 py-0.5 rounded-md bg-black/75 text-[#F8EEE1] border border-[#F1CA7E]/40">
+                                  #{prop.id} · {prop.category.split('/')[0].trim()}
                                 </span>
-                              ) : (
-                                <span className="text-[11px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-[#701020] text-[#F1CA7E] border border-[#F1CA7E]/40 shadow-sm">
-                                  Available
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                            <h4 className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
-                              {prop.name}
-                            </h4>
-
-                            <div className="space-y-2.5 pt-2 border-t border-[var(--border-soft)]">
-                              <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Base</span>
-                                  <strong style={{ color: 'var(--text-main)' }}>Rs {prop.openingValue}L</strong>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>L3 Target</span>
-                                  <strong className="text-[#2E7D52]">Rs {prop.level3Target}L</strong>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Rent</span>
-                                  <strong style={{ color: 'var(--text-main)' }}>Rs {rent}L</strong>
-                                </div>
+                                {owner ? (
+                                  <span className="text-[10px] font-rounded font-bold px-2 py-0.5 rounded-md bg-[#2E7D52] text-white shadow-sm truncate max-w-[95px]">
+                                    {owner.name} (L{plotLvl})
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-rounded font-bold px-2 py-0.5 rounded-md bg-[#701020] text-[#F1CA7E] border border-[#F1CA7E]/40 shadow-sm">
+                                    Available
+                                  </span>
+                                )}
                               </div>
+                            </div>
 
-                              <TactileButton
-                                onClick={() => setInspectedPropertyId(prop.id)}
-                                className="w-full rounded-full py-2 text-xs font-rounded font-bold btn-primary"
-                              >
-                                Details
-                              </TactileButton>
+                            {/* Plot Name & Quick Stats */}
+                            <div className="px-0.5 flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4
+                                  className="font-display text-sm font-bold truncate"
+                                  style={{ color: 'var(--text-main)' }}
+                                >
+                                  {prop.name}
+                                </h4>
+                                <span className="text-[10px] font-mono block" style={{ color: 'var(--text-sub)' }}>
+                                  Base: Rs {prop.openingValue}L · L3: <strong className="text-[#2E7D52]">Rs {prop.level3Target}L</strong> · Rent: Rs {rent}L
+                                </span>
+                              </div>
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-rounded font-bold bg-[#701020] text-[#F1CA7E] shrink-0 group-hover:opacity-90 transition-opacity">
+                                Inspect
+                              </span>
+                            </div>
+
+                            {/* Compact Level Progress Bar */}
+                            <div className="capsule-inset rounded-xl px-2.5 py-1.5 space-y-1">
+                              <div className="flex items-center justify-between text-[9.5px] font-rounded font-bold">
+                                <span style={{ color: 'var(--text-sub)' }}>
+                                  {owner ? `Level Progress (${attachedIds.length}/3)` : 'Max Level 3 Preview'}
+                                </span>
+                                <span className="text-[#2E7D52]">
+                                  {owner ? `Level ${plotLvl}/3` : '3 / 3'}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-1">
+                                {[1, 2, 3].map((step) => (
+                                  <div
+                                    key={step}
+                                    className={`h-1.5 rounded-full transition-all ${
+                                      plotLvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -2132,69 +2242,245 @@ export default function MarketMonopolyApp() {
         )}
       </AnimatePresence>
 
-      {/* PROPERTY DETAILS MODAL */}
+      {/* PROPERTY DETAILS & RESOURCE UPGRADE MODAL */}
       <AnimatePresence>
-        {inspectedProperty && (
-          <div
-            onClick={() => setInspectedPropertyId(null)}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.16, ease: 'easeOut' }}
-              onClick={(e) => e.stopPropagation()}
-              className="surface-box rounded-[28px] max-w-md w-full p-5 border border-[var(--border-card)] space-y-3.5"
+        {inspectedProperty && (() => {
+          const attachedIds = Array.isArray(inspectedProperty.attachedUtilities)
+            ? inspectedProperty.attachedUtilities
+            : [];
+          const actualLevel = Math.min(
+            3,
+            Math.max(Number(inspectedProperty.upgradeLevel || 0), attachedIds.length)
+          );
+          const displayedLevel =
+            previewLevelOverride !== null ? previewLevelOverride : actualLevel;
+          const isOwnedByMe =
+            currentTeam && Number(inspectedProperty.ownerTeamId) === Number(currentTeam.id);
+          const ownerTeam = store.teams.find(
+            (t) => Number(t.id) === Number(inspectedProperty.ownerTeamId)
+          );
+          const currentVal = computePropertyValuation(inspectedProperty);
+          const currentRent = computePropertyRent(inspectedProperty);
+          const unassignedResources = (currentTeam?.ownedResources || []).filter(
+            (r) => !r.attachedToPropertyId
+          );
+
+          return (
+            <div
+              onClick={() => {
+                setInspectedPropertyId(null);
+                setPreviewLevelOverride(null);
+              }}
+              className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-4"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="text-[10px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-[#701020] text-[#F1CA7E]">
-                    #{inspectedProperty.id} · {inspectedProperty.category}
-                  </span>
-                  <h2 className="font-display text-lg font-bold mt-1" style={{ color: 'var(--text-main)' }}>
-                    {inspectedProperty.name}
-                  </h2>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                onClick={(e) => e.stopPropagation()}
+                className="surface-box rounded-[28px] max-w-lg w-full p-5 border border-[var(--border-card)] space-y-3.5 max-h-[90vh] overflow-y-auto modal-scrollbar"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-[#701020] text-[#F1CA7E]">
+                        #{inspectedProperty.id} · {inspectedProperty.category}
+                      </span>
+                      {ownerTeam ? (
+                        <span className="text-[10px] font-rounded font-bold px-2.5 py-0.5 rounded-full bg-[#2E7D52] text-white">
+                          Owned by {ownerTeam.name} (Level {actualLevel})
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-rounded font-bold px-2.5 py-0.5 rounded-full capsule-inset" style={{ color: 'var(--text-main)' }}>
+                          Available in Pool
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="font-display text-lg font-bold mt-1" style={{ color: 'var(--text-main)' }}>
+                      {inspectedProperty.name}
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInspectedPropertyId(null);
+                      setPreviewLevelOverride(null);
+                    }}
+                    className="p-1.5 rounded-xl bg-[var(--bg-inset)] cursor-pointer"
+                  >
+                    <IconClose className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setInspectedPropertyId(null)}
-                  className="p-1.5 rounded-xl bg-[var(--bg-inset)] cursor-pointer"
-                >
-                  <IconClose className="w-4 h-4" />
-                </button>
-              </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center p-2.5 rounded-2xl capsule-inset font-mono text-xs">
-                <div>
-                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Base</span>
-                  <strong style={{ color: 'var(--text-main)' }}>Rs {inspectedProperty.openingValue}L</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>L3 Target</span>
-                  <strong className="text-[#2E7D52]">Rs {inspectedProperty.level3Target}L</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Upgrades</span>
-                  <strong style={{ color: 'var(--text-main)' }}>
-                    {inspectedProperty.upgradeCosts?.map((c) => `${c}L`).join('/')}
-                  </strong>
-                </div>
-              </div>
+                {/* 3D Isometric Plot Preview + Interactive Level 0/1/2/3 Version Switcher */}
+                <div className="space-y-2">
+                  <div className="rounded-2xl overflow-hidden border border-[var(--border-soft)]">
+                    <LandPlotIllustration
+                      category={inspectedProperty.category}
+                      level={displayedLevel}
+                      utilityCount={attachedIds.length}
+                      isHighlighted
+                    />
+                  </div>
 
-              <div className="space-y-2 text-xs font-rounded">
-                <div className="p-3 rounded-2xl capsule-card">
-                  <strong className="block mb-0.5" style={{ color: 'var(--text-main)' }}>Overview</strong>
-                  <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.importance}</span>
+                  {/* Level 0 / 1 / 2 / 3 Architectural Version Preview Selector */}
+                  <div className="flex items-center justify-between gap-1.5 p-1.5 rounded-2xl capsule-inset">
+                    <span className="text-[10px] font-rounded font-bold px-2" style={{ color: 'var(--text-sub)' }}>
+                      Preview 3D Version:
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[0, 1, 2, 3].map((lvlOpt) => {
+                        const active = displayedLevel === lvlOpt;
+                        const isCurrent = actualLevel === lvlOpt && previewLevelOverride === null;
+                        return (
+                          <button
+                            key={lvlOpt}
+                            type="button"
+                            onClick={() =>
+                              setPreviewLevelOverride(lvlOpt === actualLevel ? null : lvlOpt)
+                            }
+                            className={`px-2.5 py-1 rounded-xl text-[10px] font-rounded font-bold transition-all cursor-pointer ${
+                              active
+                                ? 'bg-[#701020] text-[#F1CA7E] shadow-sm'
+                                : 'hover:bg-black/10'
+                            }`}
+                            style={!active ? { color: 'var(--text-main)' } : undefined}
+                          >
+                            {lvlOpt === 0 ? 'Empty' : `Lvl ${lvlOpt}`}
+                            {isCurrent ? ' ★' : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <div className="p-3 rounded-2xl capsule-card">
-                  <strong className="block mb-0.5 text-[#C0392B]">Area Challenges</strong>
-                  <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.problems}</span>
+
+                {/* Valuation & Rent Metrics */}
+                <div className="grid grid-cols-4 gap-2 text-center p-2.5 rounded-2xl capsule-inset font-mono text-xs">
+                  <div>
+                    <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Base</span>
+                    <strong style={{ color: 'var(--text-main)' }}>Rs {inspectedProperty.openingValue}L</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Value</span>
+                    <strong className="text-[#2E7D52]">Rs {currentVal}L</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>L3 Target</span>
+                    <strong className="text-[#2E7D52]">Rs {inspectedProperty.level3Target}L</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-rounded opacity-75 block" style={{ color: 'var(--text-sub)' }}>Rent</span>
+                    <strong style={{ color: 'var(--text-main)' }}>Rs {currentRent}L</strong>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
+
+                {/* LEVEL PROGRESS & ATTACH BID RESOURCES PANEL (FOR OWNED PLOTS) */}
+                {isOwnedByMe && (
+                  <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-rounded font-bold">
+                      <span style={{ color: 'var(--text-main)' }}>
+                        Property Level Progress ({attachedIds.length} / 3 Resources)
+                      </span>
+                      <span className="font-mono text-[#2E7D52]">
+                        {actualLevel >= 3 ? 'Level 3 Max Reached' : `Level ${actualLevel} / 3`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[1, 2, 3].map((step) => (
+                        <div
+                          key={step}
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            actualLevel >= step ? 'bg-[#2E7D52]' : 'bg-black/15'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Installed Resources */}
+                    {attachedIds.length > 0 && (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                        {attachedIds.map((uId) => {
+                          const util = KARACHI_UTILITIES.find((u) => u.id === Number(uId));
+                          if (!util) return null;
+                          return (
+                            <span
+                              key={uId}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-rounded font-bold border"
+                              style={{
+                                backgroundColor: 'var(--resource-badge-bg)',
+                                color: 'var(--resource-badge-text)',
+                                borderColor: 'var(--resource-badge-border)'
+                              }}
+                            >
+                              <UtilityIcon id={util.id} className="w-3 h-3" style={{ color: 'var(--resource-icon-color)' }} />
+                              <span>{util.name}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Attach Unassigned Resources Directly from Modal */}
+                    {actualLevel < 3 && (
+                      <div className="pt-2 border-t border-[var(--border-soft)] space-y-1.5">
+                        <span className="text-[11px] font-rounded font-bold block" style={{ color: 'var(--text-sub)' }}>
+                          Attach a Bid Resource to Upgrade (+1 Level):
+                        </span>
+                        {unassignedResources.length === 0 ? (
+                          <div className="p-2 rounded-xl capsule-inset text-[11px] font-rounded text-center" style={{ color: 'var(--text-sub)' }}>
+                            No unassigned Bid Resources in your inventory. Win resources in the Admin Bid!
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {unassignedResources.map((res) => {
+                              const alreadyInstalled = attachedIds.includes(res.utilityId);
+                              return (
+                                <button
+                                  key={res.instanceId}
+                                  type="button"
+                                  disabled={alreadyInstalled}
+                                  onClick={() => handleInstallUtility(inspectedProperty.id, res.utilityId)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-rounded font-bold flex items-center justify-between border transition-all cursor-pointer ${
+                                    alreadyInstalled
+                                      ? 'opacity-40 cursor-not-allowed border-transparent capsule-inset'
+                                      : 'border-[#2E7D52]/50 capsule-inset hover:border-[#2E7D52]'
+                                  }`}
+                                  style={{ color: 'var(--text-main)' }}
+                                >
+                                  <span className="flex items-center gap-1.5 truncate">
+                                    <UtilityIcon id={res.utilityId} className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--resource-icon-color)' }} />
+                                    <span className="truncate">{res.name}</span>
+                                  </span>
+                                  <span className="font-mono text-[10px] font-bold text-[#2E7D52] shrink-0 ml-1">
+                                    {alreadyInstalled ? 'Added' : '+Attach'}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2 text-xs font-rounded">
+                  <div className="p-3 rounded-2xl capsule-card">
+                    <strong className="block mb-0.5" style={{ color: 'var(--text-main)' }}>Overview</strong>
+                    <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.importance}</span>
+                  </div>
+                  <div className="p-3 rounded-2xl capsule-card">
+                    <strong className="block mb-0.5 text-[#C0392B]">Area Challenges</strong>
+                    <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.problems}</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* TOAST */}

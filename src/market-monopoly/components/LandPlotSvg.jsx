@@ -133,546 +133,1033 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
 }
 
 /**
- * Architectural SVG Background Illustration for Properties Tab Cards
- * Renders distinct skyline / architectural art for:
- * - Residential (Villas, Townhouses, Trees & Terraces)
- * - Commercial (High-Rise Towers, Plaza Arches & Financial Skyline)
- * - Industrial / Port / Airport (Warehouses, Cranes & Gantries)
+ * Isometric 3D Architectural Backdrop for Properties Tab Cards
+ * Uses the exact same mathematical isometric 3D projection engine (`iso(u, v, z)`)
+ * as LandPlotIllustration so every wall, roof, lawn, and driveway is 100% locked
+ * to the ground plane with zero floating or misaligned angles.
  */
 export const PropertyCategoryBackdrop = React.memo(function PropertyCategoryBackdrop({
   category = 'Residential',
   className = 'w-full h-28'
 }) {
-  const catLower = (category || '').toLowerCase();
-  const isCommercial = catLower.includes('commercial') || catLower.includes('transport');
-  const isIndustrial = catLower.includes('industrial') || catLower.includes('port');
-
-  if (isCommercial) {
-    return (
-      <svg
-        viewBox="0 0 320 110"
-        className={`${className} select-none pointer-events-none`}
-        preserveAspectRatio="xMidYMid slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="commSky" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3B0B15" />
-            <stop offset="100%" stopColor="#6E1426" />
-          </linearGradient>
-        </defs>
-        <rect width="320" height="110" fill="url(#commSky)" />
-
-        {/* Subtle Horizon Sun / Glow */}
-        <circle cx="265" cy="28" r="24" fill="#F1CA7E" fillOpacity="0.16" />
-
-        {/* Back Skyline Silhouettes */}
-        <rect x="18" y="42" width="32" height="68" fill="#4E101D" />
-        <rect x="56" y="26" width="38" height="84" fill="#5A1221" />
-        <rect x="218" y="34" width="42" height="76" fill="#4E101D" />
-        <rect x="266" y="48" width="34" height="62" fill="#5A1221" />
-
-        {/* Foreground Commercial Towers & Plaza */}
-        <g>
-          {/* Left Glass Office Tower */}
-          <rect x="96" y="18" width="46" height="92" rx="2" fill="#8B1E32" stroke="#F1CA7E" strokeWidth="1.2" strokeOpacity="0.7" />
-          <polygon points="96,18 119,6 142,18" fill="#F1CA7E" fillOpacity="0.85" />
-          {/* Tower Windows Grid */}
-          {[26, 38, 50, 62, 74, 86].map((y) => (
-            <g key={y} fill="#F8EEE1" fillOpacity="0.75">
-              <rect x="103" y={y} width="8" height="6" rx="0.8" />
-              <rect x="115" y={y} width="8" height="6" rx="0.8" />
-              <rect x="127" y={y} width="8" height="6" rx="0.8" />
-            </g>
-          ))}
-
-          {/* Right Commercial Trade Center */}
-          <rect x="150" y="32" width="58" height="78" rx="2" fill="#701020" stroke="#F1CA7E" strokeWidth="1.2" strokeOpacity="0.65" />
-          <rect x="158" y="24" width="42" height="8" fill="#F1CA7E" fillOpacity="0.35" />
-          {[42, 54, 66, 78].map((y) => (
-            <g key={y} fill="#F1CA7E" fillOpacity="0.65">
-              <rect x="158" y={y} width="10" height="6" rx="0.8" />
-              <rect x="174" y={y} width="10" height="6" rx="0.8" />
-              <rect x="190" y={y} width="10" height="6" rx="0.8" />
-            </g>
-          ))}
-          {/* Ground Arches */}
-          <path d="M162 110 V94 a6 6 0 0 1 12 0 V110 Z" fill="#2B0A11" />
-          <path d="M184 110 V94 a6 6 0 0 1 12 0 V110 Z" fill="#2B0A11" />
-        </g>
-
-        {/* Ground Boulevard Line */}
-        <line x1="0" y1="108" x2="320" y2="108" stroke="#F1CA7E" strokeWidth="2" strokeOpacity="0.5" />
-      </svg>
-    );
-  }
-
-  if (isIndustrial) {
-    return (
-      <svg
-        viewBox="0 0 320 110"
-        className={`${className} select-none pointer-events-none`}
-        preserveAspectRatio="xMidYMid slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="indSky" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#261310" />
-            <stop offset="100%" stopColor="#52261E" />
-          </linearGradient>
-        </defs>
-        <rect width="320" height="110" fill="url(#indSky)" />
-
-        {/* Cargo Crane Silhouette */}
-        <g stroke="#F1CA7E" strokeOpacity="0.5" strokeWidth="1.8" fill="none">
-          <line x1="248" y1="108" x2="262" y2="20" />
-          <line x1="276" y1="108" x2="262" y2="20" />
-          <line x1="210" y1="26" x2="298" y2="16" />
-          <line x1="224" y1="24" x2="224" y2="52" />
-          <rect x="216" y="52" width="16" height="10" fill="#F1CA7E" fillOpacity="0.35" />
-        </g>
-
-        {/* Sawtooth Factory Roofs & Warehouses */}
-        <polygon
-          points="24,108 24,58 58,42 58,58 92,42 92,58 126,42 126,108"
-          fill="#6E221F"
-          stroke="#F1CA7E"
-          strokeWidth="1.2"
-          strokeOpacity="0.65"
-        />
-        {/* Smokestacks */}
-        <rect x="142" y="28" width="12" height="80" fill="#4A1715" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-        <rect x="162" y="36" width="12" height="72" fill="#4A1715" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-        <rect x="140" y="26" width="16" height="4" fill="#F1CA7E" fillOpacity="0.7" />
-        <rect x="160" y="34" width="16" height="4" fill="#F1CA7E" fillOpacity="0.7" />
-
-        {/* Warehouse Hangar */}
-        <path
-          d="M 134 108 V 68 L 174 52 L 214 68 V 108 Z"
-          fill="#8D5B3A"
-          fillOpacity="0.75"
-          stroke="#F1CA7E"
-          strokeWidth="1.2"
-          strokeOpacity="0.7"
-        />
-        <rect x="158" y="80" width="32" height="28" fill="#261310" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-
-        {/* Factory Windows */}
-        {[40, 66, 92].map((x) => (
-          <rect key={x} x={x} y="72" width="14" height="12" rx="1" fill="#F1CA7E" fillOpacity="0.65" />
-        ))}
-
-        <line x1="0" y1="108" x2="320" y2="108" stroke="#F1CA7E" strokeWidth="2" strokeOpacity="0.5" />
-      </svg>
-    );
-  }
-
-  // Default: Residential Villa, Gated Estate & Courtyards
   return (
-    <svg
-      viewBox="0 0 320 110"
-      className={`${className} select-none pointer-events-none`}
-      preserveAspectRatio="xMidYMid slice"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id="resSky" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#2B0E16" />
-          <stop offset="100%" stopColor="#5E1929" />
-        </linearGradient>
-      </defs>
-      <rect width="320" height="110" fill="url(#resSky)" />
-
-      {/* Warm Moon / Evening Sun Glow */}
-      <circle cx="52" cy="28" r="18" fill="#F1CA7E" fillOpacity="0.2" />
-
-      {/* Rolling Hills / Garden Backdrop */}
-      <path d="M0 92 Q 90 68 180 88 T 320 82 L 320 110 L 0 110 Z" fill="#3E111B" />
-
-      {/* Left Residential Townhouse */}
-      <g>
-        <rect x="64" y="54" width="52" height="54" rx="2" fill="#701020" stroke="#F1CA7E" strokeWidth="1.2" strokeOpacity="0.65" />
-        <polygon points="58,54 90,34 122,54" fill="#8B1E32" stroke="#F1CA7E" strokeWidth="1.2" strokeOpacity="0.75" />
-        <rect x="74" y="64" width="12" height="12" rx="1" fill="#F8EEE1" fillOpacity="0.8" />
-        <rect x="94" y="64" width="12" height="12" rx="1" fill="#F8EEE1" fillOpacity="0.8" />
-        <rect x="84" y="86" width="12" height="22" rx="1" fill="#F1CA7E" fillOpacity="0.75" />
-      </g>
-
-      {/* Center Luxury Karachi Villa */}
-      <g>
-        <rect x="132" y="42" width="78" height="66" rx="2" fill="#F8EEE1" fillOpacity="0.92" stroke="#5A0D1B" strokeWidth="1.2" />
-        <polygon points="126,42 171,20 216,42" fill="#701020" stroke="#F1CA7E" strokeWidth="1.3" />
-        {/* Upper Balcony */}
-        <rect x="146" y="50" width="20" height="14" rx="1" fill="#5A0D1B" />
-        <rect x="176" y="50" width="20" height="14" rx="1" fill="#5A0D1B" />
-        <line x1="142" y1="65" x2="200" y2="65" stroke="#701020" strokeWidth="2" />
-        {/* Ground Arched Entrance */}
-        <path d="M162 108 V82 a9 9 0 0 1 18 0 V108 Z" fill="#701020" />
-        <rect x="142" y="78" width="12" height="14" rx="1" fill="#5A0D1B" />
-        <rect x="188" y="78" width="12" height="14" rx="1" fill="#5A0D1B" />
-      </g>
-
-      {/* Courtyard Trees */}
-      <g>
-        <line x1="36" y1="108" x2="36" y2="76" stroke="#F1CA7E" strokeWidth="2.2" strokeOpacity="0.6" />
-        <circle cx="36" cy="70" r="13" fill="#2E7D52" fillOpacity="0.85" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-        <line x1="242" y1="108" x2="242" y2="72" stroke="#F1CA7E" strokeWidth="2.2" strokeOpacity="0.6" />
-        <circle cx="242" cy="66" r="15" fill="#2E7D52" fillOpacity="0.85" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-        <line x1="274" y1="108" x2="274" y2="80" stroke="#F1CA7E" strokeWidth="2" strokeOpacity="0.6" />
-        <circle cx="274" cy="75" r="11" fill="#2E7D52" fillOpacity="0.75" stroke="#F1CA7E" strokeWidth="1" strokeOpacity="0.5" />
-      </g>
-
-      <line x1="0" y1="108" x2="320" y2="108" stroke="#F1CA7E" strokeWidth="2" strokeOpacity="0.5" />
-    </svg>
+    <div className={`${className} relative overflow-hidden select-none pointer-events-none`}>
+      <LandPlotIllustration category={category} level={3} showBadge={false} />
+    </div>
   );
 });
 
 /**
- * Lightweight 3D Isometric Land Plot SVG (Runs on all low-end devices without WebGL/GPU overhead)
- * Matches the user-provided reference design exactly:
- * - Diamond-angled 3D plot foundation with glowing border & 3D base bevel
- * - Clean geometric 3D architectural houses & towers with warm cream facades (#FBF4E6) & side shading (#E4D1B8)
- * - Level 0: Pure isometric vacant land plot with road markings
- * - Level 1: Adds small residential/commercial isometric cottage with roof & windows
- * - Level 2: Adds central 3-story main isometric building with entrance & window arrays
- * - Level 3: Adds landmark tower with roof spire + spherical beacon + golden upgrade orbs on the platform
- * - Compact pill badge in top-left: "LEVEL 3"
+ * ============================================================================
+ * MATHEMATICAL ISOMETRIC 3D PROJECTION ENGINE (`iso(u, v, z)`)
+ * ============================================================================
+ * Every single vertex (ground slab, grass lawn, driveway, walls, windows,
+ * doors, awnings, sloped roofs, cypress trees, and street lamps) is computed
+ * in true 3D space (u, v, z) and projected to 2D via:
+ *   X = OriginX + (u - v) * cos(30°)
+ *   Y = OriginY + (u + v) * sin(30°) - z
+ *
+ * Because all coordinates share the exact same 3D space (u ∈ [0, 100], v ∈ [0, 100]),
+ * buildings are 100% mathematically parallel and anchored to the land slab!
+ * Runs on a lightweight 2D <canvas> with zero WebGL/CSS-3D browser bugs.
  */
+const ISO_SCALE = 0.84;
+const COS30 = 0.8660254 * ISO_SCALE; // ~0.7275
+const SIN30 = 0.5 * ISO_SCALE;       // ~0.42
+const Z_SCALE = 0.82;
+const ORIGIN_X = 152;
+const ORIGIN_Y = 48;
+
+function isoPt(u, v, z = 0) {
+  return [
+    ORIGIN_X + (u - v) * COS30,
+    ORIGIN_Y + (u + v) * SIN30 - z * Z_SCALE
+  ];
+}
+
+function drawPoly(ctx, pts, fill, stroke = null, lineWidth = 0.8) {
+  if (!pts.length) return;
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+  ctx.closePath();
+  if (fill) {
+    ctx.fillStyle = fill;
+    ctx.fill();
+  }
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = lineWidth;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draws an extruded 3D box from (u1, v1, z1) to (u2, v2, z2)
+ * Front-Left face = v === v2 (facing viewer-left, sunlit)
+ * Front-Right face = u === u2 (facing viewer-right, shaded)
+ * Top face = z === z2
+ */
+function drawIsoBox(ctx, u1, v1, z1, u2, v2, z2, colors, stroke = null, lw = 0.6) {
+  const { left, right, top } = colors;
+  // Top face
+  if (top) {
+    drawPoly(
+      ctx,
+      [isoPt(u1, v1, z2), isoPt(u2, v1, z2), isoPt(u2, v2, z2), isoPt(u1, v2, z2)],
+      top,
+      stroke,
+      lw
+    );
+  }
+  // Front-left face (v = v2, u from u1 to u2)
+  if (left) {
+    drawPoly(
+      ctx,
+      [isoPt(u1, v2, z1), isoPt(u2, v2, z1), isoPt(u2, v2, z2), isoPt(u1, v2, z2)],
+      left,
+      stroke,
+      lw
+    );
+  }
+  // Front-right face (u = u2, v from v1 to v2)
+  if (right) {
+    drawPoly(
+      ctx,
+      [isoPt(u2, v1, z1), isoPt(u2, v2, z1), isoPt(u2, v2, z2), isoPt(u2, v1, z2)],
+      right,
+      stroke,
+      lw
+    );
+  }
+}
+
+/**
+ * Draws a glass window on the Front-Left wall (constant v) with optional red awning
+ */
+function drawLeftWallWindow(ctx, u1, u2, v, z1, z2, hasAwning = false, awningColor = '#E04F5F') {
+  // Outer white frame
+  drawPoly(
+    ctx,
+    [isoPt(u1, v, z1), isoPt(u2, v, z1), isoPt(u2, v, z2), isoPt(u1, v, z2)],
+    '#FFFFFF',
+    '#8A9BA8',
+    0.6
+  );
+  // Blue reflective glass pane
+  const pad = 1.2;
+  drawPoly(
+    ctx,
+    [
+      isoPt(u1 + pad, v, z1 + pad),
+      isoPt(u2 - pad, v, z1 + pad),
+      isoPt(u2 - pad, v, z2 - pad),
+      isoPt(u1 + pad, v, z2 - pad)
+    ],
+    '#67A3D9'
+  );
+  // Diagonal glass reflection highlight
+  drawPoly(
+    ctx,
+    [
+      isoPt(u1 + pad + 1, v, z1 + pad),
+      isoPt(u1 + pad + 4.5, v, z1 + pad),
+      isoPt(u1 + pad + 7, v, z2 - pad),
+      isoPt(u1 + pad + 3.5, v, z2 - pad)
+    ],
+    '#9BC8F0'
+  );
+  // Center vertical mullion bar
+  const uMid = (u1 + u2) / 2;
+  ctx.beginPath();
+  const [mx1, my1] = isoPt(uMid, v, z1 + pad);
+  const [mx2, my2] = isoPt(uMid, v, z2 - pad);
+  ctx.moveTo(mx1, my1);
+  ctx.lineTo(mx2, my2);
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Optional 3D Red Awning jutting out in +v direction
+  if (hasAwning) {
+    const awD = 3.5;
+    const awH = 2.8;
+    // Awning sloped top
+    drawPoly(
+      ctx,
+      [
+        isoPt(u1 - 0.8, v, z2 + 1.2),
+        isoPt(u2 + 0.8, v, z2 + 1.2),
+        isoPt(u2 + 0.8, v + awD, z2 - awH + 1.2),
+        isoPt(u1 - 0.8, v + awD, z2 - awH + 1.2)
+      ],
+      awningColor
+    );
+    // Awning front valence strip
+    drawPoly(
+      ctx,
+      [
+        isoPt(u1 - 0.8, v + awD, z2 - awH + 1.2),
+        isoPt(u2 + 0.8, v + awD, z2 - awH + 1.2),
+        isoPt(u2 + 0.8, v + awD, z2 - awH - 0.4),
+        isoPt(u1 - 0.8, v + awD, z2 - awH - 0.4)
+      ],
+      '#B83242'
+    );
+    // Awning right side triangle
+    drawPoly(
+      ctx,
+      [
+        isoPt(u2 + 0.8, v, z2 + 1.2),
+        isoPt(u2 + 0.8, v + awD, z2 - awH + 1.2),
+        isoPt(u2 + 0.8, v, z2 - awH + 1.2)
+      ],
+      '#9E2432'
+    );
+  }
+}
+
+/**
+ * Draws a conical cypress tree at (u, v, z=0) matching the reference illustration
+ */
+function drawCypressTree(ctx, u, v, height = 18, radius = 4.2) {
+  const [cx, cy] = isoPt(u, v, 0);
+  // Ground shadow ellipse
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx + 1, cy + 1, radius * 1.15, radius * 0.65, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(35, 55, 15, 0.45)';
+  ctx.fill();
+
+  // Tree trunk
+  drawIsoBox(ctx, u - 0.8, v - 0.8, 0, u + 0.8, v + 0.8, 3, {
+    left: '#7D5A3C',
+    right: '#593E27',
+    top: '#7D5A3C'
+  });
+
+  // Conical foliage (left lit half + right shaded half)
+  const [tx, ty] = isoPt(u, v, height);
+  const [bx, by] = isoPt(u, v, 2.5);
+  const w = radius * ISO_SCALE * 1.05;
+
+  // Full foliage cone base
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.quadraticCurveTo(bx - w * 1.2, by - height * 0.25, bx - w, by);
+  ctx.quadraticCurveTo(bx, by + w * 0.55, bx + w, by);
+  ctx.quadraticCurveTo(bx + w * 1.2, by - height * 0.25, tx, ty);
+  ctx.closePath();
+  ctx.fillStyle = '#73993D';
+  ctx.fill();
+
+  // Shaded right half of cone for 3D volume
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(bx, by + w * 0.28);
+  ctx.quadraticCurveTo(bx + w * 0.6, by + w * 0.25, bx + w, by);
+  ctx.quadraticCurveTo(bx + w * 1.2, by - height * 0.25, tx, ty);
+  ctx.closePath();
+  ctx.fillStyle = '#557528';
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Draws an ornate double street lamp post at (u, v) matching reference image
+ */
+function drawStreetLamp(ctx, u, v, height = 22) {
+  const [bx, by] = isoPt(u, v, 0);
+  const [tx, ty] = isoPt(u, v, height);
+
+  // Base pedestal
+  ctx.beginPath();
+  ctx.ellipse(bx, by, 2.5, 1.4, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#7E878C';
+  ctx.fill();
+
+  // Vertical pole
+  ctx.beginPath();
+  ctx.moveTo(bx, by);
+  ctx.lineTo(tx, ty);
+  ctx.strokeStyle = '#8C969C';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Twin curved arms
+  ctx.beginPath();
+  ctx.moveTo(tx - 5, ty - 2);
+  ctx.quadraticCurveTo(tx - 2.5, ty + 2, tx, ty - 1);
+  ctx.quadraticCurveTo(tx + 2.5, ty + 2, tx + 5, ty - 2);
+  ctx.strokeStyle = '#9EA8AE';
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
+
+  // Glowing golden lanterns
+  [-5, 5].forEach((dx) => {
+    ctx.beginPath();
+    ctx.arc(tx + dx, ty - 3.2, 1.8, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFD54F';
+    ctx.fill();
+    ctx.strokeStyle = '#4A5257';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  });
+}
+
+/**
+ * Renders the complete 3D Isometric Residential Villa Scene (exact match to reference image)
+ * Distinct evolutionary stages for Level 0, Level 1, Level 2, and Level 3:
+ * - Level 0: Vacant Zoned Land Slab with lawn strips, trees, and survey marker
+ * - Level 1: Cozy 1-Story Suburban Cottage (Single wing, red steps, window with red awning, pitched terracotta roof)
+ * - Level 2: Expanded 2-Story Family House + Attached Garage Wing + Sweeping Terracotta Roof + 2nd-story Awning Windows
+ * - Level 3: Grand Luxury Estate Villa (Adds Attic Roof Dormer Window, Flower Planter Boxes, Twin Street Lamps & Full Cypress Landscaping)
+ */
+function renderResidentialScene(ctx, level) {
+  // 1. Concrete Sidewalk / Driveway Base Slab (u: 4..96, v: 4..96, z: 0..6)
+  drawIsoBox(ctx, 4, 4, 0, 96, 96, 6, {
+    left: '#E2E4E6',
+    right: '#C2C6CA',
+    top: '#ECEEEF'
+  });
+
+  // 2. Green Grass Lawn Strips along the perimeter & yard
+  // Left lawn strip
+  drawPoly(
+    ctx,
+    [isoPt(8, 56, 6.1), isoPt(36, 56, 6.1), isoPt(36, 92, 6.1), isoPt(8, 92, 6.1)],
+    '#8AB346'
+  );
+  // Center divider lawn strip between front walk and garage driveway
+  drawPoly(
+    ctx,
+    [isoPt(44, 62, 6.1), isoPt(56, 62, 6.1), isoPt(56, 86, 6.1), isoPt(44, 86, 6.1)],
+    '#8AB346'
+  );
+  // Front-right & side lawn strip
+  drawPoly(
+    ctx,
+    [isoPt(84, 10, 6.1), isoPt(93, 10, 6.1), isoPt(93, 92, 6.1), isoPt(84, 92, 6.1)],
+    '#8AB346'
+  );
+
+  if (level === 0) {
+    // Vacant Zoned Residential Lot with trees & survey plinth
+    drawCypressTree(ctx, 18, 82, 17, 3.8);
+    drawCypressTree(ctx, 88, 84, 17, 3.8);
+    drawStreetLamp(ctx, 12, 74, 20);
+    drawIsoBox(ctx, 38, 38, 6, 62, 62, 9, {
+      left: '#C59B6D',
+      right: '#A37B4C',
+      top: '#D8B48A'
+    });
+    return;
+  }
+
+  // LEVEL 1: Cozy 1-Story Cottage on the Land Plot
+  if (level === 1) {
+    // Right yard grass patch (where garage will be built at Level 2)
+    drawPoly(
+      ctx,
+      [isoPt(56, 22, 6.1), isoPt(82, 22, 6.1), isoPt(82, 68, 6.1), isoPt(56, 68, 6.1)],
+      '#8AB346'
+    );
+
+    // 1-Story Cottage Baseboard & Walls (u: 20..56, v: 22..64, z: 6..36)
+    drawIsoBox(ctx, 20, 22, 6, 56, 64, 11, {
+      left: '#D8C3A5',
+      right: '#BFA888',
+      top: '#E6D5BC'
+    });
+    drawIsoBox(ctx, 20, 22, 11, 56, 64, 36, {
+      left: '#F5F5F5',
+      right: '#D2D2D2',
+      top: '#FFFFFF'
+    });
+
+    // Gable Triangle Peak on Front-Left Wall
+    const peakZ = 50;
+    drawPoly(
+      ctx,
+      [isoPt(20, 64, 36), isoPt(56, 64, 36), isoPt(38, 64, peakZ)],
+      '#F5F5F5'
+    );
+
+    // Wooden Front Door & Red Steps
+    drawPoly(
+      ctx,
+      [isoPt(39, 64.2, 10), isoPt(49, 64.2, 10), isoPt(49, 64.2, 29), isoPt(39, 64.2, 29)],
+      '#8D5B3A'
+    );
+    drawLeftWallWindow(ctx, 41, 47, 64.4, 18, 26, false);
+    drawIsoBox(ctx, 38, 64, 6, 50, 70, 8.2, {
+      left: '#D64550',
+      right: '#A82E38',
+      top: '#E85D68'
+    });
+    drawIsoBox(ctx, 38, 64, 8.2, 50, 67.5, 10.2, {
+      left: '#D64550',
+      right: '#A82E38',
+      top: '#E85D68'
+    });
+
+    // Ground Floor Window with Red Awning
+    drawLeftWallWindow(ctx, 24, 35, 64.2, 15, 29, true, '#E04F5F');
+
+    // Symmetrical Cottage Pitched Terracotta Roof
+    drawPoly(
+      ctx,
+      [isoPt(17, 66, 34), isoPt(38, 66, peakZ + 1), isoPt(38, 19, peakZ + 1), isoPt(17, 19, 34)],
+      '#9E6B47'
+    );
+    drawPoly(
+      ctx,
+      [isoPt(38, 66, peakZ + 1), isoPt(59, 66, 34), isoPt(59, 19, 34), isoPt(38, 19, peakZ + 1)],
+      '#C68B59',
+      '#9E6B47',
+      0.8
+    );
+
+    drawCypressTree(ctx, 22, 76, 17, 3.8);
+    drawCypressTree(ctx, 70, 50, 18, 4.0);
+    drawStreetLamp(ctx, 13, 72, 21);
+    return;
+  }
+
+  // LEVEL 2 & LEVEL 3: 2-Story Main Villa + Attached Right Garage Wing
+  // 3. RIGHT WING / GARAGE SECTION (u: 48..84, v: 18..68, z: 6..38)
+  drawIsoBox(ctx, 48, 18, 6, 84, 68, 11, {
+    left: '#D8C3A5',
+    right: '#BFA888',
+    top: '#E6D5BC'
+  });
+  drawIsoBox(ctx, 48, 18, 11, 84, 68, 38, {
+    left: '#EFEFEF',
+    right: '#CCCCCC',
+    top: '#E0E0E0'
+  });
+  // Dark Charcoal Garage Door on Front-Left Wall (v = 68.2, u: 52..80, z: 6..25)
+  drawPoly(
+    ctx,
+    [isoPt(52, 68.2, 6), isoPt(80, 68.2, 6), isoPt(80, 68.2, 25), isoPt(52, 68.2, 25)],
+    '#FFFFFF'
+  );
+  drawPoly(
+    ctx,
+    [isoPt(53, 68.3, 6), isoPt(79, 68.3, 6), isoPt(79, 68.3, 24), isoPt(53, 68.3, 24)],
+    '#5A5D60'
+  );
+  // Garage Upper Picture Window (v = 68.2, u: 56..76, z: 28..41)
+  drawLeftWallWindow(ctx, 56, 76, 68.2, 28, 41, false);
+
+  // 4. LEFT MAIN 2-STORY HOUSE WING (u: 14..52, v: 18..64, z: 6..58)
+  const mainH = 58;
+  drawIsoBox(ctx, 14, 18, 6, 52, 64, 12, {
+    left: '#D8C3A5',
+    right: '#BFA888',
+    top: '#E6D5BC'
+  });
+  drawIsoBox(ctx, 14, 18, 12, 52, 64, mainH, {
+    left: '#F5F5F5',
+    right: '#D2D2D2',
+    top: '#FFFFFF'
+  });
+
+  // Gable Triangle Peak on Front-Left Wall (u: 14..52, v: 64, apex at u=33, z = mainH + 18)
+  const roofPeakZ = mainH + 18;
+  drawPoly(
+    ctx,
+    [isoPt(14, 64, mainH), isoPt(52, 64, mainH), isoPt(33, 64, roofPeakZ)],
+    '#F5F5F5'
+  );
+
+  // Wooden Front Door with Glass Lite (u: 33..43, v: 64.2, z: 10..31)
+  drawPoly(
+    ctx,
+    [isoPt(33, 64.2, 10), isoPt(43, 64.2, 10), isoPt(43, 64.2, 31), isoPt(33, 64.2, 31)],
+    '#8D5B3A'
+  );
+  drawPoly(
+    ctx,
+    [isoPt(34.2, 64.3, 10.5), isoPt(41.8, 64.3, 10.5), isoPt(41.8, 64.3, 29.8), isoPt(34.2, 64.3, 29.8)],
+    '#A8724D'
+  );
+  drawLeftWallWindow(ctx, 35.2, 40.8, 64.4, 19, 28, false);
+
+  // Red Front Stoop Steps (3 cascading steps in front of door, u: 32..44, v: 64..71)
+  drawIsoBox(ctx, 32, 64, 6, 44, 71, 8, {
+    left: '#D64550',
+    right: '#A82E38',
+    top: '#E85D68'
+  });
+  drawIsoBox(ctx, 32, 64, 8, 44, 68.8, 9.8, {
+    left: '#D64550',
+    right: '#A82E38',
+    top: '#E85D68'
+  });
+  drawIsoBox(ctx, 32, 64, 9.8, 44, 66.5, 11.2, {
+    left: '#D64550',
+    right: '#A82E38',
+    top: '#E85D68'
+  });
+
+  // Ground Floor Window with Red Awning
+  drawLeftWallWindow(ctx, 18, 29, 64.2, 16, 31, true, '#E04F5F');
+
+  // Second Floor Windows with Red Awnings
+  drawLeftWallWindow(ctx, 18, 29, 64.2, 37, 51, true, '#E04F5F');
+  drawLeftWallWindow(ctx, 34, 45, 64.2, 37, 51, true, '#E04F5F');
+
+  // 5. SWEEPING TERRACOTTA / WARM BROWN SLOPED ROOF
+  drawPoly(
+    ctx,
+    [
+      isoPt(11, 66, mainH - 2),
+      isoPt(33, 66, roofPeakZ + 1),
+      isoPt(33, 15, roofPeakZ + 1),
+      isoPt(11, 15, mainH - 2)
+    ],
+    '#9E6B47'
+  );
+  drawPoly(
+    ctx,
+    [
+      isoPt(11, 66, mainH - 2),
+      isoPt(33, 66, roofPeakZ + 1),
+      isoPt(33, 64, roofPeakZ - 1),
+      isoPt(13, 64, mainH - 3)
+    ],
+    '#875838'
+  );
+
+  // Main Sweeping Right Roof Plane over Garage
+  drawPoly(
+    ctx,
+    [
+      isoPt(33, 67, roofPeakZ + 1),
+      isoPt(87, 70, 36),
+      isoPt(87, 15, 36),
+      isoPt(33, 15, roofPeakZ + 1)
+    ],
+    '#C68B59',
+    '#9E6B47',
+    0.8
+  );
+
+  // LEVEL 3: Roof Dormer Window + Flower Planters + Full Cypress Trees & Twin Street Lamps
+  if (level >= 3) {
+    const dU1 = 44;
+    const dU2 = 55;
+    const dV1 = 34;
+    const dV2 = 48;
+    const dBaseZ = 56;
+    const dTopZ = 66;
+    drawPoly(
+      ctx,
+      [isoPt(dU1, dV2, dBaseZ), isoPt(dU2, dV2, dBaseZ - 6), isoPt(dU2, dV2, dTopZ), isoPt(dU1, dV2, dTopZ)],
+      '#8C5B3C'
+    );
+    drawPoly(
+      ctx,
+      [isoPt(dU2, dV1, dBaseZ - 6), isoPt(dU2, dV2, dBaseZ - 6), isoPt(dU2, dV2, dTopZ), isoPt(dU2, dV1, dTopZ)],
+      '#FFFFFF'
+    );
+    drawPoly(
+      ctx,
+      [
+        isoPt(dU2 + 0.1, dV1 + 2, dBaseZ - 4.5),
+        isoPt(dU2 + 0.1, dV2 - 2, dBaseZ - 4.5),
+        isoPt(dU2 + 0.1, dV2 - 2, dTopZ - 1.5),
+        isoPt(dU2 + 0.1, dV1 + 2, dTopZ - 1.5)
+      ],
+      '#67A3D9'
+    );
+    drawPoly(
+      ctx,
+      [
+        isoPt(dU1 - 2, dV2 + 1, dTopZ),
+        isoPt(dU2 + 2, dV2 + 1, dTopZ),
+        isoPt(dU2 + 2, (dV1 + dV2) / 2, dTopZ + 5),
+        isoPt(dU1 - 2, (dV1 + dV2) / 2, dTopZ + 5)
+      ],
+      '#B57C4E'
+    );
+    drawPoly(
+      ctx,
+      [
+        isoPt(dU1 - 2, (dV1 + dV2) / 2, dTopZ + 5),
+        isoPt(dU2 + 2, (dV1 + dV2) / 2, dTopZ + 5),
+        isoPt(dU2 + 2, dV1 - 1, dTopZ),
+        isoPt(dU1 - 2, dV1 - 1, dTopZ)
+      ],
+      '#CF9666'
+    );
+
+    // White Flower Planter Boxes along house base
+    drawIsoBox(ctx, 18, 65, 6, 26, 68.5, 8.5, {
+      left: '#E0E4E8',
+      right: '#B8C0C8',
+      top: '#76A038'
+    });
+    drawIsoBox(ctx, 45, 65, 6, 51, 68.5, 8.5, {
+      left: '#E0E4E8',
+      right: '#B8C0C8',
+      top: '#76A038'
+    });
+  }
+
+  // Conical Cypress Trees & Ornate Street Lamps on the Lawn
+  drawCypressTree(ctx, 22, 76, 19, 4.2);
+  drawCypressTree(ctx, 48, 76, 18, 4.0);
+  drawCypressTree(ctx, 88, 78, 19, 4.2);
+  drawStreetLamp(ctx, 13, 72, 23);
+  if (level >= 3) {
+    drawStreetLamp(ctx, 86, 68, 23);
+  }
+}
+
+/**
+ * Renders the 3D Isometric Commercial High-Rise Financial Plaza Scene
+ * Distinct Level 1, 2, 3 architectural progressions:
+ * - Level 1: Single-Story Boutique Retail & Banking Showroom with Crimson Awnings
+ * - Level 2: Adds Mid-Rise 3-Story Corporate Glass Office Tower + Revolving Canopy Entrance
+ * - Level 3: Full Skyscraper Financial Complex with Executive Penthouse Crown, Helipad & Telecom Spire
+ */
+function renderCommercialScene(ctx, level) {
+  // 1. Paved Marble / Granite Executive Plaza Base Slab
+  drawIsoBox(ctx, 4, 4, 0, 96, 96, 6, {
+    left: '#DED8CE',
+    right: '#BFB8AC',
+    top: '#EFECE6'
+  });
+
+  // Decorative Gold-Trimmed Plaza Courtyard Tile Inlay
+  drawPoly(
+    ctx,
+    [isoPt(12, 12, 6.1), isoPt(88, 12, 6.1), isoPt(88, 88, 6.1), isoPt(12, 88, 6.1)],
+    '#E5DFD5',
+    '#C8A96E',
+    0.8
+  );
+
+  // Ornamental Green Planter Strips
+  drawPoly(
+    ctx,
+    [isoPt(10, 68, 6.2), isoPt(34, 68, 6.2), isoPt(34, 90, 6.2), isoPt(10, 90, 6.2)],
+    '#7CA642'
+  );
+  drawPoly(
+    ctx,
+    [isoPt(72, 68, 6.2), isoPt(90, 68, 6.2), isoPt(90, 90, 6.2), isoPt(72, 90, 6.2)],
+    '#7CA642'
+  );
+
+  if (level === 0) {
+    drawCypressTree(ctx, 18, 80, 16, 3.6);
+    drawCypressTree(ctx, 82, 80, 16, 3.6);
+    drawIsoBox(ctx, 36, 36, 6, 64, 64, 9, {
+      left: '#8B1E32',
+      right: '#5E1120',
+      top: '#D4A85B'
+    });
+    return;
+  }
+
+  // LEVEL 1: Boutique Commercial Retail & Banking Plaza
+  if (level === 1) {
+    drawIsoBox(ctx, 22, 24, 6, 78, 64, 34, {
+      left: '#F2EFE9',
+      right: '#D0C9BE',
+      top: '#D8C3A5'
+    });
+    drawIsoBox(ctx, 21, 23, 34, 79, 65, 38, {
+      left: '#8B1E32',
+      right: '#5E1120',
+      top: '#ECC37A'
+    });
+    drawLeftWallWindow(ctx, 26, 40, 64.2, 8, 28, true, '#8B1E32');
+    drawLeftWallWindow(ctx, 44, 58, 64.2, 8, 28, true, '#8B1E32');
+    drawLeftWallWindow(ctx, 62, 74, 64.2, 8, 28, true, '#8B1E32');
+    drawCypressTree(ctx, 20, 78, 17, 3.8);
+    drawStreetLamp(ctx, 12, 74, 21);
+    return;
+  }
+
+  // LEVEL 2 & LEVEL 3: Right Luxury Retail Wing + Left Corporate Glass Tower
+  // 2. RIGHT LUXURY RETAIL & BANKING SHOWROOM WING (u: 54..86, v: 22..66, z: 6..36)
+  drawIsoBox(ctx, 54, 22, 6, 86, 66, 36, {
+    left: '#F2EFE9',
+    right: '#D0C9BE',
+    top: '#D8C3A5'
+  });
+  drawIsoBox(ctx, 53, 21, 36, 87, 67, 40, {
+    left: '#8B1E32',
+    right: '#5E1120',
+    top: '#ECC37A'
+  });
+  drawLeftWallWindow(ctx, 58, 70, 66.2, 8, 28, true, '#8B1E32');
+  drawLeftWallWindow(ctx, 72, 83, 66.2, 8, 28, true, '#8B1E32');
+
+  // 3. LEFT MAIN CORPORATE GLASS TOWER (u: 16..56, v: 18..62)
+  const towerH = level >= 3 ? 76 : 56;
+  drawIsoBox(ctx, 16, 18, 6, 56, 62, 16, {
+    left: '#D8C3A5',
+    right: '#B8A080',
+    top: '#E5D4BC'
+  });
+  drawIsoBox(ctx, 16, 18, 16, 56, 62, towerH, {
+    left: '#F7F5F0',
+    right: '#D5CFC4',
+    top: '#E8E2D8'
+  });
+
+  // Curtain-Wall Blue Glass Floor Bands on Front-Left & Front-Right Facades
+  const floors = level >= 3 ? 4 : 3;
+  for (let f = 0; f < floors; f++) {
+    const zBot = 20 + f * 13;
+    const zTop = zBot + 9;
+    drawLeftWallWindow(ctx, 20, 34, 62.2, zBot, zTop, false);
+    drawLeftWallWindow(ctx, 38, 52, 62.2, zBot, zTop, false);
+
+    drawPoly(
+      ctx,
+      [isoPt(56.2, 23, zBot), isoPt(56.2, 57, zBot), isoPt(56.2, 57, zTop), isoPt(56.2, 23, zTop)],
+      '#548EC2',
+      '#FFFFFF',
+      0.5
+    );
+  }
+
+  // Grand Revolving Door Canopy Entrance
+  drawPoly(
+    ctx,
+    [isoPt(30, 62.2, 6), isoPt(44, 62.2, 6), isoPt(44, 62.2, 16), isoPt(30, 62.2, 16)],
+    '#3B0C18'
+  );
+  drawIsoBox(ctx, 28, 62, 15, 46, 68, 17.5, {
+    left: '#ECC37A',
+    right: '#C89B4B',
+    top: '#FFE5A8'
+  });
+
+  // LEVEL 3: Executive Penthouse Crown + Helipad + Communications Spire
+  if (level >= 3) {
+    drawIsoBox(ctx, 22, 24, towerH, 50, 56, towerH + 8, {
+      left: '#8B1E32',
+      right: '#5E1120',
+      top: '#3B0C18'
+    });
+    const [hx, hy] = isoPt(36, 40, towerH + 8.2);
+    ctx.beginPath();
+    ctx.ellipse(hx, hy, 8, 4.5, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ECC37A';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    const [sx1, sy1] = isoPt(28, 30, towerH + 8);
+    const [sx2, sy2] = isoPt(28, 30, towerH + 22);
+    ctx.beginPath();
+    ctx.moveTo(sx1, sy1);
+    ctx.lineTo(sx2, sy2);
+    ctx.strokeStyle = '#ECC37A';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  }
+
+  drawCypressTree(ctx, 20, 78, 18, 3.8);
+  drawCypressTree(ctx, 80, 78, 18, 3.8);
+  drawStreetLamp(ctx, 12, 74, 22);
+  if (level >= 3) {
+    drawStreetLamp(ctx, 64, 76, 22);
+  }
+}
+
+/**
+ * Renders the 3D Isometric Industrial Manufacturing Plant, Silos & Port Yard Scene
+ * Distinct Level 1, 2, 3 architectural progressions:
+ * - Level 1: Logistics Warehouse & Roll-Up Cargo Dock + Yard Container
+ * - Level 2: Adds Main Pitched-Roof Manufacturing Plant + Twin Smokestack Chimneys
+ * - Level 3: Full Industrial Port Complex with Double-Stacked Containers & Overhead Yellow Steel Gantry Crane
+ */
+function renderIndustrialScene(ctx, level) {
+  // 1. Heavy-Duty Industrial Concrete & Asphalt Yard Slab
+  drawIsoBox(ctx, 4, 4, 0, 96, 96, 6, {
+    left: '#C8C4BE',
+    right: '#A6A29C',
+    top: '#D8D5D0'
+  });
+
+  // Hazard Apron Zone Markings
+  drawPoly(
+    ctx,
+    [isoPt(12, 58, 6.1), isoPt(88, 58, 6.1), isoPt(88, 90, 6.1), isoPt(12, 90, 6.1)],
+    '#C2BEB8',
+    '#D97724',
+    0.8
+  );
+
+  if (level === 0) {
+    drawIsoBox(ctx, 20, 62, 6, 44, 76, 16, {
+      left: '#D97724',
+      right: '#A85516',
+      top: '#E68A35'
+    });
+    return;
+  }
+
+  // LEVEL 1: Single Logistics Warehouse & Cargo Loading Dock
+  if (level === 1) {
+    drawIsoBox(ctx, 28, 22, 6, 78, 64, 34, {
+      left: '#EBE6DF',
+      right: '#C9C2B8',
+      top: '#B35422'
+    });
+    drawIsoBox(ctx, 27, 21, 34, 79, 65, 37, {
+      left: '#B35422',
+      right: '#8C3E14',
+      top: '#D97724'
+    });
+    [34, 56].forEach((uStart) => {
+      drawPoly(
+        ctx,
+        [isoPt(uStart, 64.2, 6), isoPt(uStart + 14, 64.2, 6), isoPt(uStart + 14, 64.2, 23), isoPt(uStart, 64.2, 23)],
+        '#4A4E52',
+        '#FFFFFF',
+        0.6
+      );
+    });
+    drawIsoBox(ctx, 16, 70, 6, 38, 82, 16, {
+      left: '#D97724',
+      right: '#A85516',
+      top: '#E68A35'
+    });
+    drawStreetLamp(ctx, 12, 68, 21);
+    return;
+  }
+
+  // LEVEL 2 & LEVEL 3: Full Warehouse Wing + Main Manufacturing Plant + Twin Smokestacks
+  // 2. RIGHT LOGISTICS WAREHOUSE & LOADING DOCK WING (u: 52..88, v: 20..66, z: 6..34)
+  drawIsoBox(ctx, 52, 20, 6, 88, 66, 34, {
+    left: '#EBE6DF',
+    right: '#C9C2B8',
+    top: '#B35422'
+  });
+  drawIsoBox(ctx, 51, 19, 34, 89, 67, 37, {
+    left: '#B35422',
+    right: '#8C3E14',
+    top: '#D97724'
+  });
+  [56, 72].forEach((uStart) => {
+    drawPoly(
+      ctx,
+      [isoPt(uStart, 66.2, 6), isoPt(uStart + 12, 66.2, 6), isoPt(uStart + 12, 66.2, 23), isoPt(uStart, 66.2, 23)],
+      '#4A4E52',
+      '#FFFFFF',
+      0.6
+    );
+    for (let zRib = 10; zRib <= 20; zRib += 4) {
+      const [rx1, ry1] = isoPt(uStart + 0.5, 66.3, zRib);
+      const [rx2, ry2] = isoPt(uStart + 11.5, 66.3, zRib);
+      ctx.beginPath();
+      ctx.moveTo(rx1, ry1);
+      ctx.lineTo(rx2, ry2);
+      ctx.strokeStyle = '#8C949A';
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+    }
+  });
+
+  // 3. LEFT MAIN MANUFACTURING PLANT WITH PITCHED FACTORY ROOF (u: 14..54, v: 18..62, z: 6..48)
+  const plantH = 48;
+  drawIsoBox(ctx, 14, 18, 6, 54, 62, 12, {
+    left: '#B89F82',
+    right: '#967E62',
+    top: '#C8B094'
+  });
+  drawIsoBox(ctx, 14, 18, 12, 54, 62, plantH, {
+    left: '#F2EEE9',
+    right: '#CFC9C0',
+    top: '#E0DAD0'
+  });
+
+  const peakZ = plantH + 14;
+  drawPoly(
+    ctx,
+    [isoPt(14, 62, plantH), isoPt(54, 62, plantH), isoPt(34, 62, peakZ)],
+    '#F2EEE9'
+  );
+  drawPoly(
+    ctx,
+    [isoPt(12, 64, plantH - 1), isoPt(34, 64, peakZ + 1), isoPt(34, 16, peakZ + 1), isoPt(12, 16, plantH - 1)],
+    '#8C4A27'
+  );
+  drawPoly(
+    ctx,
+    [isoPt(34, 64, peakZ + 1), isoPt(56, 64, plantH - 1), isoPt(56, 16, plantH - 1), isoPt(34, 16, peakZ + 1)],
+    '#B86538'
+  );
+
+  drawLeftWallWindow(ctx, 18, 31, 62.2, 20, 34, false);
+  drawLeftWallWindow(ctx, 36, 49, 62.2, 20, 34, false);
+
+  // 4. TWIN SMOKESTACK CHIMNEYS
+  [22, 34].forEach((uStack, idx) => {
+    const topZ = peakZ + 14 + idx * 5;
+    drawIsoBox(ctx, uStack, 26, peakZ - 4, uStack + 7, 33, topZ, {
+      left: '#7D4E38',
+      right: '#593423',
+      top: '#3A1E12'
+    });
+    drawIsoBox(ctx, uStack - 0.4, 25.6, topZ - 4, uStack + 7.4, 33.4, topZ - 1, {
+      left: '#E67E22',
+      right: '#B35422',
+      top: '#F39C12'
+    });
+  });
+
+  // 5. SHIPPING CONTAINERS & STEEL GANTRY CRANE (Level 3)
+  drawIsoBox(ctx, 16, 70, 6, 38, 82, 16, {
+    left: '#D97724',
+    right: '#A85516',
+    top: '#E68A35'
+  });
+  if (level >= 3) {
+    drawIsoBox(ctx, 18, 71, 16, 36, 81, 25, {
+      left: '#2E6B9E',
+      right: '#1D496E',
+      top: '#3E82BA'
+    });
+    drawIsoBox(ctx, 64, 72, 6, 67, 75, 42, {
+      left: '#F1C40F',
+      right: '#C29D0B',
+      top: '#F5D342'
+    });
+    drawIsoBox(ctx, 84, 72, 6, 87, 75, 42, {
+      left: '#F1C40F',
+      right: '#C29D0B',
+      top: '#F5D342'
+    });
+    drawIsoBox(ctx, 62, 71, 42, 89, 76, 46, {
+      left: '#F39C12',
+      right: '#B87409',
+      top: '#F7B731'
+    });
+  }
+
+  drawStreetLamp(ctx, 12, 68, 22);
+}
+
 export const LandPlotIllustration = React.memo(function LandPlotIllustration({
   category = 'Residential',
   level = 0,
   utilityCount = 0,
-  isHighlighted = false
+  isHighlighted = false,
+  showBadge = true
 }) {
-  const isIndustrial = category.includes('Industrial');
-  const isCommercial = category.includes('Commercial');
+  const canvasRef = React.useRef(null);
+  const catLower = (category || '').toLowerCase();
+  const isIndustrial = catLower.includes('industrial') || catLower.includes('port');
+  const isCommercial =
+    !isIndustrial &&
+    (catLower.includes('commercial') ||
+      catLower.includes('transport') ||
+      catLower.includes('institutional') ||
+      catLower.includes('heritage'));
 
-  // Palette extracted directly from reference image:
-  // Card base & plinth
-  const groundTop = isHighlighted ? '#4A1220' : '#2D0A14';
-  const groundEdge = isHighlighted ? '#FF7A90' : '#8B1428';
-  const curbColor = '#ECC37A';
-  const bevelFront = '#1A040B';
-  const bevelEdge = '#120207';
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-  // Architectural 3D buildings:
-  // Front face (cream/bone-white lit): #FBF5E8
-  // Side face (isometric shadow): #E5D5BC
-  // Roof front: #ECC37A (warm sand / gold)
-  // Roof side/gable: #D4A85B
-  // Windows & Doors: #4D0E1C
-  // Outlines: crisp dark maroon #22050D
-  const wallFront = '#FBF5E8';
-  const wallSide = '#E5D5BC';
-  const roofColor = level >= 3 ? '#ECC37A' : isIndustrial ? '#8D5B3A' : isCommercial ? '#A32238' : '#ECC37A';
-  const roofSide = level >= 3 ? '#D4A85B' : '#6A1624';
-  const windowFill = '#4D0E1C';
-  const strokeLine = '#22050D';
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = 300;
+    const H = 145;
+    if (canvas.width !== W * dpr || canvas.height !== H * dpr) {
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+    }
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    // Soft Ground Drop Shadow beneath the 3D Isometric Slab
+    drawPoly(
+      ctx,
+      [isoPt(2, 6, -2), isoPt(98, 6, -2), isoPt(98, 99, -2), isoPt(2, 99, -2)],
+      'rgba(0, 0, 0, 0.35)'
+    );
+
+    if (isIndustrial) {
+      renderIndustrialScene(ctx, level);
+    } else if (isCommercial) {
+      renderCommercialScene(ctx, level);
+    } else {
+      renderResidentialScene(ctx, level);
+    }
+
+    // 3 Upgrade Level Indicator Orbs along Front-Left Sidewalk Edge
+    for (let step = 1; step <= 3; step++) {
+      const isActive = level >= step;
+      const uOrb = 20 + (step - 1) * 14;
+      const [ox, oy] = isoPt(uOrb, 91, 6.5);
+      ctx.beginPath();
+      ctx.arc(ox, oy, 3.6, 0, Math.PI * 2);
+      ctx.fillStyle = isActive ? '#ECC37A' : 'rgba(60, 20, 30, 0.45)';
+      ctx.fill();
+      ctx.strokeStyle = isActive ? '#3B0C18' : 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }, [category, level, isIndustrial, isCommercial, isHighlighted]);
+
+  const badgeLabel = isIndustrial ? 'INDUSTRIAL' : isCommercial ? 'COMMERCIAL' : 'RESIDENTIAL';
 
   return (
-    <svg
-      viewBox="0 0 280 135"
-      className="w-full h-28 sm:h-32 select-none pointer-events-none"
-      xmlns="http://www.w3.org/2000/svg"
-      shapeRendering="geometricPrecision"
+    <div
+      className="relative w-full h-28 sm:h-32 select-none pointer-events-none overflow-hidden rounded-2xl"
+      style={{
+        background: isHighlighted
+          ? 'radial-gradient(circle at 50% 35%, #4A1220 0%, #24060E 100%)'
+          : 'radial-gradient(circle at 50% 35%, #340C18 0%, #1A040B 100%)'
+      }}
     >
-      <defs>
-        {/* Low-end device friendly static SVG linear gradient */}
-        <linearGradient id="plotBg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2E0C16" />
-          <stop offset="100%" stopColor="#1B050D" />
-        </linearGradient>
-      </defs>
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full object-contain block"
+      />
 
-      {/* Outer rounded card frame */}
-      <rect width="280" height="135" rx="16" fill="url(#plotBg)" />
-
-      {/* LEVEL BADGE (Exact match with reference top-left pill) */}
-      <g transform="translate(18, 14)">
-        <rect
-          x="0"
-          y="0"
-          width="62"
-          height="20"
-          rx="6"
-          fill="#3B0C18"
-          stroke="#ECC37A"
-          strokeWidth="1.5"
-        />
-        <text
-          x="31"
-          y="14"
-          textAnchor="middle"
-          fill="#ECC37A"
-          fontSize="9.5"
-          fontWeight="800"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          letterSpacing="0.8"
+      {showBadge && (
+        <div
+          className="absolute top-2.5 left-3 px-2.5 py-0.5 rounded-md border text-[9.5px] font-extrabold tracking-wider"
+          style={{
+            backgroundColor: '#3B0C18',
+            borderColor: '#ECC37A',
+            color: '#ECC37A',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}
         >
           {level === 0 ? 'EMPTY' : `LEVEL ${level}`}
-        </text>
-      </g>
-
-      {/* ============================================================ */}
-      {/* 3D ISOMETRIC GROUND PLATFORM (Diamond prism beneath buildings) */}
-      {/* Platform diamond: Top=(140, 52), Right=(244, 88), Front=(140, 118), Left=(36, 88) */}
-      {/* Extruded downward bevel to depth y + 5 */}
-      {/* ============================================================ */}
-      <g id="isometric-platform">
-        {/* Front-Left 3D Thickness Drop */}
-        <polygon
-          points="36,88 140,118 140,123 36,93"
-          fill={bevelFront}
-          stroke={bevelEdge}
-          strokeWidth="1"
-        />
-        {/* Front-Right 3D Thickness Drop */}
-        <polygon
-          points="244,88 140,118 140,123 244,93"
-          fill="#110207"
-          stroke={bevelEdge}
-          strokeWidth="1"
-        />
-
-        {/* Top Isometric Diamond Plot Floor */}
-        <polygon
-          points="140,52 244,88 140,118 36,88"
-          fill={groundTop}
-          stroke={groundEdge}
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-
-        {/* Dashed Road / Curb Markings along the front perimeter edges */}
-        {/* Black underlay for contrast */}
-        <polyline
-          points="46,89 140,116 234,89"
-          fill="none"
-          stroke="#100206"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeDasharray="5 4"
-        />
-        {/* Golden dash markings */}
-        <polyline
-          points="46,88 140,115 234,88"
-          fill="none"
-          stroke={curbColor}
-          strokeWidth="1.2"
-          strokeOpacity="0.8"
-          strokeDasharray="5 4"
-        />
-      </g>
-
-      {/* ============================================================ */}
-      {/* 3D BUILDINGS LAYER (Planted flat on the isometric surface)   */}
-      {/* Ground lines intersect cleanly inside the diamond plot       */}
-      {/* ============================================================ */}
-
-      {/* LEVEL 1+: Small Left Isometric Cottage (Base y=88) */}
-      {level >= 1 && (
-        <g id="left-cottage">
-          {/* Main Front Wall */}
-          <rect
-            x="68"
-            y="64"
-            width="28"
-            height="24"
-            fill={wallFront}
-            stroke={strokeLine}
-            strokeWidth="1.2"
-          />
-          {/* Cottage Right Shaded Side */}
-          <polygon
-            points="96,64 104,61 104,85 96,88"
-            fill={wallSide}
-            stroke={strokeLine}
-            strokeWidth="1.2"
-          />
-
-          {/* Cottage Front Triangle Gable */}
-          <polygon
-            points="66,64 82,53 98,64"
-            fill={roofColor}
-            stroke={strokeLine}
-            strokeWidth="1.2"
-          />
-          {/* Cottage Roof Shaded Right Slope */}
-          <polygon
-            points="82,53 92,49 106,61 98,64"
-            fill={roofSide}
-            stroke={strokeLine}
-            strokeWidth="1.2"
-          />
-
-          {/* Front Window */}
-          <rect
-            x="76"
-            y="71"
-            width="12"
-            height="10"
-            fill={windowFill}
-            stroke={strokeLine}
-            strokeWidth="0.8"
-          />
-        </g>
+        </div>
       )}
 
-      {/* LEVEL 0 -> LEVEL 3: Center Main 3-Story Isometric Building (Base y=88) */}
-      {level === 0 ? (
-        // Vacant land survey marker
-        <g id="empty-survey-marker">
-          <circle cx="140" cy="88" r="8" fill="#580E1C" stroke="#ECC37A" strokeWidth="1.5" />
-          <circle cx="140" cy="88" r="3" fill="#ECC37A" />
-          <line x1="140" y1="74" x2="140" y2="102" stroke="#ECC37A" strokeWidth="1.2" strokeDasharray="2 2" />
-          <line x1="126" y1="88" x2="154" y2="88" stroke="#ECC37A" strokeWidth="1.2" strokeDasharray="2 2" />
-        </g>
-      ) : (
-        <g id="center-main-building">
-          {/* Main Front Wall (3 stories) */}
-          <rect
-            x="102"
-            y="36"
-            width="44"
-            height="52"
-            fill={wallFront}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-          {/* Main Right Shaded Isometric Wall */}
-          <polygon
-            points="146,36 166,41 166,85 146,88"
-            fill={wallSide}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-
-          {/* Main Front Roof Slope */}
-          <polygon
-            points="99,36 126,22 149,36"
-            fill={roofColor}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-          {/* Main Right Roof Slope */}
-          <polygon
-            points="126,22 146,27 169,41 149,36"
-            fill={roofSide}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-
-          {/* Window Array & Entrance on Front Wall */}
-          {/* Top Floor Windows */}
-          <rect x="110" y="43" width="9" height="8" fill={windowFill} />
-          <rect x="127" y="43" width="9" height="8" fill={windowFill} />
-          {/* Middle Floor Windows */}
-          <rect x="110" y="56" width="9" height="8" fill={windowFill} />
-          <rect x="127" y="56" width="9" height="8" fill={windowFill} />
-          {/* Ground Floor Entrance */}
-          <rect x="117" y="70" width="14" height="18" fill={windowFill} />
-
-          {/* Side Isometric Windows */}
-          <polygon
-            points="152,49 160,50 160,58 152,56"
-            fill={windowFill}
-            stroke={strokeLine}
-            strokeWidth="0.8"
-          />
-        </g>
+      {showBadge && (
+        <div
+          className="absolute top-2.5 right-3 px-2 py-0.5 rounded border text-[8px] font-mono font-bold tracking-widest uppercase"
+          style={{
+            backgroundColor: 'rgba(20, 4, 10, 0.72)',
+            borderColor: 'rgba(236, 195, 122, 0.35)',
+            color: '#F5E0B7'
+          }}
+        >
+          {badgeLabel}
+        </div>
       )}
-
-      {/* LEVEL 3: Right Landmark Tower with Spire & Beacon (Base y=88) */}
-      {level >= 3 && (
-        <g id="right-landmark-tower">
-          {/* Tower Front Wall */}
-          <rect
-            x="170"
-            y="30"
-            width="28"
-            height="58"
-            fill={wallFront}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-          {/* Tower Right Shaded Isometric Side */}
-          <polygon
-            points="198,30 208,27 208,82 198,88"
-            fill={wallSide}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-
-          {/* Pyramid Roof / Dome Base */}
-          <polygon
-            points="167,30 184,14 201,30"
-            fill={roofColor}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-          <polygon
-            points="184,14 194,11 210,27 201,30"
-            fill={roofSide}
-            stroke={strokeLine}
-            strokeWidth="1.4"
-          />
-
-          {/* Tower Spire Rod & Spherical Beacon */}
-          <line
-            x1="184"
-            y1="5"
-            x2="184"
-            y2="14"
-            stroke="#ECC37A"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-          <circle
-            cx="184"
-            cy="4"
-            r="3.5"
-            fill="#ECC37A"
-            stroke={strokeLine}
-            strokeWidth="1"
-          />
-
-          {/* Tower Windows (Upper + Lower) */}
-          <rect x="176" y="38" width="7" height="7" fill={windowFill} />
-          <rect x="187" y="38" width="7" height="7" fill={windowFill} />
-          <rect x="176" y="51" width="7" height="7" fill={windowFill} />
-          <rect x="187" y="51" width="7" height="7" fill={windowFill} />
-        </g>
-      )}
-
-      {/* LEVEL ORBS ON PLATFORM (Exact 3 golden circular markers on the front-left edge) */}
-      {/* Placed cleanly along the front-left curb edge between (36, 88) and (140, 118) */}
-      <g id="upgrade-orbs">
-        {[1, 2, 3].map((step) => {
-          const isActive = level >= step;
-          // Step 1: (60, 95), Step 2: (74, 99), Step 3: (88, 103)
-          const cx = 60 + (step - 1) * 14;
-          const cy = 95 + (step - 1) * 4;
-          return (
-            <g key={step}>
-              {/* Orb drop shadow */}
-              <ellipse cx={cx} cy={cy + 1.2} rx="4" ry="2" fill="#140207" opacity="0.6" />
-              {/* 3D Sphere Orb */}
-              <circle
-                cx={cx}
-                cy={cy}
-                r="4.2"
-                fill={isActive ? '#ECC37A' : '#4D0E1C'}
-                stroke={isActive ? strokeLine : '#8A152E'}
-                strokeWidth="1.2"
-              />
-              {/* Specular highlight */}
-              {isActive && (
-                <circle cx={cx - 1.2} cy={cy - 1.2} r="1.2" fill="#FFF9ED" opacity="0.9" />
-              )}
-            </g>
-          );
-        })}
-      </g>
-    </svg>
+    </div>
   );
 });
