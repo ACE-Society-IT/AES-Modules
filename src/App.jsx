@@ -76,8 +76,7 @@ export default function App() {
               </div>
             } />
 
-            {/* Public Projector Screen */}
-            <Route path="/projector" element={<ProjectorView />} />
+
 
             {/* Explicitly Block & Redirect Any Admin Access Attempts from Modules */}
             <Route path="/admin" element={<Navigate to="/" replace />} />
