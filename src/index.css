@@ -258,39 +258,39 @@ html[data-theme="aes"] {
 
 /* Landing Page Typography directly on the deep #5A0D1B page background in AES mode */
 html[data-theme="aes"] #overview h1,
-html[data-theme="aes"] #overview > div > h1,
-html[data-theme="aes"] #metrics > div > h2,
-html[data-theme="aes"] #rules-compulsory > div > h2,
+html[data-theme="aes"] #overview>div>h1,
+html[data-theme="aes"] #metrics>div>h2,
+html[data-theme="aes"] #rules-compulsory>div>h2,
 html[data-theme="aes"] #terminal .lg\:col-span-4 h2,
-html[data-theme="aes"] #rounds > div > h2 {
+html[data-theme="aes"] #rounds>div>h2 {
   color: #F8EEE1 !important;
 }
 
 html[data-theme="aes"] #overview p,
-html[data-theme="aes"] #overview > div > p,
-html[data-theme="aes"] #terminal .lg\:col-span-4 > p {
+html[data-theme="aes"] #overview>div>p,
+html[data-theme="aes"] #terminal .lg\:col-span-4>p {
   color: #E8DCC6 !important;
 }
 
 /* Eyebrows and section tags on page background */
 html[data-theme="aes"] #overview .text-\[var\(--text-sub\)\],
-html[data-theme="aes"] #metrics > .text-center .text-\[var\(--chart-stroke\)\],
-html[data-theme="aes"] #rules-compulsory > .text-center .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] #metrics>.text-center .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] #rules-compulsory>.text-center .text-\[var\(--chart-stroke\)\],
 html[data-theme="aes"] #terminal .lg\:col-span-4 .text-\[var\(--chart-stroke\)\],
-html[data-theme="aes"] #rounds > .text-center .text-\[var\(--chart-stroke\)\] {
+html[data-theme="aes"] #rounds>.text-center .text-\[var\(--chart-stroke\)\] {
   color: #F1CA7E !important;
 }
 
 /* Quick Bar & Footer Nav Links on the deep #5A0D1B canvas outside of cards */
-html[data-theme="aes"] #metrics > div:last-child .text-\[var\(--text-sub\)\],
-html[data-theme="aes"] #metrics > div:last-child button,
-html[data-theme="aes"] #overview > div:last-child button,
-html[data-theme="aes"] #overview > div:last-child span {
+html[data-theme="aes"] #metrics>div:last-child .text-\[var\(--text-sub\)\],
+html[data-theme="aes"] #metrics>div:last-child button,
+html[data-theme="aes"] #overview>div:last-child button,
+html[data-theme="aes"] #overview>div:last-child span {
   color: #E8DCC6 !important;
 }
 
-html[data-theme="aes"] #metrics > div:last-child button:hover,
-html[data-theme="aes"] #overview > div:last-child button:hover {
+html[data-theme="aes"] #metrics>div:last-child button:hover,
+html[data-theme="aes"] #overview>div:last-child button:hover {
   color: #F1CA7E !important;
 }
 
@@ -660,6 +660,7 @@ html {
   width: 0 !important;
   height: 0 !important;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
@@ -808,9 +809,11 @@ input[type="range"]:active::-webkit-slider-thumb {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -820,16 +823,20 @@ input[type="range"]:active::-webkit-slider-thumb {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes pulse-beam {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.45;
     transform: scale(0.98);
   }
+
   50% {
     opacity: 0.95;
     transform: scale(1.02);
@@ -837,9 +844,12 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 @keyframes float-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
   }
+
   50% {
     transform: translateY(-8px) rotate(1.2deg);
   }
@@ -892,9 +902,11 @@ input[type="range"]:active::-webkit-slider-thumb {
 .perspective-1000 {
   perspective: 1000px;
 }
+
 .transform-style-3d {
   transform-style: preserve-3d;
 }
+
 .backface-hidden {
   backface-visibility: hidden;
 }
@@ -904,6 +916,7 @@ input[type="range"]:active::-webkit-slider-thumb {
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -969,36 +982,32 @@ html[data-theme="aes"] .dynamic-floating-nav {
 
 html[data-theme="dark"] .glowing-arc-bottom {
   border: none !important;
-  box-shadow: 
+  box-shadow:
     0 -10px 80px 30px rgba(217, 30, 68, 0.85),
     0 -25px 140px 60px rgba(136, 27, 48, 0.65),
     0 -45px 220px 90px rgba(82, 17, 30, 0.5);
-  background: radial-gradient(
-    ellipse 92% 100% at 50% 100%,
-    rgba(255, 45, 90, 0.95) 0%,
-    rgba(217, 30, 68, 0.85) 35%,
-    rgba(107, 15, 33, 0.70) 65%,
-    rgba(50, 8, 16, 0.45) 85%,
-    transparent 100%
-  );
+  background: radial-gradient(ellipse 92% 100% at 50% 100%,
+      rgba(255, 45, 90, 0.95) 0%,
+      rgba(217, 30, 68, 0.85) 35%,
+      rgba(107, 15, 33, 0.70) 65%,
+      rgba(50, 8, 16, 0.45) 85%,
+      transparent 100%);
 }
 
 html[data-theme="light"] .glowing-arc-bottom {
   border: none !important;
   border-top: none !important;
-  box-shadow: 
+  box-shadow:
     0 -16px 85px 35px rgba(255, 23, 68, 0.92),
     0 -35px 150px 70px rgba(244, 63, 94, 0.80),
     0 -60px 240px 105px rgba(251, 113, 133, 0.68),
     0 -95px 360px 160px rgba(254, 205, 211, 0.55);
-  background: radial-gradient(
-    ellipse 92% 100% at 50% 100%,
-    rgba(255, 23, 68, 0.98) 0%,
-    rgba(244, 63, 94, 0.88) 32%,
-    rgba(251, 113, 133, 0.75) 58%,
-    rgba(254, 205, 211, 0.55) 80%,
-    transparent 100%
-  );
+  background: radial-gradient(ellipse 92% 100% at 50% 100%,
+      rgba(255, 23, 68, 0.98) 0%,
+      rgba(244, 63, 94, 0.88) 32%,
+      rgba(251, 113, 133, 0.75) 58%,
+      rgba(254, 205, 211, 0.55) 80%,
+      transparent 100%);
 }
 
 /* IN AES THEME: Remove bottom glowing arc completely per user request */
@@ -1029,7 +1038,7 @@ html[data-theme="light"] .nexora-hero-wings {
    Seamless feathering at 0% and 100% into var(--bg-page) to eliminate lines
    ========================================================================= */
 html[data-theme="dark"] .landing-section-gradient {
-  background: 
+  background:
     radial-gradient(ellipse 80% 50% at 50% 30%, rgba(136, 27, 48, 0.25) 0%, rgba(82, 17, 30, 0.12) 55%, transparent 75%),
     radial-gradient(ellipse 65% 45% at 20% 65%, rgba(136, 27, 48, 0.18) 0%, transparent 65%),
     radial-gradient(ellipse 65% 45% at 80% 35%, rgba(82, 17, 30, 0.20) 0%, transparent 65%),
@@ -1043,7 +1052,7 @@ html[data-theme="aes"] .landing-section-gradient-alt {
 }
 
 html[data-theme="dark"] .landing-section-gradient-alt {
-  background: 
+  background:
     radial-gradient(ellipse 75% 50% at 50% 70%, rgba(217, 30, 68, 0.15) 0%, rgba(136, 27, 48, 0.10) 55%, transparent 75%),
     radial-gradient(ellipse 65% 45% at 85% 35%, rgba(217, 30, 68, 0.15) 0%, transparent 65%),
     radial-gradient(ellipse 65% 45% at 15% 65%, rgba(136, 27, 48, 0.18) 0%, transparent 65%),
@@ -1051,7 +1060,7 @@ html[data-theme="dark"] .landing-section-gradient-alt {
 }
 
 html[data-theme="light"] .landing-section-gradient {
-  background: 
+  background:
     radial-gradient(ellipse 80% 50% at 50% 30%, rgba(255, 215, 224, 0.75) 0%, rgba(255, 235, 240, 0.4) 55%, transparent 75%),
     radial-gradient(ellipse 65% 45% at 20% 65%, rgba(255, 226, 232, 0.7) 0%, transparent 65%),
     radial-gradient(ellipse 65% 45% at 80% 35%, rgba(255, 238, 241, 0.65) 0%, transparent 65%),
@@ -1059,7 +1068,7 @@ html[data-theme="light"] .landing-section-gradient {
 }
 
 html[data-theme="light"] .landing-section-gradient-alt {
-  background: 
+  background:
     radial-gradient(ellipse 75% 50% at 50% 70%, rgba(255, 220, 228, 0.60) 0%, transparent 75%),
     radial-gradient(ellipse 65% 45% at 85% 35%, rgba(255, 220, 228, 0.65) 0%, transparent 65%),
     radial-gradient(ellipse 65% 45% at 15% 65%, rgba(255, 230, 235, 0.7) 0%, transparent 65%),
@@ -1241,12 +1250,52 @@ html[data-theme="aes"] .border-\[\#9E7B81\]\/15 {
   border-color: rgba(241, 202, 126, 0.35) !important;
 }
 
-@keyframes float-up { 0% { opacity: 0; transform: translateY(14px) scale(0.8); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px) scale(1.15); } }
-@keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes pop-in { 0% { opacity: 0; transform: translateY(10px) scale(0.98); } 100% { opacity: 1; transform: none; } }
-.animate-float-up { animation: float-up 2.4s ease-out forwards; }
-.animate-flash { animation: flash 1.4s ease-out forwards; }
-.animate-pop-in { animation: pop-in 0.45s ease-out both; }
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.8);
+  }
 
+  20% {
+    opacity: 1;
+  }
 
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(1.15);
+  }
+}
 
+@keyframes flash {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-float-up {
+  animation: float-up 2.4s ease-out forwards;
+}
+
+.animate-flash {
+  animation: flash 1.4s ease-out forwards;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.45s ease-out both;
+}
