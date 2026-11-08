@@ -1,0 +1,1252 @@
+@import "tailwindcss";
+
+:root {
+  /* Defend the Empire Theme Variables */
+  --color-theme-oxblood: #5a0d1b;
+  --color-theme-wine: #650d1c;
+  --color-theme-crimson: #701020;
+  --color-theme-ruby: #89192c;
+  --color-theme-cream: #f8eee1;
+  --color-theme-parchment: #e8dcc6;
+  --color-theme-gold: #f1ca7e;
+
+  /* Grounded Espresso, Bronze, Camel, Parchment & Slate Scale */
+  --espresso-900: #1A120E;
+  --umber-800: #3A2418;
+  --bronze-600: #6B4A2E;
+  --camel-500: #A88462;
+  --parchment-200: #D5C4AE;
+  --slate-700: #4A4A46;
+
+  /* Royal Wine & Maroon Accents (Deep, Non-Pinkish) */
+  --maroon-900: #2B0A11;
+  --maroon-800: #3D0D17;
+  --maroon-700: #52111E;
+  --maroon-600: #6B1527;
+  --maroon-500: #881B30;
+  --maroon-400: #9E2A2B;
+  --maroon-300: #A88462;
+  --maroon-200: #D5C4AE;
+  --maroon-100: #EDE4D7;
+  --maroon-50: #F7F2EA;
+
+  /* Gold Scale */
+  --gold-500: #D9BB7C;
+  --gold-400: #E6CE9B;
+  --gold-600: #B89957;
+
+  /* Emerald & Crimson */
+  --green-gain: #2E7D52;
+  --red-loss: #C0392B;
+}
+
+/* =========================================================================
+   LIGHT THEME: Light Gradient of Maroon and Soft Rose White
+   (Matches the screenshot: #FFFDFC page, #FFFFFF cards, #FFF1F4 insets, #881B30 accents)
+   ========================================================================= */
+:root,
+html[data-theme="light"] {
+  --bg-page: #FFFDFC;
+  --bg-gradient: radial-gradient(ellipse 120% 80% at 50% -10%, #FFFFFF 0%, #FFF5F7 38%, #FDE9ED 72%, #F6D6DC 100%);
+  --bg-container: #FFFFFF;
+  --bg-container-gradient: none;
+  --bg-card: #FFFFFF;
+  --bg-card-gradient: none;
+  --bg-inset: #FFF1F4;
+  --text-main: #24070D;
+  --text-sub: #6B343E;
+  --border-card: rgba(107, 21, 39, 0.14);
+  --border-soft: rgba(107, 21, 39, 0.12);
+  --border-active: #881B30;
+  --shadow-soft: 0 16px 36px -12px rgba(107, 21, 39, 0.08), 0 2px 8px -2px rgba(107, 21, 39, 0.04);
+  --shadow-row: 0 4px 16px -3px rgba(107, 21, 39, 0.06);
+  --row-hover: #FFF7F8;
+  --chart-stroke: #881B30;
+  --chart-grid: rgba(107, 21, 39, 0.1);
+  --scroll-thumb: #C9425A;
+  --scroll-track: #FFF1F4;
+
+  /* Button Contrast Palette (Light Mode) */
+  --btn-primary-bg: #881B30;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: #6B1527;
+  --btn-primary-shadow: 0 4px 14px -2px rgba(136, 27, 48, 0.35);
+  --btn-secondary-bg: #FFF1F4;
+  --btn-secondary-text: #6B1527;
+  --btn-secondary-border: rgba(107, 21, 39, 0.22);
+
+  /* Tab Active Indicator */
+  --tab-active-bg: #881B30;
+  --tab-active-text: #FFFFFF;
+  --tab-badge-bg: #D9BB7C;
+  --tab-badge-text: #1C060A;
+
+  --theme-btn-bg: #FFF0F3;
+  --theme-btn-text: #6B1527;
+  --theme-btn-border: rgba(107, 21, 39, 0.18);
+  --btn-signout-bg: #881B30;
+  --btn-signout-text: #FFFFFF;
+  --btn-signout-border: #881B30;
+  --btn-signout-hover: #6B1527;
+  --map-bg: #FFF3F5;
+  --map-dot: #881B30;
+}
+
+/* =========================================================================
+   DARK THEME OPTION 1: CLASSIC OBSIDIAN & DEEP MAROON (DEFAULT DARK)
+   Page: #0D0407, Main Cards: #1A090E, Sub-Cards: #240E15, Insets: #120509
+   ========================================================================= */
+html[data-theme="dark"],
+html[data-dark-variant="classic"] {
+  --bg-page: #0D0407;
+  --bg-gradient: radial-gradient(ellipse 120% 80% at 50% -10%, #1A090E 0%, #120408 40%, #0D0407 70%, #070204 100%);
+  --bg-container: #1A090E;
+  --bg-container-gradient: none;
+  --bg-card: #240E15;
+  --bg-card-gradient: none;
+  --bg-inset: #120509;
+  --text-main: #FFFFFF;
+  --text-sub: #C4B8BC;
+  --border-card: #52111E;
+  --border-soft: transparent;
+  --border-active: #881B30;
+  --shadow-soft: none;
+  --shadow-row: none;
+  --row-hover: #33141E;
+  --chart-stroke: #881B30;
+  --chart-grid: rgba(196, 184, 188, 0.08);
+  --scroll-thumb: #52111E;
+  --scroll-track: #0D0407;
+
+  /* Button Contrast Palette: Grounded Deep Wine Maroon */
+  --btn-primary-bg: #52111E;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: #6B1527;
+  --btn-primary-border: #881B30;
+  --btn-primary-shadow: none;
+  --btn-secondary-bg: #240E15;
+  --btn-secondary-text: #C4B8BC;
+  --btn-secondary-border: #52111E;
+
+  /* Tab Active Indicator */
+  --tab-active-bg: #52111E;
+  --tab-active-text: #FFFFFF;
+  --tab-badge-bg: #3D0D17;
+  --tab-badge-text: #FFFFFF;
+
+  --theme-btn-bg: #240E15;
+  --theme-btn-text: #C4B8BC;
+  --theme-btn-border: #52111E;
+  --btn-signout-bg: #52111E;
+  --btn-signout-text: #FFFFFF;
+  --btn-signout-border: #881B30;
+  --btn-signout-hover: #6B1527;
+  --map-bg: #120509;
+  --map-dot: #881B30;
+}
+
+/* =========================================================================
+   DARK THEME OPTION 2: GOLD & WINE SOLID ELEVATION (OPTION A HYBRID)
+   Page: #410A13, Main Cards: #2A070E, Sub-Cards: #180307, Gold: #F1CA7E
+   ========================================================================= */
+html[data-dark-variant="gold-wine"] {
+  --bg-page: #410A13;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #4D0E18 0%, #410A13 45%, #220409 100%);
+  --bg-container: #2A070E;
+  --bg-container-gradient: none;
+  --bg-card: #180307;
+  --bg-card-gradient: none;
+  --bg-inset: #180307;
+  --text-main: #FFFFFF;
+  --text-sub: #C4B8BC;
+  --border-card: rgba(255, 255, 255, 0.12);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --border-active: #F1CA7E;
+  --shadow-soft: 0 14px 36px rgba(15, 2, 5, 0.6);
+  --shadow-row: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --row-hover: rgba(241, 202, 126, 0.12);
+  --chart-stroke: #F1CA7E;
+  --chart-grid: rgba(241, 202, 126, 0.08);
+  --scroll-thumb: #52111E;
+  --scroll-track: #410A13;
+
+  /* Button Contrast Palette: Rich Deep Golden Yellow */
+  --btn-primary-bg: #F1CA7E;
+  --btn-primary-text: #1B0308;
+  --btn-primary-hover: #D4A853;
+  --btn-primary-border: #F1CA7E;
+  --btn-primary-shadow: none;
+  --btn-secondary-bg: #180307;
+  --btn-secondary-text: #C4B8BC;
+  --btn-secondary-border: rgba(255, 255, 255, 0.12);
+
+  /* Tab Active Indicator: Sidebar selection highlighted with Golden Yellow border */
+  --tab-active-bg: #52111E;
+  --tab-active-text: #FFFFFF;
+  --tab-badge-bg: #F1CA7E;
+  --tab-badge-text: #1B0308;
+
+  --theme-btn-bg: #180307;
+  --theme-btn-text: #C4B8BC;
+  --theme-btn-border: rgba(255, 255, 255, 0.12);
+  --btn-signout-bg: #F1CA7E;
+  --btn-signout-text: #1B0308;
+  --btn-signout-border: #F1CA7E;
+  --btn-signout-hover: #D4A853;
+  --map-bg: #180307;
+  --map-dot: #881B30;
+}
+
+/* =========================================================================
+   AES THEME: ALPHA ENTREPRENEURSHIP SUMMIT (MATCHING C:\Users\kingm\Downloads\Projects\AES)
+   Directly mapped from AES source code & DESIGN-RULES.md:
+   - Deep canvas background: #5A0D1B (Abyssal Oxblood)
+   - Cards on canvas: Warm cream / parchment / white (#FBF5EB / #F8EEE1 / #FFFFFF)
+   - Text inside cards: Dark oxblood (#5A0D1B) & wine (#650D1C / #701020)
+   - Card borders: Subtle ruby burgundy (rgba(137, 25, 44, 0.22))
+   - Inset surfaces: #E8DCC6 / #F4E8D7
+   - Highlights / Badges / Accents: Imperial Gold (#F1CA7E) & Royal Crimson (#701020)
+   ========================================================================= */
+html[data-theme="aes"] {
+  --bg-page: #5A0D1B;
+  --bg-gradient: none !important;
+  --bg-container: #F8EEE1;
+  --bg-container-gradient: none !important;
+  --bg-card: #FFFFFF;
+  --bg-card-gradient: none !important;
+  --bg-inset: #E8DCC6;
+  --text-main: #5A0D1B;
+  --text-sub: #650D1C;
+  --border-card: rgba(137, 25, 44, 0.25);
+  --border-soft: rgba(137, 25, 44, 0.16);
+  --border-active: #89192C;
+  --shadow-soft: 0 16px 40px rgba(90, 13, 27, 0.35);
+  --shadow-row: 0 4px 16px rgba(90, 13, 27, 0.08);
+  --row-hover: rgba(137, 25, 44, 0.08);
+  /* Chart, badge, and accent highlight: Imperial Gold */
+  --chart-stroke: #F1CA7E;
+  --chart-grid: rgba(137, 25, 44, 0.12);
+  --scroll-thumb: #89192C;
+  --scroll-track: #5A0D1B;
+
+  /* Button Contrast Palette: AES Primary (#701020 with #F8EEE1 text) & Secondary (#E8DCC6 with #5A0D1B text) */
+  --btn-primary-bg: #701020;
+  --btn-primary-text: #F8EEE1;
+  --btn-primary-hover: #5A0D1B;
+  --btn-primary-border: #701020;
+  --btn-primary-shadow: none !important;
+  --btn-secondary-bg: #E8DCC6;
+  --btn-secondary-text: #5A0D1B;
+  --btn-secondary-border: rgba(137, 25, 44, 0.25);
+
+  /* Tab Active Indicator: Highlighted with Royal Crimson */
+  --tab-active-bg: #701020;
+  --tab-active-text: #F1CA7E;
+  --tab-badge-bg: #F1CA7E;
+  --tab-badge-text: #5A0D1B;
+
+  --theme-btn-bg: #F8EEE1;
+  --theme-btn-text: #5A0D1B;
+  --theme-btn-border: rgba(137, 25, 44, 0.3);
+  --btn-signout-bg: #701020;
+  --btn-signout-text: #F8EEE1;
+  --btn-signout-border: #701020;
+  --btn-signout-hover: #5A0D1B;
+  --map-bg: #E8DCC6;
+  --map-dot: #701020;
+}
+
+/* Landing Page Typography directly on the deep #5A0D1B page background in AES mode */
+html[data-theme="aes"] #overview h1,
+html[data-theme="aes"] #overview > div > h1,
+html[data-theme="aes"] #metrics > div > h2,
+html[data-theme="aes"] #rules-compulsory > div > h2,
+html[data-theme="aes"] #terminal .lg\:col-span-4 h2,
+html[data-theme="aes"] #rounds > div > h2 {
+  color: #F8EEE1 !important;
+}
+
+html[data-theme="aes"] #overview p,
+html[data-theme="aes"] #overview > div > p,
+html[data-theme="aes"] #terminal .lg\:col-span-4 > p {
+  color: #E8DCC6 !important;
+}
+
+/* Eyebrows and section tags on page background */
+html[data-theme="aes"] #overview .text-\[var\(--text-sub\)\],
+html[data-theme="aes"] #metrics > .text-center .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] #rules-compulsory > .text-center .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] #terminal .lg\:col-span-4 .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] #rounds > .text-center .text-\[var\(--chart-stroke\)\] {
+  color: #F1CA7E !important;
+}
+
+/* Quick Bar & Footer Nav Links on the deep #5A0D1B canvas outside of cards */
+html[data-theme="aes"] #metrics > div:last-child .text-\[var\(--text-sub\)\],
+html[data-theme="aes"] #metrics > div:last-child button,
+html[data-theme="aes"] #overview > div:last-child button,
+html[data-theme="aes"] #overview > div:last-child span {
+  color: #E8DCC6 !important;
+}
+
+html[data-theme="aes"] #metrics > div:last-child button:hover,
+html[data-theme="aes"] #overview > div:last-child button:hover {
+  color: #F1CA7E !important;
+}
+
+/* Standalone Pills / Badges resting directly on the deep #5A0D1B page canvas (Terminal DECRYPT pill, Overview top pill, Theme button) */
+html[data-theme="aes"] #terminal .lg\:col-span-4 .bg-\[var\(--bg-card\)\],
+html[data-theme="aes"] #overview .bg-\[var\(--bg-card\)\] {
+  background-color: rgba(112, 16, 32, 0.75) !important;
+  border-color: rgba(241, 202, 126, 0.4) !important;
+  color: #F1CA7E !important;
+}
+
+html[data-theme="aes"] #terminal .lg\:col-span-4 .bg-\[var\(--bg-card\)\] *,
+html[data-theme="aes"] #overview .bg-\[var\(--bg-card\)\] * {
+  color: #F1CA7E !important;
+}
+
+/* Primary Action Buttons in Terminal and Landing Page */
+html[data-theme="aes"] #terminal .lg\:col-span-4 button {
+  background-color: #F1CA7E !important;
+  color: #5A0D1B !important;
+  border-color: #F1CA7E !important;
+}
+
+html[data-theme="aes"] #terminal .lg\:col-span-4 button * {
+  color: #5A0D1B !important;
+}
+
+/* Section Title Highlight Spans on Page Canvas */
+html[data-theme="aes"] #metrics h2 span,
+html[data-theme="aes"] #rules-compulsory h2 span,
+html[data-theme="aes"] #terminal h2 span,
+html[data-theme="aes"] #rounds h2 span {
+  color: #F1CA7E !important;
+}
+
+/* =========================================================================
+   LIGHT THEME: High Contrast Typography & SVG Rules
+   Ensures all card text, titles, subtitles, and SVGs are deep, sharp and 100% legible
+   ========================================================================= */
+html[data-theme="light"] .surface-box,
+html[data-theme="light"] .capsule-card {
+  color: #24070D !important;
+}
+
+html[data-theme="light"] .surface-box h1,
+html[data-theme="light"] .surface-box h2,
+html[data-theme="light"] .surface-box h3,
+html[data-theme="light"] .surface-box h4,
+html[data-theme="light"] .capsule-card h1,
+html[data-theme="light"] .capsule-card h2,
+html[data-theme="light"] .capsule-card h3,
+html[data-theme="light"] .capsule-card h4,
+html[data-theme="light"] .surface-box .font-display:not([class*="text-"]):not([style*="color"]),
+html[data-theme="light"] .capsule-card .font-display:not([class*="text-"]):not([style*="color"]),
+html[data-theme="light"] div[class*="surface-box"] h2,
+html[data-theme="light"] div[class*="surface-box"] h3,
+html[data-theme="light"] div[class*="capsule-card"] h2,
+html[data-theme="light"] div[class*="capsule-card"] h3 {
+  color: #24070D !important;
+}
+
+html[data-theme="light"] .surface-box p,
+html[data-theme="light"] .capsule-card p,
+html[data-theme="light"] div[class*="surface-box"] p,
+html[data-theme="light"] div[class*="capsule-card"] p,
+html[data-theme="light"] .surface-box .text-\[var\(--text-sub\)\],
+html[data-theme="light"] .capsule-card .text-\[var\(--text-sub\)\],
+html[data-theme="light"] .surface-box span.text-\[var\(--text-sub\)\],
+html[data-theme="light"] .capsule-card span.text-\[var\(--text-sub\)\] {
+  color: #5A2731 !important;
+}
+
+html[data-theme="light"] .surface-box .text-\[var\(--text-main\)\],
+html[data-theme="light"] .capsule-card .text-\[var\(--text-main\)\] {
+  color: #24070D !important;
+}
+
+/* Light Theme SVGs: Crisp brand burgundy on light surfaces */
+html[data-theme="light"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]),
+html[data-theme="light"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]) {
+  color: #881B30;
+}
+
+/* SVGs and text inside dark buttons, avatars, pills stay crisp pure white */
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .btn-primary svg,
+html[data-theme="light"] .btn-primary span,
+html[data-theme="light"] .btn-primary [class*="text-"],
+html[data-theme="light"] .bg-\[\#b81434\],
+html[data-theme="light"] .bg-\[\#b81434\] svg,
+html[data-theme="light"] .bg-\[\#b81434\] span,
+html[data-theme="light"] .bg-\[\#881B30\],
+html[data-theme="light"] .bg-\[\#881B30\] svg,
+html[data-theme="light"] .bg-\[\#881B30\] span,
+html[data-theme="light"] .bg-\[\#5A0D1B\],
+html[data-theme="light"] .bg-\[\#5A0D1B\] svg,
+html[data-theme="light"] .bg-\[\#5A0D1B\] span,
+html[data-theme="light"] .bg-\[\#B83A3A\],
+html[data-theme="light"] .bg-\[\#B83A3A\] svg,
+html[data-theme="light"] .bg-\[\#B83A3A\] span,
+html[data-theme="light"] .bg-\[\#3B7A57\],
+html[data-theme="light"] .bg-\[\#3B7A57\] svg,
+html[data-theme="light"] .bg-\[\#3B7A57\] span,
+html[data-theme="light"] button[class*="bg-\[\#B83A3A\]"],
+html[data-theme="light"] button[class*="bg-\[\#B83A3A\]"] span,
+html[data-theme="light"] button[class*="bg-\[\#3B7A57\]"],
+html[data-theme="light"] button[class*="bg-\[\#3B7A57\]"] span {
+  color: #FFFFFF !important;
+}
+
+/* Card titles, subtitles and body copy inside white/cream cards */
+html[data-theme="aes"] .surface-box,
+html[data-theme="aes"] .capsule-card {
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] .surface-box h2,
+html[data-theme="aes"] .surface-box h3,
+html[data-theme="aes"] .surface-box h4,
+html[data-theme="aes"] .capsule-card h3,
+html[data-theme="aes"] .capsule-card h4,
+html[data-theme="aes"] .surface-box .font-display:not([class*="text-"]):not([style*="color"]),
+html[data-theme="aes"] .capsule-card .font-display:not([class*="text-"]):not([style*="color"]),
+html[data-theme="aes"] div[class*="surface-box"] h3,
+html[data-theme="aes"] div[class*="surface-box"] h2 {
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] .surface-box p,
+html[data-theme="aes"] .capsule-card p,
+html[data-theme="aes"] div[class*="surface-box"] p,
+html[data-theme="aes"] div[class*="capsule-card"] p,
+html[data-theme="aes"] .surface-box .text-\[var\(--text-sub\)\],
+html[data-theme="aes"] .capsule-card .text-\[var\(--text-sub\)\] {
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] .surface-box .text-\[var\(--text-main\)\],
+html[data-theme="aes"] .capsule-card .text-\[var\(--text-main\)\] {
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] .surface-box .text-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] .capsule-card .text-\[var\(--chart-stroke\)\] {
+  color: #701020 !important;
+}
+
+html[data-theme="aes"] .surface-box svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]),
+html[data-theme="aes"] .capsule-card svg:not(.text-white):not([class*="text-white"]):not(.text-\[\#F1CA7E\]):not(.text-\[\#D9BB7C\]):not([class*="city-landmark-svg"]):not([class*="text-gold"]):not(.text-\[\#2E7D52\]):not(.text-\[\#C0392B\]):not(.text-\[\#3B7A57\]):not(.text-\[\#B83A3A\]) {
+  color: #701020;
+}
+
+/* AES Theme - Offshore Cities Buttons & Landmark SVGs */
+html[data-theme="aes"] .city-haven-btn {
+  background-color: #FFFFFF !important;
+  border-color: rgba(137, 25, 44, 0.22) !important;
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] .city-haven-btn .city-landmark-svg {
+  color: #89192C !important;
+  opacity: 0.38 !important;
+}
+
+html[data-theme="aes"] .city-haven-btn:hover .city-landmark-svg {
+  color: #701020 !important;
+  opacity: 0.7 !important;
+}
+
+html[data-theme="aes"] .city-haven-btn.active,
+html[data-theme="aes"] .city-haven-btn[data-active="true"] {
+  background-color: #701020 !important;
+  border-color: #F1CA7E !important;
+  color: #F8EEE1 !important;
+  box-shadow: 0 4px 14px rgba(112, 16, 32, 0.35) !important;
+}
+
+html[data-theme="aes"] .city-haven-btn.active .city-landmark-svg,
+html[data-theme="aes"] .city-haven-btn[data-active="true"] .city-landmark-svg {
+  color: #F1CA7E !important;
+  opacity: 0.9 !important;
+}
+
+/* Destination detail header landmark SVG in AES theme */
+html[data-theme="aes"] .haven-destination-landmark .city-landmark-svg {
+  color: #701020 !important;
+  opacity: 0.35 !important;
+}
+
+html[data-theme="aes"] .surface-box .bg-\[var\(--chart-stroke\)\],
+html[data-theme="aes"] .capsule-card .bg-\[var\(--chart-stroke\)\] {
+  background-color: #701020 !important;
+}
+
+/* Footer on deep background */
+html[data-theme="aes"] footer.surface-box {
+  background-color: #F8EEE1 !important;
+  color: #5A0D1B !important;
+  border-color: rgba(137, 25, 44, 0.25) !important;
+}
+
+html[data-theme="aes"] footer.surface-box span,
+html[data-theme="aes"] footer.surface-box div {
+  color: #5A0D1B !important;
+}
+
+html[data-theme="aes"] footer.surface-box a {
+  color: #89192C !important;
+}
+
+/* Navigation bar in AES Theme: Matches AES Navbar (#5A0D1B/92 with #89192C border & #F1CA7E / #F8EEE1 links) */
+html[data-theme="aes"] .dynamic-floating-nav {
+  background-color: rgba(90, 13, 27, 0.94) !important;
+  background-image: none !important;
+  border: 1.5px solid rgba(241, 202, 126, 0.5) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-theme="aes"] .dynamic-floating-nav nav button {
+  color: #E8DCC6 !important;
+}
+
+html[data-theme="aes"] .dynamic-floating-nav nav button:hover {
+  color: #F1CA7E !important;
+}
+
+html[data-theme="aes"] .dynamic-floating-nav .font-display {
+  color: #F1CA7E !important;
+}
+
+/* =========================================================================
+   DYNAMIC VIEW TRANSITIONS & THEME SWITCH ANIMATION
+   ========================================================================= */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: theme-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: theme-fade-in;
+}
+
+@keyframes theme-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.99);
+    filter: blur(2px);
+  }
+}
+
+@keyframes theme-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.01);
+    filter: blur(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Smooth background & border transition on theme change */
+html {
+  transition: background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.surface-box,
+.capsule-card,
+.capsule-inset {
+  transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.2);
+}
+
+/* Modal Inner Scrollbar (Kept cleanly inside the UI padding away from rounded edges) */
+.modal-scrollbar {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-active);
+}
+
+/* Full-Bleed Dashboard Workspace Scrollbar (Stretches 100% to screen edges) */
+.screen-scrollbar {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.screen-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.screen-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0;
+}
+
+.screen-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+}
+
+.screen-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-active);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-page);
+  background-image: var(--bg-gradient);
+  color: var(--text-main);
+  font-family: 'Nunito', sans-serif;
+  transition: background-color 220ms ease, color 220ms ease;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+.font-display {
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.font-rounded {
+  font-family: 'Outfit', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.font-mono {
+  font-family: 'Outfit', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.surface-box {
+  background-color: var(--bg-container);
+  background-image: var(--bg-container-gradient);
+  border: 1px solid var(--border-card) !important;
+  border-radius: 28px;
+  box-shadow: var(--shadow-soft);
+  transition: background-color 220ms ease, border-color 220ms ease, background-image 220ms ease;
+}
+
+.capsule-card {
+  background-color: var(--bg-card);
+  background-image: var(--bg-card-gradient);
+  border: 1px solid var(--border-soft) !important;
+  border-radius: 22px;
+  box-shadow: var(--shadow-row);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), background-color 180ms ease, border-color 180ms ease, background-image 180ms ease;
+}
+
+.capsule-row:hover {
+  background-color: var(--row-hover);
+  border-color: var(--border-active) !important;
+}
+
+/* Global focus and selection styles */
+::selection {
+  background-color: #F1CA7E;
+  color: #1B0308;
+}
+
+:focus-visible {
+  outline: 2px solid #F1CA7E !important;
+  outline-offset: 1px;
+}
+
+.capsule-inset {
+  background-color: var(--bg-inset);
+  border: 1px solid var(--border-soft) !important;
+  border-radius: 20px;
+}
+
+/* Dark theme sub-cards and insets: clean, non-yellow subtle platinum borders */
+html[data-theme="dark"] .capsule-card {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] .capsule-inset {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Rule 5: Stretch moving knobs 12% on drag */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg-inset);
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 20px;
+  border-radius: 999px;
+  background: #5E1B21;
+  border: 3px solid #D9BB7C;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scaleX(1.12) scaleY(0.94);
+}
+
+/* High Contrast Button Utilities */
+.btn-primary {
+  background-color: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border: 1px solid var(--btn-primary-border, var(--btn-primary-bg)) !important;
+  box-shadow: var(--btn-primary-shadow);
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--btn-primary-hover) !important;
+  filter: brightness(1.08);
+}
+
+.btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+  border: 1px solid var(--btn-secondary-border) !important;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+/* =========================================================================
+   EASY UI / MAGIC UI ANIMATED BUTTONS & 3D UTILITIES
+   ========================================================================= */
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-beam {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.2deg);
+  }
+}
+
+.animate-float {
+  animation: float-slow 4.8s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 16s linear infinite;
+}
+
+.animate-pulse-beam {
+  animation: pulse-beam 2.8s ease-in-out infinite;
+}
+
+/* Easy UI Shimmering Border Button */
+.easy-shimmer-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.easy-shimmer-btn::before {
+  content: '';
+  position: absolute;
+  inset: -200%;
+  background: conic-gradient(from 0deg, transparent 0deg 280deg, #D9BB7C 320deg, #D5C4AE 344deg, #5E1B21 360deg);
+  animation: spin-slow 3.2s linear infinite;
+}
+
+.easy-shimmer-inner {
+  position: relative;
+  border-radius: 9999px;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 3D Perspective Card Helpers */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Smooth Infinitely Scrolling Marquee Ticker */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Sleek Dynamic Floating Navbar (Round Capsule with Scroll Scaling) */
+.dynamic-floating-nav {
+  border-radius: 9999px !important;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+html[data-theme="dark"] .dynamic-floating-nav {
+  background-color: rgba(26, 9, 14, 0.88);
+  border: 1px solid rgba(82, 17, 30, 0.65) !important;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="light"] .dynamic-floating-nav {
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(107, 21, 39, 0.16) !important;
+}
+
+html[data-theme="aes"] .dynamic-floating-nav {
+  background-color: #5A0D1B !important;
+  background-image: none !important;
+  border: 2px solid #F1CA7E !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* =========================================================================
+   GLOWING ARC GRADIENT AT BOTTOM OF TOP SECTION (MASSIVE, ULTRA-GLOWING & BLURRED)
+   ========================================================================= */
+.glowing-arc-bottom {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 170%;
+  max-width: 2400px;
+  height: 480px;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  filter: blur(48px);
+  -webkit-filter: blur(48px);
+}
+
+html[data-theme="dark"] .glowing-arc-bottom {
+  border: none !important;
+  box-shadow: 
+    0 -10px 80px 30px rgba(217, 30, 68, 0.85),
+    0 -25px 140px 60px rgba(136, 27, 48, 0.65),
+    0 -45px 220px 90px rgba(82, 17, 30, 0.5);
+  background: radial-gradient(
+    ellipse 92% 100% at 50% 100%,
+    rgba(255, 45, 90, 0.95) 0%,
+    rgba(217, 30, 68, 0.85) 35%,
+    rgba(107, 15, 33, 0.70) 65%,
+    rgba(50, 8, 16, 0.45) 85%,
+    transparent 100%
+  );
+}
+
+html[data-theme="light"] .glowing-arc-bottom {
+  border: none !important;
+  border-top: none !important;
+  box-shadow: 
+    0 -16px 85px 35px rgba(255, 23, 68, 0.92),
+    0 -35px 150px 70px rgba(244, 63, 94, 0.80),
+    0 -60px 240px 105px rgba(251, 113, 133, 0.68),
+    0 -95px 360px 160px rgba(254, 205, 211, 0.55);
+  background: radial-gradient(
+    ellipse 92% 100% at 50% 100%,
+    rgba(255, 23, 68, 0.98) 0%,
+    rgba(244, 63, 94, 0.88) 32%,
+    rgba(251, 113, 133, 0.75) 58%,
+    rgba(254, 205, 211, 0.55) 80%,
+    transparent 100%
+  );
+}
+
+/* IN AES THEME: Remove bottom glowing arc completely per user request */
+html[data-theme="aes"] .glowing-arc-bottom {
+  display: none !important;
+}
+
+/* =========================================================================
+   NEXORA VELOCITY LANDING PAGE SURFACES
+   ========================================================================= */
+html[data-theme="dark"] .nexora-hero-wings {
+  background: none;
+}
+
+html[data-theme="light"] .nexora-hero-wings {
+  background: none;
+}
+
+.nexora-crimson-card {
+  background-color: var(--btn-primary-bg);
+  border: 1px solid var(--border-card);
+  box-shadow: var(--shadow-soft);
+  color: #FFFFFF;
+}
+
+/* =========================================================================
+   RICH AMBIENT GRADIENTS FOR OTHER SECTIONS (NON-ARC SECTIONS)
+   Seamless feathering at 0% and 100% into var(--bg-page) to eliminate lines
+   ========================================================================= */
+html[data-theme="dark"] .landing-section-gradient {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% 30%, rgba(136, 27, 48, 0.25) 0%, rgba(82, 17, 30, 0.12) 55%, transparent 75%),
+    radial-gradient(ellipse 65% 45% at 20% 65%, rgba(136, 27, 48, 0.18) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 45% at 80% 35%, rgba(82, 17, 30, 0.20) 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg-page) 0%, #17070E 25%, #15060C 50%, #17070E 75%, var(--bg-page) 100%);
+}
+
+html[data-theme="aes"] .landing-section-gradient,
+html[data-theme="aes"] .landing-section-gradient-alt {
+  background: #5A0D1B !important;
+  background-image: none !important;
+}
+
+html[data-theme="dark"] .landing-section-gradient-alt {
+  background: 
+    radial-gradient(ellipse 75% 50% at 50% 70%, rgba(217, 30, 68, 0.15) 0%, rgba(136, 27, 48, 0.10) 55%, transparent 75%),
+    radial-gradient(ellipse 65% 45% at 85% 35%, rgba(217, 30, 68, 0.15) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 45% at 15% 65%, rgba(136, 27, 48, 0.18) 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg-page) 0%, #15060C 25%, #1A0810 50%, #15060C 75%, var(--bg-page) 100%);
+}
+
+html[data-theme="light"] .landing-section-gradient {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% 30%, rgba(255, 215, 224, 0.75) 0%, rgba(255, 235, 240, 0.4) 55%, transparent 75%),
+    radial-gradient(ellipse 65% 45% at 20% 65%, rgba(255, 226, 232, 0.7) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 45% at 80% 35%, rgba(255, 238, 241, 0.65) 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg-page) 0%, #FFF0F3 25%, #FFF5F7 50%, #FFF0F3 75%, var(--bg-page) 100%);
+}
+
+html[data-theme="light"] .landing-section-gradient-alt {
+  background: 
+    radial-gradient(ellipse 75% 50% at 50% 70%, rgba(255, 220, 228, 0.60) 0%, transparent 75%),
+    radial-gradient(ellipse 65% 45% at 85% 35%, rgba(255, 220, 228, 0.65) 0%, transparent 65%),
+    radial-gradient(ellipse 65% 45% at 15% 65%, rgba(255, 230, 235, 0.7) 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg-page) 0%, #FFF5F7 25%, #FFF0F3 50%, #FFF5F7 75%, var(--bg-page) 100%);
+}
+
+/* =========================================================================
+   VELOCITY ACCENT TYPOGRAPHY COLOR
+   ========================================================================= */
+html[data-theme="dark"] .velocity-accent {
+  color: #FF3B69;
+  background: linear-gradient(135deg, #FF668B 0%, #FF2A55 50%, #E60039 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 28px rgba(255, 42, 85, 0.45));
+}
+
+html[data-theme="aes"] .velocity-accent {
+  color: #F1CA7E !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #F1CA7E !important;
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="light"] .velocity-accent {
+  color: #881B30;
+  background: linear-gradient(135deg, #A81C38 0%, #881B30 60%, #681022 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: none;
+}
+
+/* =========================================================================
+   BLURRED SECTION SEAM TRANSITIONS (PURE 64PX GAUSSIAN BACKDROP BLUR)
+   Seamlessly blurs across section boundaries to eliminate visible lines
+   ========================================================================= */
+.section-seam-blur-top {
+  position: absolute;
+  top: 0;
+  inset-x: 0;
+  height: 260px;
+  pointer-events: none;
+  z-index: 5;
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+  background: linear-gradient(to bottom, rgba(13, 4, 7, 0.45) 0%, transparent 100%);
+}
+
+.section-seam-blur-bottom {
+  position: absolute;
+  bottom: 0;
+  inset-x: 0;
+  height: 260px;
+  pointer-events: none;
+  z-index: 5;
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+  background: linear-gradient(to top, rgba(13, 4, 7, 0.45) 0%, transparent 100%);
+}
+
+html[data-theme="light"] .section-seam-blur-top {
+  background: linear-gradient(to bottom, rgba(255, 253, 252, 0.5) 0%, transparent 100%);
+}
+
+html[data-theme="light"] .section-seam-blur-bottom {
+  background: linear-gradient(to top, rgba(255, 253, 252, 0.5) 0%, transparent 100%);
+}
+
+/* IN AES THEME: Remove blurred seam overlays completely so background stays pure solid */
+html[data-theme="aes"] .section-seam-blur-top,
+html[data-theme="aes"] .section-seam-blur-bottom {
+  display: none !important;
+}
+
+/* =========================================================================
+   LIGHT THEME POLISH FOR ADMIN CONSOLE & WORKSPACES
+   ========================================================================= */
+html[data-theme="light"] aside.surface-box {
+  background-color: #FFFFFF;
+  border-color: rgba(107, 21, 39, 0.14) !important;
+  box-shadow: 0 10px 30px -10px rgba(107, 21, 39, 0.08);
+}
+
+html[data-theme="aes"] aside.surface-box {
+  background-color: #F8EEE1 !important;
+  border-color: rgba(137, 25, 44, 0.25) !important;
+  box-shadow: 0 10px 30px -10px rgba(90, 13, 27, 0.15) !important;
+}
+
+html[data-theme="light"] .capsule-inset {
+  background-color: #FFF2F5;
+  border: 1px solid rgba(107, 21, 39, 0.12) !important;
+  color: #24070D;
+}
+
+html[data-theme="aes"] .capsule-inset {
+  background-color: #E8DCC6 !important;
+  border: 1px solid rgba(137, 25, 44, 0.18) !important;
+  color: #5A0D1B !important;
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  color: #24070D !important;
+}
+
+html[data-theme="aes"] input,
+html[data-theme="aes"] select,
+html[data-theme="aes"] textarea {
+  color: #5A0D1B !important;
+  background-color: #FFFFFF !important;
+  border-color: rgba(137, 25, 44, 0.25) !important;
+}
+
+html[data-theme="light"] select option {
+  background-color: #FFFFFF;
+  color: #24070D;
+}
+
+html[data-theme="aes"] select option {
+  background-color: #FFFFFF !important;
+  color: #5A0D1B !important;
+}
+
+html[data-theme="light"] .bg-\[\#150306\]\/40,
+html[data-theme="light"] .bg-\[\#1C060A\]\/80,
+html[data-theme="light"] .bg-\[\#2B1117\] {
+  background-color: #FFF0F3 !important;
+  color: #881B30 !important;
+}
+
+html[data-theme="aes"] .bg-\[\#150306\]\/40,
+html[data-theme="aes"] .bg-\[\#1C060A\]\/80,
+html[data-theme="aes"] .bg-\[\#2B1117\] {
+  background-color: #420A13 !important;
+  color: #F1CA7E !important;
+}
+
+html[data-theme="light"] span.text-\[\#D9BB7C\],
+html[data-theme="light"] strong.text-\[\#D9BB7C\],
+html[data-theme="light"] p.text-\[\#D9BB7C\] {
+  color: #881B30 !important;
+}
+
+html[data-theme="light"] .bg-\[\#b81434\] .text-\[\#D9BB7C\],
+html[data-theme="light"] .bg-\[\#881B30\] .text-\[\#D9BB7C\],
+html[data-theme="light"] .btn-primary .text-\[\#D9BB7C\] {
+  color: #FFFFFF !important;
+}
+
+html[data-theme="aes"] .text-\[\#D9BB7C\] {
+  color: #F1CA7E !important;
+}
+
+html[data-theme="light"] .bg-\[\#5E1B21\] {
+  background-color: #881B30 !important;
+  color: #FFFFFF !important;
+}
+
+html[data-theme="aes"] .bg-\[\#5E1B21\] {
+  background-color: #89192C !important;
+  color: #F1CA7E !important;
+}
+
+html[data-theme="light"] .border-\[\#9E7B81\]\/20,
+html[data-theme="light"] .border-\[\#9E7B81\]\/25,
+html[data-theme="light"] .border-\[\#9E7B81\]\/30,
+html[data-theme="light"] .border-\[\#9E7B81\]\/15 {
+  border-color: rgba(136, 27, 48, 0.15) !important;
+}
+
+html[data-theme="aes"] .border-\[\#9E7B81\]\/20,
+html[data-theme="aes"] .border-\[\#9E7B81\]\/25,
+html[data-theme="aes"] .border-\[\#9E7B81\]\/30,
+html[data-theme="aes"] .border-\[\#9E7B81\]\/15 {
+  border-color: rgba(241, 202, 126, 0.35) !important;
+}
+
+@keyframes float-up { 0% { opacity: 0; transform: translateY(14px) scale(0.8); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px) scale(1.15); } }
+@keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pop-in { 0% { opacity: 0; transform: translateY(10px) scale(0.98); } 100% { opacity: 1; transform: none; } }
+.animate-float-up { animation: float-up 2.4s ease-out forwards; }
+.animate-flash { animation: flash 1.4s ease-out forwards; }
+.animate-pop-in { animation: pop-in 0.45s ease-out both; }
+
+
+
