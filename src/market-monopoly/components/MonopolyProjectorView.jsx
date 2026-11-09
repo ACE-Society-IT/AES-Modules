@@ -168,7 +168,13 @@ export default function MonopolyProjectorView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {!isSpinning && (
+            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold animate-pulse">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
+              <span>Spin will start in a few time</span>
+            </div>
+          )}
           <div className="px-4 py-2 rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/50 text-center font-mono">
             <span className="text-[10px] uppercase text-[#F1CA7E] block">Wave</span>
             <strong className="text-xl font-bold text-[#F8EEE1]">#{store?.currentWheelRound || 1}</strong>
@@ -292,9 +298,9 @@ export default function MonopolyProjectorView() {
               <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase border transition-colors ${
                 isSpinning
                   ? 'bg-[#701020] text-[#F1CA7E] border-[#F1CA7E] animate-pulse'
-                  : 'bg-[#3B0C18] text-[#F8EEE1] border-[#ECC37A]/40'
+                  : 'bg-[#3B0C18] text-[#F1CA7E] border-[#ECC37A]/50 animate-pulse'
               }`}>
-                {isSpinning ? 'Spinning' : 'Outcome'}
+                {isSpinning ? 'Spinning' : 'Spin will start in a few time'}
               </span>
               {activeOutcome && (
                 <span className="font-mono text-xs text-[#F1CA7E]/70">
@@ -367,12 +373,22 @@ export default function MonopolyProjectorView() {
                     </strong>
                   </div>
                 </div>
+
+                {/* Next Spin Status Ticker */}
+                <div className="p-2.5 rounded-xl bg-[#150308] border border-[#ECC37A]/40 flex items-center justify-center gap-2 text-xs font-mono font-bold text-[#F1CA7E] animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
+                  <span>Spin will start in a few time</span>
+                </div>
               </div>
             ) : (
-              <div className="py-14 text-center">
-                <span className="text-sm font-mono text-[#F1CA7E]/60">
-                  Ready for next spin
-                </span>
+              <div className="py-14 text-center space-y-3">
+                <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#3B0C18] border-2 border-[#ECC37A]/60 text-[#F1CA7E] font-mono font-bold text-sm shadow-xl animate-pulse">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
+                  <span>Spin will start in a few time</span>
+                </div>
+                <p className="text-xs font-mono text-[#F1CA7E]/60">
+                  Classroom Projector · Waiting for Admin to trigger wheel
+                </p>
               </div>
             )}
           </div>

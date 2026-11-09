@@ -19,6 +19,7 @@ import {
   computePropertyValuation,
   computePropertyRent
 } from '../data/monopolyData.js';
+import { KARACHI_PROPERTY_DOSSIERS } from '../data/propertyDossiers.js';
 import {
   fetchMonopolyStore,
   authenticateMonopolyTeam,
@@ -463,12 +464,17 @@ export default function MarketMonopolyApp() {
   const filteredCatalogue = useMemo(() => {
     if (!store) return [];
     return store.properties.filter((p) => {
+      const dossier = KARACHI_PROPERTY_DOSSIERS[p.id] || {};
       const matchesCat = categoryFilter === 'ALL' || p.category.toLowerCase().includes(categoryFilter.toLowerCase());
+      const q = searchQuery.toLowerCase().trim();
       const matchesQuery =
-        !searchQuery.trim() ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.zone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        (p.zone && p.zone.toLowerCase().includes(q)) ||
+        p.category.toLowerCase().includes(q) ||
+        (dossier.importance && dossier.importance.toLowerCase().includes(q)) ||
+        (dossier.problems && dossier.problems.toLowerCase().includes(q)) ||
+        (dossier.benefits && dossier.benefits.toLowerCase().includes(q));
       return matchesCat && matchesQuery;
     });
   }, [store, categoryFilter, searchQuery]);
@@ -2238,6 +2244,28 @@ export default function MarketMonopolyApp() {
                                 ))}
                               </div>
                             </div>
+
+                            {/* Deed Note Highlight (From New Note PDF) */}
+                            {(() => {
+                              const dossier = KARACHI_PROPERTY_DOSSIERS[prop.id];
+                              if (!dossier) return null;
+                              return (
+                                <div className="p-2 rounded-xl capsule-inset space-y-1 text-[10.5px] leading-tight">
+                                  {dossier.benefits && (
+                                    <div className="line-clamp-2" style={{ color: 'var(--text-sub)' }}>
+                                      <strong className="text-[#2E7D52]">Upside: </strong>
+                                      {dossier.benefits}
+                                    </div>
+                                  )}
+                                  {dossier.problems && (
+                                    <div className="line-clamp-1 truncate text-[#C0392B]">
+                                      <strong>Risk: </strong>
+                                      <span style={{ color: 'var(--text-sub)' }}>{dossier.problems}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         );
                       })}
@@ -2826,16 +2854,107 @@ export default function MarketMonopolyApp() {
                   </div>
                 )}
 
-                <div className="space-y-2 text-xs font-rounded">
-                  <div className="p-3 rounded-2xl capsule-card">
-                    <strong className="block mb-0.5" style={{ color: 'var(--text-main)' }}>Overview</strong>
-                    <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.importance}</span>
-                  </div>
-                  <div className="p-3 rounded-2xl capsule-card">
-                    <strong className="block mb-0.5 text-[#C0392B]">Area Challenges</strong>
-                    <span style={{ color: 'var(--text-sub)' }}>{inspectedProperty.problems}</span>
-                  </div>
-                </div>
+                {/* OFFICIAL PROPERTY DEED & LOCATION INTELLIGENCE DOSSIER (FROM NEW NOTE PDF) */}
+                {(() => {
+                  const dossier = KARACHI_PROPERTY_DOSSIERS[inspectedProperty.id] || {};
+                  return (
+                    <div className="space-y-3 pt-1 border-t border-[var(--border-soft)]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase font-bold tracking-wider text-[#701020] dark:text-[#F1CA7E]">
+                          Deed Intelligence Dossier · Note Sheet
+                        </span>
+                        <span className="text-[10px] font-mono capsule-inset px-2.5 py-0.5 rounded-full font-bold">
+                          Opening: Rs {inspectedProperty.openingValue}L
+                        </span>
+                      </div>
+
+                      {/* 1. Why is this property important? */}
+                      {dossier.importance && (
+                        <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
+                          <strong className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-main)' }}>
+                            <span>📌</span> Why is this property important?
+                          </strong>
+                          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                            {dossier.importance}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 2. Why is its value reasonable? */}
+                      {dossier.valueReasoning && (
+                        <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
+                          <strong className="text-xs flex items-center gap-1.5 text-[#2E7D52]">
+                            <span>💡</span> Valuation Justification
+                          </strong>
+                          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                            {dossier.valueReasoning}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 3. Problems and Benefits Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {dossier.problems && (
+                          <div className="p-3 rounded-2xl capsule-inset border border-[#C0392B]/30 space-y-1">
+                            <strong className="text-xs flex items-center gap-1.5 text-[#C0392B]">
+                              <span>⚠️</span> Area Challenges & Problems
+                            </strong>
+                            <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                              {dossier.problems}
+                            </p>
+                          </div>
+                        )}
+
+                        {dossier.benefits && (
+                          <div className="p-3 rounded-2xl capsule-inset border border-[#2E7D52]/30 space-y-1">
+                            <strong className="text-xs flex items-center gap-1.5 text-[#2E7D52]">
+                              <span>✨</span> Area Benefits & Opportunities
+                            </strong>
+                            <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                              {dossier.benefits}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 4. Indicative Utility Base Values Table from Deed Note */}
+                      <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <strong className="text-[11px] font-rounded uppercase tracking-wider block" style={{ color: 'var(--text-main)' }}>
+                            Deed Indicative Utility Values (Rs Lakh)
+                          </strong>
+                          <span className="text-[10px] font-mono text-[#2E7D52] font-bold">17 Assets Reference</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-mono">
+                          {[
+                            { name: 'Electricity', val: 12 },
+                            { name: 'Water Supply', val: 7 },
+                            { name: 'Natural Gas', val: 7 },
+                            { name: 'Internet / Wi-Fi', val: 5 },
+                            { name: 'Sewerage System', val: 6 },
+                            { name: 'Parking (CPS)', val: 4 },
+                            { name: 'Garbage Collection', val: 2 },
+                            { name: 'Mobile Network', val: 2 },
+                            { name: 'Solar Panels', val: 5 },
+                            { name: 'CCTV Security', val: 5 },
+                            { name: 'Public Transport', val: 3 },
+                            { name: 'Road Maintenance', val: 5 },
+                            { name: 'Burglar Alarm', val: 1 },
+                            { name: 'Water Filter', val: 3 },
+                            { name: 'Surge Protection', val: 2 },
+                            { name: 'Trading Desk', val: 13 },
+                            { name: 'Warehouse Hub', val: 8 },
+                          ].map((u, i) => (
+                            <div key={i} className="flex items-center justify-between p-1.5 rounded-lg capsule-inset">
+                              <span className="truncate" style={{ color: 'var(--text-sub)' }}>{u.name}</span>
+                              <strong className="text-[#2E7D52] ml-1 shrink-0">{u.val}L</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </motion.div>
             </div>
           );
