@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 // Custom Vector Icons for all 15 Utilities (Zero Lucide, Zero Emojis)
 // Spec: Market_Monopoly_Property_Upgrade_System.docx
