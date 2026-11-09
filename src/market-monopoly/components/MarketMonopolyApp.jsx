@@ -517,11 +517,12 @@ export default function MarketMonopolyApp() {
   // =========================================================================
   // MAIN WORKSPACE
   // =========================================================================
+  const isRankingsVisible = store.showRankings === true;
   const sidebarItems = [
     { id: 'land', label: 'My Land', badge: currentTeam.propertyCount },
-    { id: 'buy-resources', label: 'Bank Store', badge: '15 Tokens' },
+    { id: 'buy-resources', label: 'Store', badge: '15 Tokens' },
     { id: 'bank', label: 'History', badge: store.transactions?.length || 0 },
-    { id: 'standings', label: 'Rankings', badge: store.teams?.length || 0 },
+    ...(isRankingsVisible ? [{ id: 'standings', label: 'Rankings', badge: store.teams?.length || 0 }] : []),
     { id: 'guide', label: 'Rules', badge: '2R' },
     { id: 'catalogue', label: 'Info', badge: '25P·15R' }
   ];
@@ -1021,7 +1022,7 @@ export default function MarketMonopolyApp() {
                                 onClick={() => setActiveTab('buy-resources')}
                                 className="btn-primary rounded-full px-3.5 py-1.5 text-xs font-rounded font-bold cursor-pointer inline-block"
                               >
-                                Open Bank Store
+                                Open Store
                               </TactileButton>
                             </div>
                           );
@@ -1128,13 +1129,13 @@ export default function MarketMonopolyApp() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-soft)] pb-4">
                     <div>
                       <div className="inline-flex items-center gap-2 rounded-full bg-[#701020] text-[#F1CA7E] px-3 py-1 text-xs font-mono font-bold uppercase mb-1.5">
-                        Bank Utility Store · 15 Token Classes
+                        Utility Store · 15 Token Classes
                       </div>
                       <h3 className="font-display text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
                         Municipal Infrastructure & Utility Tokens
                       </h3>
                       <p className="text-xs font-rounded mt-1 max-w-2xl" style={{ color: 'var(--text-sub)' }}>
-                        Buy utility tokens directly using your team cash from the Bank Store. These tokens satisfy the exact Level 1, 2, and 3 development recipes for your Karachi properties.
+                        Buy utility utility tokens directly using your team cash from the Store. These tokens satisfy the exact Level 1, 2, and 3 development recipes for your Karachi properties.
                       </p>
                     </div>
 
@@ -1704,11 +1705,31 @@ export default function MarketMonopolyApp() {
             {/* TAB: RANKINGS (INVESTOMANIA 3D PODIUM & STANDINGS LEDGER)        */}
             {/* ================================================================= */}
             {activeTab === 'standings' && (
-              <MonopolyPodiumLeaderboard
-                teams={allTeamSummaries}
-                currentTeamId={currentTeam.id}
-                round={store.currentRound}
-              />
+              !isRankingsVisible ? (
+                <div className="surface-box rounded-[28px] p-8 sm:p-12 border border-[var(--border-card)] text-center space-y-3">
+                  <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center bg-[#701020]/20 text-[#F1CA7E] border border-[#701020]/40">
+                    <IconBriefcase className="w-7 h-7" />
+                  </div>
+                  <h3 className="font-display text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
+                    Rankings Hidden by Game Host
+                  </h3>
+                  <p className="text-xs font-rounded max-w-md mx-auto" style={{ color: 'var(--text-sub)' }}>
+                    Official podium rankings and net-worth standings are currently hidden by the tournament referee. Check back when revealed!
+                  </p>
+                  <TactileButton
+                    onClick={() => setActiveTab('land')}
+                    className="btn-primary rounded-full px-5 py-2 text-xs font-rounded font-bold cursor-pointer inline-block"
+                  >
+                    Back to My Land
+                  </TactileButton>
+                </div>
+              ) : (
+                <MonopolyPodiumLeaderboard
+                  teams={allTeamSummaries}
+                  currentTeamId={currentTeam.id}
+                  round={store.currentRound}
+                />
+              )
             )}
 
             {/* ================================================================= */}
@@ -2638,7 +2659,7 @@ export default function MarketMonopolyApp() {
                           ) : !hasCash ? (
                             <span className="text-[#C0392B] font-bold">✗ Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
                           ) : (
-                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy required utility tokens in the Bank Store tab.</span>
+                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy required utility tokens in the Store tab.</span>
                           )}
                         </div>
 
@@ -2712,7 +2733,7 @@ export default function MarketMonopolyApp() {
                         </span>
                         {unassignedResources.length === 0 ? (
                           <div className="p-2 rounded-xl capsule-inset text-[11px] font-rounded text-center" style={{ color: 'var(--text-sub)' }}>
-                            No unassigned utility tokens in your inventory. Purchase tokens in the Bank Store!
+                            No unassigned utility tokens in your inventory. Purchase tokens in the Store!
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">

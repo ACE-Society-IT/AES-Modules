@@ -26,6 +26,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 export function getInitialStore() {
   return {
     currentRound: 1,
+    showRankings: false,
     activeAuctionPropertyId: 1,
     currentWheelRound: 1,
     wheelSpinsByRound: {},
@@ -119,6 +120,7 @@ export function hydrateMonopolyState(rawState) {
 
   return {
     currentRound: Number(rawState.currentRound || 1),
+    showRankings: rawState.showRankings === true,
     activeAuctionPropertyId: Number(rawState.activeAuctionPropertyId || 1),
     currentWheelRound: Number(rawState.currentWheelRound || 1),
     wheelSpinsByRound:
