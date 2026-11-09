@@ -1005,55 +1005,88 @@ export default function MarketMonopolyApp() {
                       </span>
                     </div>
 
-                    <div className="space-y-2 overflow-y-auto modal-scrollbar pr-1 flex-1">
-                      {(currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId).length === 0 ? (
-                        <div className="p-4 rounded-2xl capsule-inset text-center space-y-2">
-                          <span className="block text-xs font-rounded font-bold" style={{ color: 'var(--text-main)' }}>
-                            No Unassigned Resources
-                          </span>
-                          <span className="block text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                            Buy utility tokens in the Bank Store to apply them toward property upgrades.
-                          </span>
-                          <TactileButton
-                            onClick={() => setActiveTab('buy-resources')}
-                            className="btn-primary rounded-full px-3.5 py-1.5 text-xs font-rounded font-bold cursor-pointer inline-block"
+                                        <div className="space-y-2 overflow-y-auto modal-scrollbar pr-1 flex-1">
+                      {(() => {
+                        const unassignedList = (currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId);
+                        if (unassignedList.length === 0) {
+                          return (
+                            <div className="p-4 rounded-2xl capsule-inset text-center space-y-2">
+                              <span className="block text-xs font-rounded font-bold" style={{ color: 'var(--text-main)' }}>
+                                No Unassigned Resources
+                              </span>
+                              <span className="block text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
+                                Buy utility tokens in the Bank Store to apply them toward property upgrades.
+                              </span>
+                              <TactileButton
+                                onClick={() => setActiveTab('buy-resources')}
+                                className="btn-primary rounded-full px-3.5 py-1.5 text-xs font-rounded font-bold cursor-pointer inline-block"
+                              >
+                                Open Bank Store
+                              </TactileButton>
+                            </div>
+                          );
+                        }
+
+                        // Group unassigned tokens by utilityId so users see exact quantity count (e.g., "x3")
+                        const groups = {};
+                        unassignedList.forEach((r) => {
+                          const uid = Number(r.utilityId);
+                          if (!groups[uid]) {
+                            const totalOwned = (currentTeam.ownedResources || []).filter(
+                              (item) => Number(item.utilityId) === uid
+                            ).length;
+                            groups[uid] = {
+                              utilityId: uid,
+                              name: r.name || r.utilityName,
+                              category: r.category,
+                              availableCount: 0,
+                              totalOwned,
+                              firstInstanceId: r.instanceId || r.id
+                            };
+                          }
+                          groups[uid].availableCount += 1;
+                        });
+
+                        return Object.values(groups).map((grp) => (
+                          <div
+                            key={grp.utilityId}
+                            draggable
+                            onDragStart={(e) => onDragStartUtility(e, grp.utilityId)}
+                            onDragEnd={() => {
+                              setDraggedUtilityId(null);
+                              setHoveredPropertyId(null);
+                            }}
+                            className="p-2.5 rounded-2xl capsule-card border-2 border-[#2E7D52]/50 hover:border-[var(--border-active)] transition-all cursor-grab active:cursor-grabbing flex items-center justify-between gap-2"
                           >
-                            Open Bank Store
-                          </TactileButton>
-                        </div>
-                      ) : (
-                        (currentTeam.ownedResources || [])
-                          .filter((r) => !r.attachedToPropertyId)
-                          .map((res) => (
-                            <div
-                              key={res.instanceId}
-                              draggable
-                              onDragStart={(e) => onDragStartUtility(e, res.utilityId)}
-                              onDragEnd={() => {
-                                setDraggedUtilityId(null);
-                                setHoveredPropertyId(null);
-                              }}
-                              className="p-2.5 rounded-2xl capsule-card border-2 border-[#2E7D52]/50 hover:border-[var(--border-active)] transition-all cursor-grab active:cursor-grabbing flex items-center justify-between gap-2"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div
-                                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-colors"
-                                  style={{
-                                    backgroundColor: 'var(--resource-icon-bg)',
-                                    borderColor: 'var(--resource-badge-border)'
-                                  }}
-                                >
-                                  <UtilityIcon id={res.utilityId} className="w-3.5 h-3.5" style={{ color: 'var(--resource-icon-color)' }} />
-                                </div>
-                                <div className="min-w-0">
-                                  <span className="text-xs font-rounded font-bold truncate block" style={{ color: 'var(--text-main)' }}>
-                                    {res.name}
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors relative"
+                                style={{
+                                  backgroundColor: 'var(--resource-icon-bg)',
+                                  borderColor: 'var(--resource-badge-border)'
+                                }}
+                              >
+                                <UtilityIcon id={grp.utilityId} className="w-4 h-4" style={{ color: 'var(--resource-icon-color)' }} />
+                                {grp.availableCount > 1 && (
+                                  <span className="absolute -top-1.5 -right-1.5 bg-[#2E7D52] text-white text-[9px] font-mono font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                                    {grp.availableCount}
                                   </span>
-                                  <span className="text-[10px] font-mono text-[#2E7D52] block">
-                                    Ready in Inventory
-                                  </span>
-                                </div>
+                                )}
                               </div>
+                              <div className="min-w-0">
+                                <span className="text-xs font-rounded font-bold truncate block" style={{ color: 'var(--text-main)' }}>
+                                  {grp.name}
+                                </span>
+                                <span className="text-[10px] font-mono text-[#2E7D52] font-semibold block">
+                                  Qty: {grp.availableCount} available {grp.totalOwned > grp.availableCount ? `(${grp.totalOwned} total)` : ''}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-full bg-[#2E7D52]/15 text-[#2E7D52] border border-[#2E7D52]/30">
+                                ×{grp.availableCount}
+                              </span>
 
                               {currentTeam.ownedProperties.length > 0 && (
                                 <TactileButton
@@ -1062,18 +1095,19 @@ export default function MarketMonopolyApp() {
                                       currentTeam.ownedProperties.find(
                                         (p) =>
                                           (p.attachedUtilities || []).length < 3 &&
-                                          !(p.attachedUtilities || []).includes(res.utilityId)
+                                          !(p.attachedUtilities || []).includes(grp.utilityId)
                                       ) || currentTeam.ownedProperties[0];
-                                    handleInstallUtility(targetProp.id, res.utilityId);
+                                    handleInstallUtility(targetProp.id, grp.utilityId);
                                   }}
-                                  className="px-2.5 py-1 rounded-full text-[10px] font-rounded font-bold btn-primary shrink-0"
+                                  className="px-2.5 py-1 rounded-full text-[10px] font-rounded font-bold btn-primary"
                                 >
                                   Attach
                                 </TactileButton>
                               )}
                             </div>
-                          ))
-                      )}
+                          </div>
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>
