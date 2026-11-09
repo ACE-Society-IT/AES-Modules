@@ -193,6 +193,13 @@ export default function MarketMonopolyApp() {
           refreshStore(true);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'monopoly_properties' },
+        () => {
+          refreshStore(true);
+        }
+      )
       .subscribe();
 
     // Lightweight fallback sync every 5 seconds (realtime handles instant updates)

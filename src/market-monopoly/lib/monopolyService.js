@@ -162,9 +162,10 @@ export async function fetchMonopolyStore(forceFresh = false) {
     return _cachedStore;
   }
 
-  const [stateRes, teamsRes] = await Promise.all([
+  const [stateRes, teamsRes, propsRes] = await Promise.all([
     supabase.from('monopoly_state').select('state_json').eq('id', 1).maybeSingle(),
-    supabase.from('monopoly_teams').select('id, name, username, passcode, cash, starting_budget, owned_resources').order('updated_at', { ascending: true })
+    supabase.from('monopoly_teams').select('id, name, username, passcode, cash, starting_budget, owned_resources').order('updated_at', { ascending: true }),
+    supabase.from('monopoly_properties').select('*').order('id', { ascending: true })
   ]);
 
   if (stateRes.error) {
@@ -191,6 +192,37 @@ export async function fetchMonopolyStore(forceFresh = false) {
     } else if (!Array.isArray(raw.teams)) {
       raw.teams = [];
     }
+
+    // Authoritative properties ownership & level come from monopoly_properties table
+    if (Array.isArray(propsRes?.data) && propsRes.data.length > 0) {
+      const dbPropMap = new Map();
+      propsRes.data.forEach((p) => dbPropMap.set(Number(p.id), p));
+
+      const teamNameMap = new Map();
+      if (Array.isArray(raw.teams)) {
+        raw.teams.forEach((t) => teamNameMap.set(String(t.id), t.name));
+      }
+
+      if (Array.isArray(raw.properties) && raw.properties.length > 0) {
+        raw.properties = raw.properties.map((p) => {
+          const dbRow = dbPropMap.get(Number(p.id));
+          if (!dbRow) return p;
+          const ownerId = dbRow.owner_team_id || null;
+          const ownerName = ownerId ? teamNameMap.get(String(ownerId)) || p.ownerTeamName || null : null;
+          return {
+            ...p,
+            ownerTeamId: ownerId,
+            ownerTeamName: ownerName,
+            purchasePrice: Number(dbRow.purchase_price ?? p.purchasePrice ?? 0),
+            upgradeLevel: Math.min(3, Math.max(0, Number(dbRow.upgrade_level ?? p.upgradeLevel ?? 0))),
+            attachedUtilities: Array.isArray(dbRow.attached_utilities) ? dbRow.attached_utilities : (p.attachedUtilities || []),
+            openingValue: Number(dbRow.opening_value ?? p.openingValue ?? 100),
+            level3Target: Number(dbRow.level3_target ?? p.level3Target ?? 160)
+          };
+        });
+      }
+    }
+
     result = hydrateMonopolyState(raw);
   } else {
     const initial = getInitialStore();
