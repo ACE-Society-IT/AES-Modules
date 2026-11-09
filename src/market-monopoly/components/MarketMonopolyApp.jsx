@@ -1115,6 +1115,174 @@ export default function MarketMonopolyApp() {
 
 
             {/* ================================================================= */}
+            
+            {/* ============================================================= */}
+            {/* TAB: BANK STORE (BUY TOKENS & UTILITIES FROM BANK)          */}
+            {/* ============================================================= */}
+            {activeTab === 'buy-resources' && (
+              <div className="space-y-6">
+                {/* Top Header Card */}
+                <div className="surface-box rounded-[28px] p-5 sm:p-6 border border-[var(--border-card)] space-y-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-soft)] pb-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full bg-[#701020] text-[#F1CA7E] px-3 py-1 text-xs font-mono font-bold uppercase mb-1.5">
+                        Bank Utility Store · 15 Token Classes
+                      </div>
+                      <h3 className="font-display text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
+                        Municipal Infrastructure & Utility Tokens
+                      </h3>
+                      <p className="text-xs font-rounded mt-1 max-w-2xl" style={{ color: 'var(--text-sub)' }}>
+                        Buy tokens directly using your team cash or receive them in the Admin Bid. These tokens satisfy the exact Level 1, 2, and 3 development recipes for your Karachi properties.
+                      </p>
+                    </div>
+
+                    {/* Cash Balance Indicator */}
+                    <div className="capsule-inset rounded-2xl p-3.5 border border-[var(--border-card)] shrink-0 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#2E7D52]/20 text-[#2E7D52]">
+                        <IconWallet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-mono uppercase font-bold block" style={{ color: 'var(--text-sub)' }}>
+                          Available Team Cash
+                        </span>
+                        <strong className="font-mono text-xl font-bold text-[#2E7D52]">
+                          Rs {currentTeam.cash}L
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Inventory Summary of What the Team Owns */}
+                  <div className="capsule-card rounded-2xl p-4 border border-[var(--border-soft)] space-y-2">
+                    <div className="flex items-center justify-between text-xs font-rounded font-bold">
+                      <span style={{ color: 'var(--text-main)' }}>
+                        Your Owned Utility Token Inventory ({(currentTeam.ownedResources || []).length} Total)
+                      </span>
+                      <span className="text-xs font-mono text-[#2E7D52]">
+                        {(currentTeam.ownedResources || []).filter(r => !r.attachedToPropertyId).length} Available for Upgrades
+                      </span>
+                    </div>
+
+                    {(currentTeam.ownedResources || []).length === 0 ? (
+                      <p className="text-xs font-rounded opacity-70" style={{ color: 'var(--text-sub)' }}>
+                        Your team does not own any utility tokens yet. Purchase tokens below or win them in the Admin Resource Bid.
+                      </p>
+                    ) : (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                        {KARACHI_UTILITIES.map((u) => {
+                          const total = (currentTeam.ownedResources || []).filter(r => Number(r.utilityId) === Number(u.id)).length;
+                          const unassigned = (currentTeam.ownedResources || []).filter(r => Number(r.utilityId) === Number(u.id) && !r.attachedToPropertyId).length;
+                          if (total === 0) return null;
+                          return (
+                            <span
+                              key={u.id}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold border"
+                              style={{
+                                backgroundColor: 'var(--resource-badge-bg)',
+                                color: 'var(--resource-badge-text)',
+                                borderColor: 'var(--resource-badge-border)'
+                              }}
+                            >
+                              <UtilityIcon id={u.id} className="w-3.5 h-3.5" style={{ color: 'var(--resource-icon-color)' }} />
+                              <span>{u.name}</span>
+                              <span className="bg-[#2E7D52] text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                                {unassigned} avail ({total} total)
+                              </span>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 15 UTILITY TOKENS GRID FOR DIRECT PURCHASE */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                  {KARACHI_UTILITIES.map((res) => {
+                    const cost = Number(res.cost || 0);
+                    const canAfford = Number(currentTeam.cash || 0) >= cost;
+                    const ownedCopies = (currentTeam.ownedResources || []).filter(
+                      (r) => Number(r.utilityId) === Number(res.id)
+                    ).length;
+                    const readyCopies = (currentTeam.ownedResources || []).filter(
+                      (r) => Number(r.utilityId) === Number(res.id) && !r.attachedToPropertyId
+                    ).length;
+
+                    return (
+                      <div
+                        key={res.id}
+                        className="surface-box rounded-2xl p-4 sm:p-5 border border-[var(--border-card)] flex flex-col justify-between gap-3 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-3">
+                          {/* Card Top: ID, Category & Inventory Count */}
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#701020] text-[#F1CA7E]">
+                              #{res.id} · {res.category}
+                            </span>
+                            {ownedCopies > 0 ? (
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#2E7D52] text-white">
+                                {readyCopies} Ready ({ownedCopies} Owned)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono opacity-70" style={{ color: 'var(--text-sub)' }}>
+                                In Stock
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Token Icon & Title */}
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border transition-colors shadow-sm"
+                              style={{
+                                backgroundColor: 'var(--resource-icon-bg)',
+                                borderColor: 'var(--resource-badge-border)'
+                              }}
+                            >
+                              <UtilityIcon id={res.id} className="w-5 h-5" style={{ color: 'var(--resource-icon-color)' }} />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="font-display text-base font-bold truncate" style={{ color: 'var(--text-main)' }}>
+                                {res.name}
+                              </h4>
+                              <span className="text-xs font-mono font-bold text-[#2E7D52] block">
+                                Bank Price: Rs {cost} Lakh
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Summary / Game Theme Effect */}
+                          <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                            {res.summary}
+                          </p>
+                        </div>
+
+                        {/* Purchase Action Button */}
+                        <div className="pt-3 border-t border-[var(--border-soft)] flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-mono" style={{ color: 'var(--text-sub)' }}>
+                            Token Cost: <strong style={{ color: 'var(--text-main)' }}>Rs {cost}L</strong>
+                          </span>
+
+                          <TactileButton
+                            disabled={!canAfford}
+                            onClick={() => handleBuyTokenFromBank(res.id)}
+                            className={`rounded-full px-4 py-1.5 text-xs font-rounded font-bold transition-all cursor-pointer ${
+                              canAfford
+                                ? 'btn-primary shadow-sm'
+                                : 'opacity-40 cursor-not-allowed capsule-inset'
+                            }`}
+                            style={!canAfford ? { color: 'var(--text-sub)' } : undefined}
+                          >
+                            {canAfford ? `Buy for Rs ${cost}L` : 'Insufficient Cash'}
+                          </TactileButton>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* TAB 3: BANK HISTORY (BIG & INFORMATIVE PORTFOLIO LEDGER)          */}
             {/* ================================================================= */}
             {activeTab === 'bank' && (() => {
