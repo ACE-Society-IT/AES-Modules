@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMonopolyStore, updateCachedMonopolyStore, supabase } from '../lib/monopolyService.js';
-import { KARACHI_PROPERTIES, computePropertyRent, computePropertyValuation } from '../data/monopolyData.js';
-import { UtilityIcon, LandPlotIllustration } from './LandPlotSvg.jsx';
+import { KARACHI_PROPERTIES } from '../data/monopolyData.js';
+import { LandPlotIllustration } from './LandPlotSvg.jsx';
 import aesLogo from '../../assets/aes-logo.png';
 
 const SHORT_PROPERTY_NAMES = {
@@ -33,12 +33,25 @@ const SHORT_PROPERTY_NAMES = {
   25: 'Hyderi Market'
 };
 
-const SLICE_PALETTE = [
+const PROP_SLICE_PALETTE = [
   { bg: '#701020', text: '#F8EEE1' },
   { bg: '#2A1215', text: '#F1CA7E' },
   { bg: '#8B1E32', text: '#FFF8F6' },
   { bg: '#47131C', text: '#E8DCC6' },
   { bg: '#5E1B21', text: '#F1CA7E' }
+];
+
+const TEAM_SLICE_PALETTE = [
+  { bg: '#8B1E32', text: '#FFF8F6', accent: '#ECC37A' }, // Crimson
+  { bg: '#1E3A8A', text: '#EFF6FF', accent: '#93C5FD' }, // Sapphire Blue
+  { bg: '#14532D', text: '#F0FDF4', accent: '#86EFAC' }, // Emerald Green
+  { bg: '#78350F', text: '#FFFBEB', accent: '#FDE047' }, // Amber Gold
+  { bg: '#581C87', text: '#FAF5FF', accent: '#D8B4FE' }, // Royal Purple
+  { bg: '#0F766E', text: '#F0FDFA', accent: '#5EEAD4' }, // Teal
+  { bg: '#9A3412', text: '#FFF7ED', accent: '#FDBA74' }, // Burnt Orange
+  { bg: '#831843', text: '#FDF2F8', accent: '#F472B6' }, // Rose Pink
+  { bg: '#312E81', text: '#EEF2FF', accent: '#A5B4FC' }, // Indigo
+  { bg: '#365314', text: '#F7FEE7', accent: '#BEF264' }  // Lime Green
 ];
 
 function polarToCartesian(cx, cy, r, angleInDegrees) {
@@ -56,16 +69,55 @@ function createSlicePath(cx, cy, r, startAngle, endAngle) {
   return ['M', cx, cy, 'L', start.x, start.y, 'A', r, r, 0, largeArcFlag, 0, end.x, end.y, 'Z'].join(' ');
 }
 
+function playTickSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(650, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.035);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.035);
+  } catch {}
+}
+
+function playFinishSound(isSafe = false) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = isSafe ? [523.25, 659.25, 783.99, 1046.50] : [440, 554.37, 659.25];
+    freqs.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.09);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.09 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + idx * 0.09);
+      osc.stop(ctx.currentTime + idx * 0.09 + 0.35);
+    });
+  } catch {}
+}
+
 export default function MonopolyProjectorView() {
   const [store, setStore] = useState(null);
-  const [wheelRotation, setWheelRotation] = useState(0);
+  const [propWheelRotation, setPropWheelRotation] = useState(0);
+  const [teamWheelRotation, setTeamWheelRotation] = useState(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [activeOutcome, setActiveOutcome] = useState(null);
   const lastSpinNonceRef = useRef(null);
-  const wheelRotationRef = useRef(0);
+  const propRotationRef = useRef(0);
+  const teamRotationRef = useRef(0);
+  const tickIntervalRef = useRef(null);
 
   const loadData = async () => {
     try {
@@ -79,7 +131,6 @@ export default function MonopolyProjectorView() {
   useEffect(() => {
     loadData();
 
-    // Supabase Realtime subscription
     const channel = supabase
       .channel('monopoly_projector_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_state' }, (payload) => {
@@ -96,23 +147,38 @@ export default function MonopolyProjectorView() {
 
     return () => {
       supabase.removeChannel(channel);
+      if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     };
   }, []);
 
   const properties = store?.properties || KARACHI_PROPERTIES;
-  const totalSlices = properties.length || 25;
-  const sliceAngle = 360 / totalSlices;
+  const totalPropSlices = properties.length || 25;
+  const propSliceAngle = 360 / totalPropSlices;
+
+  const teams = store?.teams || [];
+  const totalTeamSlices = Math.max(1, teams.length);
+  const teamSliceAngle = 360 / totalTeamSlices;
 
   // React to lastWheelResult changes from Admin
   useEffect(() => {
     if (!store?.lastWheelResult) return;
     const res = store.lastWheelResult;
-    const spinKey = `${res.teamId}_${res.propertyId}_${res.timestamp || res.nonce || ''}`;
+    const spinKey = `${res.id || ''}_${res.teamId}_${res.propertyId}_${res.timestamp || res.nonce || ''}`;
 
     if (lastSpinNonceRef.current === spinKey) return;
     lastSpinNonceRef.current = spinKey;
 
     setActiveOutcome(res);
+
+    const winningPropIndex = properties.findIndex((p) => Number(p.id) === Number(res.propertyId));
+    const safePropIndex = winningPropIndex !== -1 ? winningPropIndex : 0;
+    const propSliceCenter = (safePropIndex + 0.5) * propSliceAngle;
+    const propDesiredMod = (360 - propSliceCenter + 360) % 360;
+
+    const winningTeamIndex = teams.findIndex((t) => String(t.id) === String(res.teamId));
+    const safeTeamIndex = winningTeamIndex !== -1 ? winningTeamIndex : 0;
+    const teamSliceCenter = (safeTeamIndex + 0.5) * teamSliceAngle;
+    const teamDesiredMod = (360 - teamSliceCenter + 360) % 360;
 
     // If result was already revealed on server (e.g. reload or historical spin), show immediately without spinning
     if (res.revealed) {
@@ -121,26 +187,20 @@ export default function MonopolyProjectorView() {
       setIsRevealed(true);
       setCountdown(null);
 
-      const winningIndex = properties.findIndex(p => Number(p.id) === Number(res.propertyId));
-      if (winningIndex !== -1) {
-        const sliceCenter = (winningIndex + 0.5) * sliceAngle;
-        const desiredMod = (360 - sliceCenter + 360) % 360;
-        wheelRotationRef.current = desiredMod;
-        setWheelRotation(desiredMod);
-      }
+      propRotationRef.current = propDesiredMod;
+      teamRotationRef.current = teamDesiredMod;
+      setPropWheelRotation(propDesiredMod);
+      setTeamWheelRotation(teamDesiredMod);
       return;
     }
 
-    // LIVE NEW SPIN: 5-SECOND SUSPENSE COUNTDOWN -> 5.5-SECOND PHYSICS ROTATION -> REVEAL RESULT
-    const winningIndex = properties.findIndex(p => Number(p.id) === Number(res.propertyId));
-    if (winningIndex === -1) return;
-
+    // LIVE NEW SPIN: 4-SECOND SUSPENSE COUNTDOWN -> 5-SECOND DUAL WHEEL ROTATION -> REVEAL RESULT
     setIsRevealed(false);
     setIsSpinning(false);
     setIsCountingDown(true);
-    setCountdown(5);
+    setCountdown(4);
 
-    let secLeft = 5;
+    let secLeft = 4;
     const interval = setInterval(() => {
       secLeft -= 1;
       if (secLeft > 0) {
@@ -151,27 +211,43 @@ export default function MonopolyProjectorView() {
         setIsCountingDown(false);
         setIsSpinning(true);
 
-        // Calculate target slice angle under pointer (top 12 o'clock)
-        const sliceCenter = (winningIndex + 0.5) * sliceAngle;
-        const desiredMod = (360 - sliceCenter + 360) % 360;
-        const currentMod = ((wheelRotationRef.current % 360) + 360) % 360;
-        let deltaAngle = desiredMod - currentMod;
-        if (deltaAngle <= 0) deltaAngle += 360;
+        // 1. Property Wheel Target Rotation
+        const propCurrentMod = ((propRotationRef.current % 360) + 360) % 360;
+        let propDelta = propDesiredMod - propCurrentMod;
+        if (propDelta <= 0) propDelta += 360;
+        const nextPropTarget = propRotationRef.current + 360 * 6 + propDelta;
+        propRotationRef.current = nextPropTarget;
 
-        // 6 full 360 spins + target slice delta for high-speed physics rotation
-        const nextTarget = wheelRotationRef.current + 360 * 6 + deltaAngle;
-        wheelRotationRef.current = nextTarget;
+        // 2. Team Wheel Target Rotation
+        const teamCurrentMod = ((teamRotationRef.current % 360) + 360) % 360;
+        let teamDelta = teamDesiredMod - teamCurrentMod;
+        if (teamDelta <= 0) teamDelta += 360;
+        const nextTeamTarget = teamRotationRef.current + 360 * 6 + teamDelta;
+        teamRotationRef.current = nextTeamTarget;
 
         requestAnimationFrame(() => {
-          setWheelRotation(nextTarget);
+          setPropWheelRotation(nextPropTarget);
+          setTeamWheelRotation(nextTeamTarget);
         });
 
-        // 5.5s physical spin duration -> wheel comes to full stop -> reveal result!
+        // 3. Audio Tick Simulation
+        if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+        let tickCount = 0;
+        tickIntervalRef.current = setInterval(() => {
+          tickCount += 1;
+          playTickSound();
+          if (tickCount >= 34) {
+            clearInterval(tickIntervalRef.current);
+          }
+        }, 140);
+
+        // 5.0s physical spin duration -> wheels come to full stop -> reveal result
         setTimeout(async () => {
+          if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
           setIsSpinning(false);
           setIsRevealed(true);
+          playFinishSound(res.status !== 'PAID_RENT');
 
-          // Tell server to reveal result so team dialog pops up at this exact moment!
           try {
             if (supabase) {
               await supabase.rpc('monopoly_reveal_wheel_result');
@@ -179,327 +255,352 @@ export default function MonopolyProjectorView() {
           } catch (err) {
             console.error('Failed to notify server of wheel reveal:', err);
           }
-        }, 5500);
+        }, 5100);
       }
     }, 1000);
 
     return () => {
       clearInterval(interval);
+      if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     };
   }, [store?.lastWheelResult]);
 
   const landedProp = activeOutcome
-    ? properties.find(p => Number(p.id) === Number(activeOutcome.propertyId))
+    ? properties.find((p) => Number(p.id) === Number(activeOutcome.propertyId))
     : null;
 
   return (
-    <div className="w-full min-h-screen bg-[#0C0A09] text-[#F8EEE1] flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden relative font-sans">
+    <div className="w-full min-h-screen bg-[#0C0A09] text-[#F8EEE1] flex flex-col justify-between p-4 sm:p-8 select-none overflow-hidden relative font-sans">
       {/* TOP AUDITORIUM BANNER */}
-      <header className="relative z-10 flex items-center justify-between border-b border-[#ECC37A]/30 pb-4">
+      <header className="relative z-10 flex items-center justify-between border-b border-[#ECC37A]/30 pb-3">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#1C050B] border border-[#ECC37A]/60 flex items-center justify-center p-2">
+          <div className="w-12 h-12 rounded-2xl bg-[#1C050B] border border-[#ECC37A]/60 flex items-center justify-center p-2">
             <img src={aesLogo} alt="AES Logo" className="max-h-full max-w-full object-contain" />
           </div>
           <div>
-            <span className="text-xs font-mono uppercase font-bold tracking-widest text-[#F1CA7E]">
+            <span className="text-[11px] font-mono uppercase font-bold tracking-widest text-[#F1CA7E]">
               ALPHA ENTREPRENEURSHIP SUMMIT 2026
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#F8EEE1] leading-tight">
-              Market Monopoly
+            <h1 className="text-xl sm:text-2xl font-bold font-serif text-[#F8EEE1] leading-tight">
+              Market Monopoly Live Wheel Arena
             </h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="px-3.5 py-1.5 rounded-full bg-[#1C050B] border border-[#ECC37A]/50 text-xs font-mono font-bold text-[#F1CA7E]">
+            {activeOutcome?.spinNumber
+              ? `Spin #${activeOutcome.spinNumber}`
+              : `Total Spins: ${store?.wheelSpinsHistory?.length || store?.wheelSpinsCount || 0}`}
           </div>
         </div>
       </header>
 
-      {/* CENTER ARENA: MASSIVE HIGH-RESOLUTION SPIN WHEEL & LIVE OUTCOME BOARD */}
-      <main className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-14 my-4">
-        {/* WHEEL CONTAINER */}
-        <div className="relative flex items-center justify-center">
-          {/* Top Pointer */}
-          <div className="absolute -top-6 z-30 drop-shadow-[0_6px_12px_rgba(0,0,0,0.8)]">
-            <svg width="48" height="58" viewBox="0 0 48 58">
-              <polygon points="24,56 4,14 44,14" fill="#F1CA7E" stroke="#22050D" strokeWidth="2.5" />
-              <circle cx="24" cy="14" r="7" fill="#701020" stroke="#F1CA7E" strokeWidth="2" />
-            </svg>
-          </div>
-
-          <div className="w-[380px] h-[380px] sm:w-[540px] sm:h-[540px] lg:w-[620px] lg:h-[620px] rounded-full p-3 bg-[#24060E] shadow-[0_20px_60px_rgba(0,0,0,0.85)] border-8 border-[#F1CA7E] flex items-center justify-center relative">
-            <div
-              className="w-full h-full rounded-full will-change-transform"
-              style={{
-                transform: `rotate(${wheelRotation}deg) translateZ(0)`,
-                transformOrigin: 'center center',
-                backfaceVisibility: 'hidden',
-                willChange: 'transform',
-                transition: isSpinning
-                  ? 'transform 5.5s cubic-bezier(0.12, 0.82, 0.22, 1)'
-                  : isCountingDown
-                  ? 'none'
-                  : 'transform 0.5s ease-out'
-              }}
-            >
-              <svg viewBox="0 0 420 420" className="w-full h-full overflow-visible">
-                <g>
-                  {properties.map((prop, idx) => {
-                    const startAngle = idx * sliceAngle;
-                    const endAngle = (idx + 1) * sliceAngle;
-                    const midAngle = startAngle + sliceAngle / 2;
-                    const pathData = createSlicePath(210, 210, 204, startAngle, endAngle);
-                    const palette = SLICE_PALETTE[idx % SLICE_PALETTE.length];
-                    const isOwned = Boolean(prop.ownerTeamId);
-
-                    const labelPos = polarToCartesian(210, 210, 136, midAngle);
-                    const dotPos = polarToCartesian(210, 210, 194, midAngle);
-                    const textRotate = midAngle - 90;
-                    const shortName = SHORT_PROPERTY_NAMES[prop.id] || prop.name.slice(0, 13);
-
-                    return (
-                      <g key={prop.id}>
-                        <path
-                          d={pathData}
-                          fill={palette.bg}
-                          stroke="#F1CA7E"
-                          strokeWidth="1"
-                          strokeOpacity="0.75"
-                        />
-                        <circle
-                          cx={dotPos.x}
-                          cy={dotPos.y}
-                          r="4"
-                          fill={isOwned ? '#ECC37A' : '#701020'}
-                          stroke="#ECC37A"
-                          strokeWidth="1"
-                        />
-                        <text
-                          x={labelPos.x}
-                          y={labelPos.y}
-                          fill={palette.text}
-                          fontSize="9.5"
-                          fontWeight="700"
-                          fontFamily="system-ui, -apple-system, sans-serif"
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          transform={`rotate(${textRotate}, ${labelPos.x}, ${labelPos.y})`}
-                        >
-                          #{prop.id} {shortName}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </g>
-              </svg>
+      {/* CENTER ARENA: DUAL WHEELS (PROPERTY + PAYING TEAM) */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center gap-6 my-2">
+        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center justify-items-center">
+          {/* WHEEL 1: KARACHI LANDED PROPERTY */}
+          <div className="flex flex-col items-center space-y-3 w-full">
+            <div className="flex items-center justify-between w-full max-w-[380px] px-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F1CA7E]">
+                Wheel 1: Karachi Property
+              </span>
+              <span className="text-[10px] font-mono text-[#F8EEE1]/60">25 Plots</span>
             </div>
 
-            {/* Wheel Center Hub with Suspense Countdown or Spinning Radar or AES Logo */}
-            <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20">
-              <AnimatePresence mode="wait">
-                {isCountingDown && countdown ? (
-                  <motion.div
-                    key={`hub-suspense-${countdown}`}
-                    initial={{ scale: 1.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="flex flex-col items-center justify-center text-center"
-                  >
-                    <span className="font-mono font-black text-4xl sm:text-5xl text-[#F59E0B] leading-none drop-shadow-[0_0_12px_rgba(245,158,11,0.7)]">
-                      {countdown}
-                    </span>
-                    <span className="text-[8px] uppercase tracking-widest font-mono text-[#F1CA7E]/80 font-bold mt-0.5">
-                      SUSPENSE
-                    </span>
-                  </motion.div>
-                ) : isSpinning ? (
-                  <motion.div
-                    key="hub-spinning"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center"
-                  >
-                    <div className="w-7 h-7 mx-auto mb-1 border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
-                    <span className="font-serif font-black text-[9px] text-[#F1CA7E] tracking-widest uppercase block">
-                      SPINNING
-                    </span>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="hub-logo"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-center"
-                  >
-                    <span className="font-serif font-black text-[11px] sm:text-xs text-[#F1CA7E] tracking-widest uppercase leading-tight block">
-                      AES<br />KARACHI
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            <div className="relative flex items-center justify-center">
+              {/* Top Golden Pointer */}
+              <div className="absolute -top-5 z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]">
+                <svg width="40" height="48" viewBox="0 0 48 58">
+                  <polygon points="24,56 4,14 44,14" fill="#F1CA7E" stroke="#22050D" strokeWidth="2.5" />
+                  <circle cx="24" cy="14" r="6" fill="#701020" stroke="#F1CA7E" strokeWidth="2" />
+                </svg>
+              </div>
+
+              <div className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] xl:w-[420px] xl:h-[420px] rounded-full p-2.5 bg-[#24060E] shadow-[0_16px_50px_rgba(0,0,0,0.85)] border-4 sm:border-6 border-[#F1CA7E] flex items-center justify-center relative">
+                <div
+                  className="w-full h-full rounded-full will-change-transform"
+                  style={{
+                    transform: `rotate(${propWheelRotation}deg) translateZ(0)`,
+                    transformOrigin: 'center center',
+                    backfaceVisibility: 'hidden',
+                    transition: isSpinning
+                      ? 'transform 5.0s cubic-bezier(0.12, 0.82, 0.22, 1)'
+                      : isCountingDown
+                      ? 'none'
+                      : 'transform 0.4s ease-out'
+                  }}
+                >
+                  <svg viewBox="0 0 420 420" className="w-full h-full overflow-visible">
+                    <g>
+                      {properties.map((prop, idx) => {
+                        const startAngle = idx * propSliceAngle;
+                        const endAngle = (idx + 1) * propSliceAngle;
+                        const midAngle = startAngle + propSliceAngle / 2;
+                        const pathData = createSlicePath(210, 210, 204, startAngle, endAngle);
+                        const palette = PROP_SLICE_PALETTE[idx % PROP_SLICE_PALETTE.length];
+                        const isOwned = Boolean(prop.ownerTeamId);
+
+                        const labelPos = polarToCartesian(210, 210, 134, midAngle);
+                        const dotPos = polarToCartesian(210, 210, 194, midAngle);
+                        const textRotate = midAngle - 90;
+                        const shortName = SHORT_PROPERTY_NAMES[prop.id] || prop.name.slice(0, 12);
+
+                        return (
+                          <g key={prop.id}>
+                            <path
+                              d={pathData}
+                              fill={palette.bg}
+                              stroke="#F1CA7E"
+                              strokeWidth="1"
+                              strokeOpacity="0.75"
+                            />
+                            <circle
+                              cx={dotPos.x}
+                              cy={dotPos.y}
+                              r="3.5"
+                              fill={isOwned ? '#ECC37A' : '#701020'}
+                              stroke="#ECC37A"
+                              strokeWidth="1"
+                            />
+                            <text
+                              x={labelPos.x}
+                              y={labelPos.y}
+                              fill={palette.text}
+                              fontSize="9.5"
+                              fontWeight="700"
+                              fontFamily="system-ui, -apple-system, sans-serif"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              transform={`rotate(${textRotate}, ${labelPos.x}, ${labelPos.y})`}
+                            >
+                              #{prop.id} {shortName}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  </svg>
+                </div>
+
+                {/* Property Hub */}
+                <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#180308] border-3 sm:border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20 text-center">
+                  <span className="font-serif font-black text-[10px] sm:text-xs text-[#F1CA7E] tracking-widest uppercase block leading-tight">
+                    ESTATE<br />PLOT
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* WHEEL 2: PAYING TEAM WHEEL */}
+          <div className="flex flex-col items-center space-y-3 w-full">
+            <div className="flex items-center justify-between w-full max-w-[380px] px-2">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F1CA7E]">
+                Wheel 2: Paying Team
+              </span>
+              <span className="text-[10px] font-mono text-[#F8EEE1]/60">Pure Luck</span>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              {/* Top Golden Pointer */}
+              <div className="absolute -top-5 z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]">
+                <svg width="40" height="48" viewBox="0 0 48 58">
+                  <polygon points="24,56 4,14 44,14" fill="#F1CA7E" stroke="#22050D" strokeWidth="2.5" />
+                  <circle cx="24" cy="14" r="6" fill="#1E3A8A" stroke="#F1CA7E" strokeWidth="2" />
+                </svg>
+              </div>
+
+              <div className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] xl:w-[420px] xl:h-[420px] rounded-full p-2.5 bg-[#0A1024] shadow-[0_16px_50px_rgba(0,0,0,0.85)] border-4 sm:border-6 border-[#F1CA7E] flex items-center justify-center relative">
+                <div
+                  className="w-full h-full rounded-full will-change-transform"
+                  style={{
+                    transform: `rotate(${teamWheelRotation}deg) translateZ(0)`,
+                    transformOrigin: 'center center',
+                    backfaceVisibility: 'hidden',
+                    transition: isSpinning
+                      ? 'transform 5.0s cubic-bezier(0.12, 0.82, 0.22, 1)'
+                      : isCountingDown
+                      ? 'none'
+                      : 'transform 0.4s ease-out'
+                  }}
+                >
+                  <svg viewBox="0 0 420 420" className="w-full h-full overflow-visible">
+                    <g>
+                      {teams.map((team, idx) => {
+                        const startAngle = idx * teamSliceAngle;
+                        const endAngle = (idx + 1) * teamSliceAngle;
+                        const midAngle = startAngle + teamSliceAngle / 2;
+                        const pathData = createSlicePath(210, 210, 204, startAngle, endAngle);
+                        const palette = TEAM_SLICE_PALETTE[idx % TEAM_SLICE_PALETTE.length];
+
+                        const labelPos = polarToCartesian(210, 210, 134, midAngle);
+                        const dotPos = polarToCartesian(210, 210, 194, midAngle);
+                        const textRotate = midAngle - 90;
+                        const displayName = team.name.length > 12 ? team.name.slice(0, 11) + '.' : team.name;
+
+                        return (
+                          <g key={team.id}>
+                            <path
+                              d={pathData}
+                              fill={palette.bg}
+                              stroke="#F1CA7E"
+                              strokeWidth="1"
+                              strokeOpacity="0.75"
+                            />
+                            <circle
+                              cx={dotPos.x}
+                              cy={dotPos.y}
+                              r="3.5"
+                              fill={palette.accent}
+                              stroke="#0C0A09"
+                              strokeWidth="1"
+                            />
+                            <text
+                              x={labelPos.x}
+                              y={labelPos.y}
+                              fill={palette.text}
+                              fontSize={teams.length > 12 ? '9' : '10.5'}
+                              fontWeight="800"
+                              fontFamily="system-ui, -apple-system, sans-serif"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              transform={`rotate(${textRotate}, ${labelPos.x}, ${labelPos.y})`}
+                            >
+                              {displayName}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+                  </svg>
+                </div>
+
+                {/* Team Hub */}
+                <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#050C1E] border-3 sm:border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20 text-center">
+                  <span className="font-serif font-black text-[10px] sm:text-xs text-[#F1CA7E] tracking-widest uppercase block leading-tight">
+                    PAYING<br />TEAM
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT SCOREBOARD & OUTCOME CARD */}
-        <div className="w-full max-w-md lg:max-w-lg flex flex-col gap-5">
-          <div className="p-6 sm:p-7 rounded-2xl bg-[#18040A] border-2 border-[#ECC37A]/50 shadow-2xl space-y-4">
+        {/* BOTTOM ARENA: SUSPENSE TIMER / SPINNER / CELEBRATORY RESULT POPUP */}
+        <div className="w-full max-w-4xl">
+          <AnimatePresence mode="wait">
             {isCountingDown ? (
-              <div className="py-10 flex flex-col items-center justify-center space-y-5 text-center">
-                <div className="w-28 h-28 rounded-full border-2 border-[#F59E0B] bg-[#120207] flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`suspense-timer-${countdown}`}
-                      initial={{ scale: 1.4, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.6, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="text-6xl font-black font-mono text-[#F59E0B] tabular-nums"
-                    >
+              <motion.div
+                key="suspense-card"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="p-5 rounded-2xl bg-[#1C050B] border-2 border-[#ECC37A] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full border-2 border-[#F59E0B] bg-[#120207] flex items-center justify-center shrink-0">
+                    <span className="text-3xl font-black font-mono text-[#F59E0B]">
                       {countdown}s
-                    </motion.span>
-                  </AnimatePresence>
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#F1CA7E]/70 font-bold block">
+                      Live Wheel Spin Pending
+                    </span>
+                    <h2 className="font-serif text-2xl font-bold text-[#F8EEE1]">
+                      Dual Wheel Starting in {countdown} Seconds...
+                    </h2>
+                  </div>
                 </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#F1CA7E]/70 font-semibold block">
-                    Live Turn In Progress
-                  </span>
-                  <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#F8EEE1]">
-                    {activeOutcome?.teamName || 'Team'}
-                  </h2>
-                  <p className="text-xs font-mono uppercase tracking-widest text-[#F59E0B] font-bold pt-1">
-                    Wheel will spin in {countdown}s... Get Ready!
-                  </p>
+                <div className="text-xs font-mono text-[#F1CA7E] uppercase tracking-wider font-semibold">
+                  Get Ready!
                 </div>
-              </div>
+              </motion.div>
             ) : isSpinning ? (
-              <div className="py-10 flex flex-col items-center justify-center space-y-5 text-center">
-                <div className="w-28 h-28 rounded-full border-2 border-[#F1CA7E] bg-[#120207] flex items-center justify-center">
-                  <div className="w-12 h-12 border-3 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#F1CA7E]/70 font-semibold block">
-                    Wheel Rotating
-                  </span>
-                  <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#F8EEE1]">
-                    {activeOutcome?.teamName || 'Team'}
-                  </h2>
-                  <p className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E] font-bold pt-1">
-                    Selecting Property at Random...
-                  </p>
-                </div>
-              </div>
-            ) : isRevealed && activeOutcome && landedProp ? (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                {/* Team Info Header */}
-                <div className="flex items-center justify-between pb-1">
-                  <span className="px-2.5 py-1 rounded-md bg-[#2C0812] border border-[#ECC37A]/40 text-[#F1CA7E] font-mono text-[11px] font-bold uppercase tracking-wider">
-                    Wave #{activeOutcome.round || activeOutcome.wheelRound || store?.currentWheelRound || 1}
-                  </span>
-                  <span className="text-sm font-serif font-bold text-[#F8EEE1] uppercase tracking-wide">
-                    {activeOutcome.teamName}
-                  </span>
-                </div>
-
-                {/* BIG PROPERTY NAME DISPLAY */}
-                <div className="space-y-1 pt-1 border-t border-[#ECC37A]/20">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-[#4A0D1A] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold tracking-wider uppercase">
-                      Plot #{landedProp.id}
+              <motion.div
+                key="spinning-card"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                className="p-5 rounded-2xl bg-[#1C050B] border-2 border-[#ECC37A] shadow-2xl flex items-center justify-center gap-4"
+              >
+                <div className="w-7 h-7 border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
+                <span className="font-serif font-black text-lg text-[#F1CA7E] tracking-widest uppercase">
+                  Wheels Spinning... Selecting Property &amp; Paying Team
+                </span>
+              </motion.div>
+            ) : isRevealed && activeOutcome ? (
+              <motion.div
+                key="outcome-card"
+                initial={{ opacity: 0, scale: 0.95, y: 14 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1E050D] via-[#2A0814] to-[#140208] border-2 border-[#ECC37A] shadow-2xl space-y-4"
+              >
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-[#ECC37A]/30 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#701020] text-[#F1CA7E] border border-[#F1CA7E]/40">
+                      Spin Outcome
                     </span>
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F1CA7E]/80">
-                      {landedProp.category || 'Karachi Real Estate'}
-                    </span>
+                    <h2 className="text-xl sm:text-2xl font-black font-serif text-[#F8EEE1]">
+                      {activeOutcome.teamName} Landed on {landedProp?.name || activeOutcome.propertyName || 'Property'}
+                    </h2>
                   </div>
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif text-[#F8EEE1] tracking-tight leading-tight">
-                    {landedProp.name}
-                  </h1>
-                </div>
-
-                {/* 3D Property Preview Plinth */}
-                <div className="rounded-2xl overflow-hidden border-2 border-[#ECC37A]/40 bg-[#120207]">
-                  <LandPlotIllustration
-                    category={landedProp.category}
-                    level={Number(landedProp.upgradeLevel || 0)}
-                    utilityCount={(landedProp.attachedUtilities || []).length}
-                    showBadge
-                  />
-                </div>
-
-                {/* Financial Telemetry Card */}
-                <div className="p-4 rounded-2xl bg-[#120207] border border-[#ECC37A]/30 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#F1CA7E]/75">
-                      Estate Owner
+                  <div className="text-right">
+                    <span className="text-[11px] font-mono text-[#F1CA7E]/75 block uppercase">Settlement</span>
+                    <span className={`text-xl font-mono font-black ${
+                      activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'
+                    }`}>
+                      {activeOutcome.status === 'PAID_RENT'
+                        ? `- Rs ${activeOutcome.rentAmount} Lakh`
+                        : 'Rs 0 Lakh (Free)'}
                     </span>
-                    <span className="font-serif font-bold text-base text-[#F8EEE1]">
-                      {activeOutcome.ownerTeamName || 'Unclaimed Public Land'}
-                    </span>
-                  </div>
-
-                  <div className="pt-2.5 border-t border-[#ECC37A]/20 flex items-end justify-between">
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#F1CA7E]/75 block">
-                        Rent Settlement
-                      </span>
-                      <span className="text-xs font-mono font-medium text-[#F8EEE1]/70">
-                        {activeOutcome.status === 'PAID_RENT'
-                          ? `Paid by ${activeOutcome.teamName}`
-                          : activeOutcome.status === 'OWN_PROPERTY'
-                          ? 'Own property shelter'
-                          : 'Unclaimed territory'}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className={`font-mono text-2xl sm:text-3xl font-black tabular-nums block ${
-                        activeOutcome.status === 'PAID_RENT'
-                          ? 'text-[#EF4444]'
-                          : 'text-[#22C55E]'
-                      }`}>
-                        {activeOutcome.status === 'PAID_RENT'
-                          ? `- Rs ${activeOutcome.rentAmount} Lakh`
-                          : 'Rs 0 Lakh'}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
-                {/* Status Indicator */}
-                <div className={`p-3 rounded-xl border text-center font-bold text-xs uppercase tracking-wider font-mono ${
-                  activeOutcome.status === 'PAID_RENT'
-                    ? 'bg-[#4A0D1A] border-[#EF4444] text-[#FCA5A5]'
-                    : activeOutcome.status === 'OWN_PROPERTY'
-                    ? 'bg-[#143020] border-[#22C55E] text-[#86EFAC]'
-                    : 'bg-[#2C0812] border-[#ECC37A] text-[#F1CA7E]'
-                }`}>
-                  {activeOutcome.status === 'PAID_RENT'
-                    ? `Penalty Paid to ${activeOutcome.ownerTeamName}`
-                    : activeOutcome.status === 'OWN_PROPERTY'
-                    ? 'Safely Landed on Own Estate · Zero Rent'
-                    : 'Unclaimed Property · Zero Rent Incurred'}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
+                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Landed Property</span>
+                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
+                      #{landedProp?.id || activeOutcome.propertyId} {landedProp?.name || activeOutcome.propertyName}
+                    </strong>
+                    <span className="text-[10px] text-[#F1CA7E]/60">{landedProp?.category || 'Karachi Real Estate'}</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
+                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Paying Team</span>
+                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
+                      {activeOutcome.teamName}
+                    </strong>
+                    <span className="text-[10px] text-[#F1CA7E]/60">Debited rent</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
+                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Estate Owner</span>
+                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
+                      {activeOutcome.ownerTeamName || 'Unclaimed Territory'}
+                    </strong>
+                    <span className="text-[10px] text-[#F1CA7E]/60">
+                      {activeOutcome.ownerTeamName ? 'Earned rental income' : 'Public territory'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ) : (
-              <div className="py-20 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#2C0812] border border-[#ECC37A]/50 flex items-center justify-center p-3">
-                  <img src={aesLogo} alt="AES Logo" className="max-h-full max-w-full object-contain" />
-                </div>
-                <div className="space-y-1">
-                  <h2 className="font-serif text-3xl sm:text-4xl font-black text-[#F8EEE1] tracking-tight uppercase">
-                    Are You Ready?
-                  </h2>
-                  <p className="text-xs font-mono text-[#F1CA7E]/75 uppercase tracking-widest font-semibold">
-                    Next Spin Starting Shortly
-                  </p>
-                </div>
+              <div className="p-4 rounded-xl bg-[#140208] border border-[#ECC37A]/30 text-center">
+                <span className="text-xs font-mono text-[#F1CA7E]/80 uppercase tracking-widest">
+                  Ready for Wheel Spin · Admin controls live spin from Master Admin
+                </span>
               </div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
       </main>
 
       {/* FOOTER */}
-      <footer className="relative z-10 pt-3 border-t border-[#ECC37A]/25 flex items-center justify-center text-xs font-mono text-[#F1CA7E]/75 tracking-wider">
+      <footer className="relative z-10 pt-2 border-t border-[#ECC37A]/20 flex items-center justify-between text-[11px] font-mono text-[#F1CA7E]/70">
         <span>Alpha Entrepreneurship Summit 2026</span>
+        <span>Market Monopoly Dual Arena</span>
       </footer>
     </div>
   );

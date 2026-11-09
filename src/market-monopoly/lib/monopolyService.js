@@ -128,6 +128,8 @@ export function hydrateMonopolyState(rawState) {
       rawState.wheelSpinsByRound && typeof rawState.wheelSpinsByRound === 'object'
         ? rawState.wheelSpinsByRound
         : {},
+    wheelSpinsHistory: Array.isArray(rawState.wheelSpinsHistory) ? rawState.wheelSpinsHistory : [],
+    wheelSpinsCount: Number(rawState.wheelSpinsCount || (Array.isArray(rawState.wheelSpinsHistory) ? rawState.wheelSpinsHistory.length : 0)),
     lastWheelResult: rawState.lastWheelResult || null,
     teams,
     properties: mergedProps,
