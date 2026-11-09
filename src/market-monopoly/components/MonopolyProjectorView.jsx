@@ -60,6 +60,7 @@ export default function MonopolyProjectorView() {
   const [store, setStore] = useState(null);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const [activeOutcome, setActiveOutcome] = useState(null);
   const lastSpinNonceRef = useRef(null);
 
@@ -112,13 +113,31 @@ export default function MonopolyProjectorView() {
       if (deltaAngle <= 0) deltaAngle += 360;
 
       setIsSpinning(true);
-      setWheelRotation(prev => prev + 360 * 5 + deltaAngle);
+      setCountdown(5);
+      // 6 full spins + target angle for 5.0s cinematic deceleration
+      setWheelRotation(prev => prev + 360 * 6 + deltaAngle);
+
+      // 5 -> 4 -> 3 -> 2 -> 1 countdown interval
+      const interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            return 1;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
       const timer = setTimeout(() => {
+        clearInterval(interval);
+        setCountdown(null);
         setIsSpinning(false);
-      }, 4300);
+      }, 5000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timer);
+      };
     }
   }, [store?.lastWheelResult]);
 
@@ -179,7 +198,7 @@ export default function MonopolyProjectorView() {
               style={{
                 transform: `rotate(${wheelRotation}deg)`,
                 transition: isSpinning
-                  ? 'transform 4.2s cubic-bezier(0.15, 0.85, 0.25, 1)'
+                  ? 'transform 5.0s cubic-bezier(0.12, 0.82, 0.22, 1)'
                   : 'none'
               }}
             >
@@ -235,11 +254,38 @@ export default function MonopolyProjectorView() {
               </svg>
             </div>
 
-            {/* Wheel Center AES Hub */}
-            <div className="absolute w-24 h-24 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none">
-              <span className="font-serif font-black text-xs text-[#F1CA7E] tracking-widest text-center uppercase leading-tight">
-                AES<br />KARACHI
-              </span>
+            {/* Wheel Center AES Hub with 5-4-3-2-1 Live Countdown */}
+            <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-[0_0_35px_rgba(241,202,126,0.6)] flex items-center justify-center pointer-events-none overflow-hidden z-20">
+              <AnimatePresence mode="wait">
+                {isSpinning && countdown ? (
+                  <motion.div
+                    key={`hub-${countdown}`}
+                    initial={{ scale: 1.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.4, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    className="flex flex-col items-center justify-center"
+                  >
+                    <span className="font-mono font-black text-4xl sm:text-5xl text-[#F1CA7E] drop-shadow-[0_0_16px_rgba(241,202,126,0.9)] leading-none">
+                      {countdown}
+                    </span>
+                    <span className="text-[9px] font-mono tracking-widest text-[#F8EEE1]/70 uppercase mt-0.5">
+                      SECS
+                    </span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="hub-logo"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center"
+                  >
+                    <span className="font-serif font-black text-[11px] sm:text-xs text-[#F1CA7E] tracking-widest uppercase leading-tight block">
+                      AES<br />KARACHI
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -249,8 +295,12 @@ export default function MonopolyProjectorView() {
           {/* Active Outcome Box */}
           <div className="p-6 sm:p-7 rounded-[32px] bg-[#22060E]/95 border-2 border-[#ECC37A] shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#ECC37A]/30 pb-3">
-              <span className="px-3 py-1 rounded-full text-xs font-mono font-bold uppercase bg-[#701020] text-[#F1CA7E] border border-[#F1CA7E]/40">
-                {isSpinning ? 'Wheel Spinning...' : 'Live Outcome'}
+              <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase border transition-colors ${
+                isSpinning
+                  ? 'bg-[#701020] text-[#F1CA7E] border-[#F1CA7E] animate-pulse'
+                  : 'bg-[#3B0C18] text-[#F8EEE1] border-[#ECC37A]/40'
+              }`}>
+                {isSpinning ? `Spinning · ${countdown || 1}s Remaining` : 'Live Outcome'}
               </span>
               {activeOutcome && (
                 <span className="font-mono text-xs text-[#F1CA7E]/80">
@@ -260,14 +310,64 @@ export default function MonopolyProjectorView() {
             </div>
 
             {isSpinning ? (
-              <div className="py-8 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full border-4 border-[#F1CA7E] border-t-transparent animate-spin mx-auto" />
-                <h3 className="font-serif text-2xl font-bold text-[#F8EEE1]">
-                  Wheel is spinning for {activeOutcome?.teamName || 'Team'}...
-                </h3>
-                <p className="text-xs font-mono text-[#F1CA7E]/70">
-                  Calculating Karachi property sector and live rent power...
-                </p>
+              <div className="py-6 text-center space-y-5">
+                {/* 5-4-3-2-1 Dramatic Ring Animation */}
+                <div className="relative inline-flex items-center justify-center my-2">
+                  <div className="w-28 h-28 rounded-full border-4 border-[#F1CA7E]/25 animate-ping absolute" />
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#701020] to-[#24060E] border-4 border-[#F1CA7E] shadow-[0_0_35px_rgba(241,202,126,0.7)] flex flex-col items-center justify-center relative z-10">
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={`badge-${countdown}`}
+                        initial={{ scale: 1.7, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.3, opacity: 0 }}
+                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                        className="text-5xl font-black font-mono text-[#F1CA7E] leading-none"
+                      >
+                        {countdown || 1}
+                      </motion.span>
+                    </AnimatePresence>
+                    <span className="text-[9px] font-mono tracking-widest text-[#F8EEE1]/70 uppercase mt-1">
+                      SECONDS
+                    </span>
+                  </div>
+                </div>
+
+                {/* 5 4 3 2 1 Step Progress Bar */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#F1CA7E] block">
+                    Decelerating Karachi Wheel
+                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    {[5, 4, 3, 2, 1].map((step) => {
+                      const isActive = step === countdown;
+                      const isPast = step > (countdown || 0);
+                      return (
+                        <div
+                          key={step}
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-sm font-bold border transition-all duration-300 ${
+                            isActive
+                              ? 'bg-[#F1CA7E] text-[#14040A] border-[#F1CA7E] scale-110 shadow-[0_0_18px_rgba(241,202,126,0.9)] font-black'
+                              : isPast
+                              ? 'bg-[#19040B] text-white/25 border-[#ECC37A]/20 line-through'
+                              : 'bg-[#2A0A12] text-[#F1CA7E]/60 border-[#ECC37A]/40'
+                          }`}
+                        >
+                          {step}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-serif text-2xl font-bold text-[#F8EEE1]">
+                    Wheel is spinning for {activeOutcome?.teamName || 'Team'}...
+                  </h3>
+                  <p className="text-xs font-mono text-[#F1CA7E]/70 mt-1">
+                    Auditorium projector calculating Karachi property & rent settlement...
+                  </p>
+                </div>
               </div>
             ) : activeOutcome && landedProp ? (
               <div className="space-y-4 animate-in fade-in duration-300">
