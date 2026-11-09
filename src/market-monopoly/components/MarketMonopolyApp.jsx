@@ -1518,10 +1518,23 @@ export default function MarketMonopolyApp() {
               </div>
             )}
 
-            {/* TAB 3: BANK HISTORY (BIG & INFORMATIVE PORTFOLIO LEDGER)          */}
+            {/* TAB 3: BANK HISTORY (TEAM LEDGER & PORTFOLIO LOG)                */}
             {/* ================================================================= */}
             {activeTab === 'bank' && (() => {
-              const allTxs = Array.isArray(store.transactions) ? store.transactions : [];
+              // Participant portal only displays events concerning the current team
+              const allTxs = (Array.isArray(store.transactions) ? store.transactions : []).filter((tx) => {
+                if (!currentTeam) return false;
+                const teamIdStr = String(currentTeam.id);
+                const teamNameLower = (currentTeam.name || '').toLowerCase();
+                return (
+                  String(tx.teamId) === teamIdStr ||
+                  String(tx.targetTeamId) === teamIdStr ||
+                  String(tx.ownerTeamId) === teamIdStr ||
+                  (tx.teamName && tx.teamName.toLowerCase() === teamNameLower) ||
+                  (tx.targetTeamName && tx.targetTeamName.toLowerCase() === teamNameLower) ||
+                  (tx.note && tx.note.toLowerCase().includes(teamNameLower))
+                );
+              });
               const teamOwnedProps = currentTeam.ownedProperties || [];
               const teamOwnedResources = Array.isArray(currentTeam.ownedResources)
                 ? currentTeam.ownedResources
@@ -1784,10 +1797,10 @@ export default function MarketMonopolyApp() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-soft)] pb-3">
                       <div>
                         <span className="text-xs font-mono uppercase font-bold block" style={{ color: 'var(--text-sub)' }}>
-                          Complete Tournament Activity Log ({allTxs.length} Events)
+                          Team Activity Log ({allTxs.length} Events)
                         </span>
                         <h4 className="font-display text-lg sm:text-xl font-bold" style={{ color: 'var(--text-main)' }}>
-                          Detailed History — Properties, Resources, Rent & Cash Deductions
+                          {currentTeam.name} Financial & Asset History
                         </h4>
                       </div>
                       <div className="flex items-center gap-2 text-xs font-mono">
@@ -1803,7 +1816,7 @@ export default function MarketMonopolyApp() {
                     {allTxs.length === 0 ? (
                       <div className="p-10 rounded-2xl text-center capsule-inset">
                         <p className="text-sm font-rounded font-bold" style={{ color: 'var(--text-sub)' }}>
-                          No transactions recorded yet.
+                          No activity recorded for {currentTeam.name} yet.
                         </p>
                       </div>
                     ) : (
