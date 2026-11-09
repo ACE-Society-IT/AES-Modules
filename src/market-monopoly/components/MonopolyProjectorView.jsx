@@ -254,25 +254,20 @@ export default function MonopolyProjectorView() {
               </svg>
             </div>
 
-            {/* Wheel Center AES Hub with 5-4-3-2-1 Live Countdown */}
-            <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-[0_0_35px_rgba(241,202,126,0.6)] flex items-center justify-center pointer-events-none overflow-hidden z-20">
+            {/* Wheel Center Hub with Minimalist Countdown */}
+            <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20">
               <AnimatePresence mode="wait">
                 {isSpinning && countdown ? (
-                  <motion.div
+                  <motion.span
                     key={`hub-${countdown}`}
-                    initial={{ scale: 1.8, opacity: 0 }}
+                    initial={{ scale: 1.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.4, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                    className="flex flex-col items-center justify-center"
+                    exit={{ scale: 0.6, opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="font-mono font-black text-4xl sm:text-5xl text-[#F1CA7E] leading-none"
                   >
-                    <span className="font-mono font-black text-4xl sm:text-5xl text-[#F1CA7E] drop-shadow-[0_0_16px_rgba(241,202,126,0.9)] leading-none">
-                      {countdown}
-                    </span>
-                    <span className="text-[9px] font-mono tracking-widest text-[#F8EEE1]/70 uppercase mt-0.5">
-                      SECS
-                    </span>
-                  </motion.div>
+                    {countdown}
+                  </motion.span>
                 ) : (
                   <motion.div
                     key="hub-logo"
@@ -290,91 +285,53 @@ export default function MonopolyProjectorView() {
           </div>
         </div>
 
-        {/* RIGHT AUDITORIUM SCOREBOARD & SPIN RESULT CARD */}
+        {/* RIGHT SCOREBOARD & OUTCOME CARD */}
         <div className="w-full max-w-md lg:max-w-lg flex flex-col gap-5">
-          {/* Active Outcome Box */}
-          <div className="p-6 sm:p-7 rounded-[32px] bg-[#22060E]/95 border-2 border-[#ECC37A] shadow-2xl space-y-4">
+          <div className="p-6 sm:p-7 rounded-[28px] bg-[#22060E]/95 border-2 border-[#ECC37A] shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#ECC37A]/30 pb-3">
               <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase border transition-colors ${
                 isSpinning
                   ? 'bg-[#701020] text-[#F1CA7E] border-[#F1CA7E] animate-pulse'
                   : 'bg-[#3B0C18] text-[#F8EEE1] border-[#ECC37A]/40'
               }`}>
-                {isSpinning ? `Spinning · ${countdown || 1}s Remaining` : 'Live Outcome'}
+                {isSpinning ? 'Spinning' : 'Outcome'}
               </span>
               {activeOutcome && (
-                <span className="font-mono text-xs text-[#F1CA7E]/80">
+                <span className="font-mono text-xs text-[#F1CA7E]/70">
                   {new Date(activeOutcome.timestamp || Date.now()).toLocaleTimeString()}
                 </span>
               )}
             </div>
 
             {isSpinning ? (
-              <div className="py-6 text-center space-y-5">
-                {/* 5-4-3-2-1 Dramatic Ring Animation */}
-                <div className="relative inline-flex items-center justify-center my-2">
-                  <div className="w-28 h-28 rounded-full border-4 border-[#F1CA7E]/25 animate-ping absolute" />
-                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#701020] to-[#24060E] border-4 border-[#F1CA7E] shadow-[0_0_35px_rgba(241,202,126,0.7)] flex flex-col items-center justify-center relative z-10">
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        key={`badge-${countdown}`}
-                        initial={{ scale: 1.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.3, opacity: 0 }}
-                        transition={{ duration: 0.35, ease: 'easeOut' }}
-                        className="text-5xl font-black font-mono text-[#F1CA7E] leading-none"
-                      >
-                        {countdown || 1}
-                      </motion.span>
-                    </AnimatePresence>
-                    <span className="text-[9px] font-mono tracking-widest text-[#F8EEE1]/70 uppercase mt-1">
-                      SECONDS
-                    </span>
-                  </div>
+              <div className="py-8 flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="w-24 h-24 rounded-full border-2 border-[#F1CA7E] bg-[#170308] flex items-center justify-center shadow-[0_0_25px_rgba(241,202,126,0.3)]">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`timer-${countdown}`}
+                      initial={{ scale: 1.4, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.6, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="text-4xl font-black font-mono text-[#F1CA7E]"
+                    >
+                      {countdown || 1}s
+                    </motion.span>
+                  </AnimatePresence>
                 </div>
 
-                {/* 5 4 3 2 1 Step Progress Bar */}
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-[#F1CA7E] block">
-                    Decelerating Karachi Wheel
-                  </span>
-                  <div className="flex items-center justify-center gap-2">
-                    {[5, 4, 3, 2, 1].map((step) => {
-                      const isActive = step === countdown;
-                      const isPast = step > (countdown || 0);
-                      return (
-                        <div
-                          key={step}
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-sm font-bold border transition-all duration-300 ${
-                            isActive
-                              ? 'bg-[#F1CA7E] text-[#14040A] border-[#F1CA7E] scale-110 shadow-[0_0_18px_rgba(241,202,126,0.9)] font-black'
-                              : isPast
-                              ? 'bg-[#19040B] text-white/25 border-[#ECC37A]/20 line-through'
-                              : 'bg-[#2A0A12] text-[#F1CA7E]/60 border-[#ECC37A]/40'
-                          }`}
-                        >
-                          {step}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-serif text-2xl font-bold text-[#F8EEE1]">
-                    Wheel is spinning for {activeOutcome?.teamName || 'Team'}...
+                <div className="space-y-1">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#F8EEE1]">
+                    {activeOutcome?.teamName || 'Team'}
                   </h3>
-                  <p className="text-xs font-mono text-[#F1CA7E]/70 mt-1">
-                    Auditorium projector calculating Karachi property & rent settlement...
-                  </p>
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E]/70 block">
+                    Selecting Property...
+                  </span>
                 </div>
               </div>
             ) : activeOutcome && landedProp ? (
               <div className="space-y-4 animate-in fade-in duration-300">
-                <div>
-                  <span className="text-xs font-mono uppercase text-[#F1CA7E] block">
-                    Spinning Team
-                  </span>
+                <div className="border-b border-[#ECC37A]/20 pb-2">
                   <h2 className="text-3xl font-black font-serif text-[#F8EEE1]">
                     {activeOutcome.teamName}
                   </h2>
@@ -390,34 +347,31 @@ export default function MonopolyProjectorView() {
                   />
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#19040B] border border-[#ECC37A]/30 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-mono">
+                <div className="p-4 rounded-2xl bg-[#19040B] border border-[#ECC37A]/30 space-y-2.5 text-xs font-mono">
+                  <div className="flex items-center justify-between">
                     <span className="text-[#F1CA7E]">Landed On:</span>
-                    <strong className="text-base text-white">#{landedProp.id} · {landedProp.name}</strong>
+                    <strong className="text-sm text-white">#{landedProp.id} · {landedProp.name}</strong>
                   </div>
-                  <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center justify-between">
                     <span className="text-[#F1CA7E]">Property Owner:</span>
-                    <strong className="text-base text-white">{activeOutcome.ownerTeamName || 'Unowned'}</strong>
+                    <strong className="text-sm text-white">{activeOutcome.ownerTeamName || 'Unowned'}</strong>
                   </div>
                   <div className="pt-2 border-t border-[#ECC37A]/20 flex items-center justify-between">
                     <span className="text-xs font-bold text-[#F1CA7E]">Rent Settlement:</span>
-                    <strong className={`font-mono text-xl font-bold ${activeOutcome.status === 'PAID_RENT' ? 'text-[#C0392B]' : 'text-[#2E7D52]'}`}>
+                    <strong className={`font-mono text-xl font-bold ${activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
                       {activeOutcome.status === 'PAID_RENT'
                         ? `-Rs ${activeOutcome.rentAmount}L Paid`
                         : activeOutcome.status === 'OWN_PROPERTY'
-                        ? '0L (Own Property)'
-                        : '0L (Unowned Property)'}
+                        ? 'Rs 0L (Own Property)'
+                        : 'Rs 0L (Unowned)'}
                     </strong>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-12 text-center space-y-2">
-                <span className="text-sm font-mono text-[#F1CA7E]/70 block">
-                  Waiting for Admin to trigger the next wheel spin...
-                </span>
-                <span className="text-xs text-white/50 block">
-                  Each team's spin and live rent settlement will animate here in full resolution.
+              <div className="py-14 text-center">
+                <span className="text-sm font-mono text-[#F1CA7E]/60">
+                  Ready for next spin
                 </span>
               </div>
             )}
