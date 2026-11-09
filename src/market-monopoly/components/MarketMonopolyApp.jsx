@@ -276,6 +276,22 @@ export default function MarketMonopolyApp() {
       Object.values(roundSpins).forEach((spin) => {
         if (!spin) return;
 
+        // Ensure outcome is revealed by projector before popping up on team screens!
+        // We wait until spin.revealed === true or store.lastWheelResult is revealed.
+        // Fallback: If 15 seconds have elapsed, auto-reveal so teams are never stuck if projector is offline.
+        const spinTime = spin.timestamp ? new Date(spin.timestamp).getTime() : 0;
+        const isExpiredFallback = spinTime > 0 && (Date.now() - spinTime > 15000);
+        const isRevealed = spin.revealed === true ||
+          (store?.lastWheelResult?.propertyId === spin.propertyId &&
+           String(store?.lastWheelResult?.teamId) === String(spin.teamId) &&
+           store?.lastWheelResult?.revealed === true) ||
+          isExpiredFallback;
+
+        if (!isRevealed) {
+          // Projector is still in suspense countdown or spinning wheel!
+          return;
+        }
+
         // 1. As Spinner (My team spun and landed on a property)
         if (String(spin.teamId) === teamKey) {
           const payerKey = `payer_${roundKey}_${spin.propertyId}_${spin.teamId}`;
@@ -313,7 +329,7 @@ export default function MarketMonopolyApp() {
     } else {
       setActiveRentDialog(null);
     }
-  }, [store?.wheelSpinsByRound, currentTeam?.id, dismissedRentKeys]);
+  }, [store?.wheelSpinsByRound, store?.lastWheelResult, currentTeam?.id, dismissedRentKeys]);
 
   const handleDismissRentDialog = useCallback(() => {
     if (!activeRentDialog || !currentTeam) return;

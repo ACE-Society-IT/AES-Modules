@@ -59,10 +59,13 @@ function createSlicePath(cx, cy, r, startAngle, endAngle) {
 export default function MonopolyProjectorView() {
   const [store, setStore] = useState(null);
   const [wheelRotation, setWheelRotation] = useState(0);
+  const [isCountingDown, setIsCountingDown] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [activeOutcome, setActiveOutcome] = useState(null);
   const lastSpinNonceRef = useRef(null);
+  const wheelRotationRef = useRef(0);
 
   const loadData = async () => {
     try {
@@ -97,48 +100,85 @@ export default function MonopolyProjectorView() {
   useEffect(() => {
     if (!store?.lastWheelResult) return;
     const res = store.lastWheelResult;
-    const spinKey = `${res.teamId}_${res.propertyId}_${res.timestamp || res.nonce}`;
+    const spinKey = `${res.teamId}_${res.propertyId}_${res.timestamp || res.nonce || ''}`;
 
     if (lastSpinNonceRef.current === spinKey) return;
     lastSpinNonceRef.current = spinKey;
 
     setActiveOutcome(res);
+
+    // If result was already revealed on server (e.g. reload or historical spin), show immediately without spinning
+    if (res.revealed) {
+      setIsCountingDown(false);
+      setIsSpinning(false);
+      setIsRevealed(true);
+      setCountdown(null);
+
+      const winningIndex = properties.findIndex(p => Number(p.id) === Number(res.propertyId));
+      if (winningIndex !== -1) {
+        const sliceCenter = (winningIndex + 0.5) * sliceAngle;
+        const desiredMod = (360 - sliceCenter + 360) % 360;
+        wheelRotationRef.current = desiredMod;
+        setWheelRotation(desiredMod);
+      }
+      return;
+    }
+
+    // LIVE NEW SPIN: 5-SECOND SUSPENSE COUNTDOWN -> 5.5-SECOND PHYSICS ROTATION -> REVEAL RESULT
     const winningIndex = properties.findIndex(p => Number(p.id) === Number(res.propertyId));
+    if (winningIndex === -1) return;
 
-    if (winningIndex !== -1) {
-      const sliceCenter = (winningIndex + 0.5) * sliceAngle;
-      const desiredMod = (360 - sliceCenter + 360) % 360;
-      const currentMod = ((wheelRotation % 360) + 360) % 360;
-      let deltaAngle = desiredMod - currentMod;
-      if (deltaAngle <= 0) deltaAngle += 360;
+    setIsRevealed(false);
+    setIsSpinning(false);
+    setIsCountingDown(true);
+    setCountdown(5);
 
-      setIsSpinning(true);
-      setCountdown(5);
-      // 6 full spins + target angle for 5.0s cinematic deceleration
-      setWheelRotation(prev => prev + 360 * 6 + deltaAngle);
-
-      // 5 -> 4 -> 3 -> 2 -> 1 countdown interval
-      const interval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev === null || prev <= 1) {
-            clearInterval(interval);
-            return 1;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      const timer = setTimeout(() => {
+    let secLeft = 5;
+    const interval = setInterval(() => {
+      secLeft -= 1;
+      if (secLeft > 0) {
+        setCountdown(secLeft);
+      } else {
         clearInterval(interval);
         setCountdown(null);
-        setIsSpinning(false);
-      }, 5000);
+        setIsCountingDown(false);
+        setIsSpinning(true);
 
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timer);
-      };
-    }
+        // Calculate target slice angle under pointer (top 12 o'clock)
+        const sliceCenter = (winningIndex + 0.5) * sliceAngle;
+        const desiredMod = (360 - sliceCenter + 360) % 360;
+        const currentMod = ((wheelRotationRef.current % 360) + 360) % 360;
+        let deltaAngle = desiredMod - currentMod;
+        if (deltaAngle <= 0) deltaAngle += 360;
+
+        // 6 full 360 spins + target slice delta for high-speed physics rotation
+        const nextTarget = wheelRotationRef.current + 360 * 6 + deltaAngle;
+        wheelRotationRef.current = nextTarget;
+
+        requestAnimationFrame(() => {
+          setWheelRotation(nextTarget);
+        });
+
+        // 5.5s physical spin duration -> wheel comes to full stop -> reveal result!
+        setTimeout(async () => {
+          setIsSpinning(false);
+          setIsRevealed(true);
+
+          // Tell server to reveal result so team dialog pops up at this exact moment!
+          try {
+            if (supabase) {
+              await supabase.rpc('monopoly_reveal_wheel_result');
+            }
+          } catch (err) {
+            console.error('Failed to notify server of wheel reveal:', err);
+          }
+        }, 5500);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [store?.lastWheelResult]);
 
   const landedProp = activeOutcome
@@ -169,12 +209,10 @@ export default function MonopolyProjectorView() {
         </div>
 
         <div className="flex items-center gap-3">
-          {!isSpinning && (
-            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold animate-pulse">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
-              <span>Spin will start in a few time</span>
-            </div>
-          )}
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold">
+            <span className={`w-2.5 h-2.5 rounded-full ${isCountingDown ? 'bg-[#F59E0B] animate-ping' : isSpinning ? 'bg-[#EF4444] animate-ping' : 'bg-[#22C55E]'}`} />
+            <span>{isCountingDown ? `Spin in ${countdown}s` : isSpinning ? 'Spinning Wheel...' : 'Ready For Spin'}</span>
+          </div>
           <div className="px-4 py-2 rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/50 text-center font-mono">
             <span className="text-[10px] uppercase text-[#F1CA7E] block">Wave</span>
             <strong className="text-xl font-bold text-[#F8EEE1]">#{store?.currentWheelRound || 1}</strong>
@@ -207,8 +245,10 @@ export default function MonopolyProjectorView() {
                 backfaceVisibility: 'hidden',
                 willChange: 'transform',
                 transition: isSpinning
-                  ? 'transform 5.0s cubic-bezier(0.12, 0.82, 0.22, 1)'
-                  : 'none'
+                  ? 'transform 5.5s cubic-bezier(0.12, 0.82, 0.22, 1)'
+                  : isCountingDown
+                  ? 'none'
+                  : 'transform 0.5s ease-out'
               }}
             >
               <svg viewBox="0 0 420 420" className="w-full h-full overflow-visible">
@@ -263,20 +303,37 @@ export default function MonopolyProjectorView() {
               </svg>
             </div>
 
-            {/* Wheel Center Hub with Minimalist Countdown */}
+            {/* Wheel Center Hub with Suspense Countdown or Spinning Radar or AES Logo */}
             <div className="absolute w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#180308] border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20">
               <AnimatePresence mode="wait">
-                {isSpinning && countdown ? (
-                  <motion.span
-                    key={`hub-${countdown}`}
-                    initial={{ scale: 1.5, opacity: 0 }}
+                {isCountingDown && countdown ? (
+                  <motion.div
+                    key={`hub-suspense-${countdown}`}
+                    initial={{ scale: 1.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.6, opacity: 0 }}
+                    exit={{ scale: 0.5, opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="font-mono font-black text-4xl sm:text-5xl text-[#F1CA7E] leading-none"
+                    className="flex flex-col items-center justify-center text-center"
                   >
-                    {countdown}
-                  </motion.span>
+                    <span className="font-mono font-black text-4xl sm:text-5xl text-[#F59E0B] leading-none drop-shadow-[0_0_12px_rgba(245,158,11,0.7)]">
+                      {countdown}
+                    </span>
+                    <span className="text-[8px] uppercase tracking-widest font-mono text-[#F1CA7E]/80 font-bold mt-0.5">
+                      SUSPENSE
+                    </span>
+                  </motion.div>
+                ) : isSpinning ? (
+                  <motion.div
+                    key="hub-spinning"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center"
+                  >
+                    <div className="w-7 h-7 mx-auto mb-1 border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
+                    <span className="font-serif font-black text-[9px] text-[#F1CA7E] tracking-widest uppercase block">
+                      SPINNING
+                    </span>
+                  </motion.div>
                 ) : (
                   <motion.div
                     key="hub-logo"
@@ -299,11 +356,13 @@ export default function MonopolyProjectorView() {
           <div className="p-6 sm:p-7 rounded-[28px] bg-[#22060E]/95 border-2 border-[#ECC37A] shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#ECC37A]/30 pb-3">
               <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase border transition-colors ${
-                isSpinning
+                isCountingDown
+                  ? 'bg-[#B45309] text-[#FEF3C7] border-[#F59E0B] animate-pulse'
+                  : isSpinning
                   ? 'bg-[#701020] text-[#F1CA7E] border-[#F1CA7E] animate-pulse'
-                  : 'bg-[#3B0C18] text-[#F1CA7E] border-[#ECC37A]/50 animate-pulse'
+                  : 'bg-[#3B0C18] text-[#F1CA7E] border-[#ECC37A]/50'
               }`}>
-                {isSpinning ? 'Spinning' : 'Spin will start in a few time'}
+                {isCountingDown ? `Suspense Countdown · ${countdown}s` : isSpinning ? 'Wheel Spinning...' : 'Wheel Standby'}
               </span>
               {activeOutcome && (
                 <span className="font-mono text-xs text-[#F1CA7E]/70">
@@ -312,19 +371,19 @@ export default function MonopolyProjectorView() {
               )}
             </div>
 
-            {isSpinning ? (
+            {isCountingDown ? (
               <div className="py-8 flex flex-col items-center justify-center space-y-4 text-center">
-                <div className="w-24 h-24 rounded-full border-2 border-[#F1CA7E] bg-[#170308] flex items-center justify-center shadow-[0_0_25px_rgba(241,202,126,0.3)]">
+                <div className="w-24 h-24 rounded-full border-2 border-[#F59E0B] bg-[#170308] flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.4)]">
                   <AnimatePresence mode="wait">
                     <motion.span
-                      key={`timer-${countdown}`}
-                      initial={{ scale: 1.4, opacity: 0 }}
+                      key={`suspense-timer-${countdown}`}
+                      initial={{ scale: 1.6, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.6, opacity: 0 }}
                       transition={{ duration: 0.25 }}
-                      className="text-4xl font-black font-mono text-[#F1CA7E]"
+                      className="text-5xl font-black font-mono text-[#F59E0B]"
                     >
-                      {countdown || 1}s
+                      {countdown}s
                     </motion.span>
                   </AnimatePresence>
                 </div>
@@ -333,12 +392,27 @@ export default function MonopolyProjectorView() {
                   <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#F8EEE1]">
                     {activeOutcome?.teamName || 'Team'}
                   </h3>
-                  <span className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E]/70 block">
-                    Selecting Property...
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E]/80 block font-bold">
+                    Wheel will spin in {countdown}s... Get Ready!
                   </span>
                 </div>
               </div>
-            ) : activeOutcome && landedProp ? (
+            ) : isSpinning ? (
+              <div className="py-8 flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="w-24 h-24 rounded-full border-2 border-[#F1CA7E] bg-[#170308] flex items-center justify-center shadow-[0_0_25px_rgba(241,202,126,0.3)]">
+                  <div className="w-10 h-10 border-3 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#F8EEE1]">
+                    {activeOutcome?.teamName || 'Team'}
+                  </h3>
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E]/70 block">
+                    Selecting Property at Random...
+                  </span>
+                </div>
+              </div>
+            ) : isRevealed && activeOutcome && landedProp ? (
               <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="border-b border-[#ECC37A]/20 pb-2">
                   <h2 className="text-3xl font-black font-serif text-[#F8EEE1]">
@@ -378,16 +452,16 @@ export default function MonopolyProjectorView() {
                 </div>
 
                 {/* Next Spin Status Ticker */}
-                <div className="p-2.5 rounded-xl bg-[#150308] border border-[#ECC37A]/40 flex items-center justify-center gap-2 text-xs font-mono font-bold text-[#F1CA7E] animate-pulse">
+                <div className="p-2.5 rounded-xl bg-[#150308] border border-[#ECC37A]/40 flex items-center justify-center gap-2 text-xs font-mono font-bold text-[#F1CA7E]">
                   <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
-                  <span>Spin will start in a few time</span>
+                  <span>Ready for Next Team Spin</span>
                 </div>
               </div>
             ) : (
               <div className="py-14 text-center space-y-3">
-                <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#3B0C18] border-2 border-[#ECC37A]/60 text-[#F1CA7E] font-mono font-bold text-sm shadow-xl animate-pulse">
+                <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#3B0C18] border-2 border-[#ECC37A]/60 text-[#F1CA7E] font-mono font-bold text-sm shadow-xl">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
-                  <span>Spin will start in a few time</span>
+                  <span>Ready for Next Spin</span>
                 </div>
                 <p className="text-xs font-mono text-[#F1CA7E]/60">
                   Classroom Projector · Waiting for Admin to trigger wheel
