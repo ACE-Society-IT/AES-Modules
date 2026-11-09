@@ -99,8 +99,8 @@ export default function MarketMonopolyApp() {
   const [loginPasscode, setLoginPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Sync tab with URL: /market-monopoly/land, /market-monopoly/bank, etc.
-  const validTabs = useMemo(() => ['land', 'bank', 'standings', 'guide', 'catalogue'], []);
+  // Sync tab with URL: /market-monopoly/land, /market-monopoly/buy-resources, /market-monopoly/bank, etc.
+  const validTabs = useMemo(() => ['land', 'buy-resources', 'bank', 'standings', 'guide', 'catalogue'], []);
   const getTabFromPath = useCallback(() => {
     const segments = location.pathname.split('/').filter(Boolean);
     // Path looks like ['market-monopoly', 'tab-name']
