@@ -371,11 +371,8 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
   if (!isOwner) {
     throw new Error('You can only attach resources to properties owned by your team.');
   }
-  if (prop.attachedUtilities.length >= 3 || Number(prop.upgradeLevel || 0) >= 3) {
-    throw new Error(`${prop.name} is already at Max Level 3 (3/3 resources attached).`);
-  }
-  if (prop.attachedUtilities.includes(util.id)) {
-    throw new Error(`${util.name} is already attached to ${prop.name}.`);
+  if (Number(prop.upgradeLevel || 0) >= 3) {
+    throw new Error(`${prop.name} is already at Maximum Level 3.`);
   }
 
   const ownedList = Array.isArray(team.ownedResources) ? team.ownedResources : [];
