@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import {
   supabase,
   fetchGameStateDirect,
+  updateCachedGameStateDirect,
   authTeamDirect,
   placeTradeDirect,
   allocateTaxDirect
@@ -122,6 +123,7 @@ export function GameProvider({ children }) {
           { event: '*', schema: 'public', table: 'investomania_state' },
           (payload) => {
             if (payload.new && payload.new.state_json) {
+              updateCachedGameStateDirect(payload.new.state_json);
               setGameState(sanitizeParticipantGameState(payload.new.state_json));
             } else {
               fetchLatestState();
@@ -131,8 +133,36 @@ export function GameProvider({ children }) {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'investomania_teams' },
-          () => {
-            fetchLatestState();
+          (payload) => {
+            const savedTeamStr = sessionStorage.getItem('investomania_team');
+            if (savedTeamStr && payload.new) {
+              try {
+                const currentT = JSON.parse(savedTeamStr);
+                if (currentT?.id && String(payload.new.id) === String(currentT.id)) {
+                  const dbTeam = payload.new;
+                  setTeam((prev) => {
+                    const merged = {
+                      ...prev,
+                      id: dbTeam.id,
+                      name: dbTeam.name,
+                      cash: Number(dbTeam.cash ?? 0),
+                      holdings: dbTeam.holdings || {},
+                      isBanned: !!dbTeam.is_banned,
+                      round1Profit: Number(dbTeam.round1_profit || 0),
+                      round2Profit: Number(dbTeam.round2_profit || 0),
+                      initialBudget: Number(dbTeam.initial_budget || 100000),
+                      initialRoundBudget: Number(dbTeam.initial_budget || 100000),
+                      taxDeducted: Number(dbTeam.tax_deducted || 0),
+                      taxShielded: Number(dbTeam.tax_shielded || 0)
+                    };
+                    sessionStorage.setItem('investomania_team', JSON.stringify(merged));
+                    return merged;
+                  });
+                  return;
+                }
+              } catch {}
+            }
+            // If teams changed and this is an unauthenticated client or spectator, no action needed
           }
         )
         .subscribe();
@@ -140,18 +170,25 @@ export function GameProvider({ children }) {
       console.warn('[GameContext] Realtime subscription error:', err.message);
     }
 
-    const handleFocus = () => fetchLatestState();
+    const handleFocus = () => {
+      if (!document.hidden) {
+        fetchLatestState();
+      }
+    };
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleFocus);
 
+    // Failover safety heartbeat: 25s (realtime WebSocket delivers instantaneous updates)
     const pollInterval = setInterval(() => {
       if (!document.hidden) {
         fetchLatestState();
       }
-    }, 4000);
+    }, 25000);
 
     return () => {
       if (channel) supabase.removeChannel(channel);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
       clearInterval(pollInterval);
     };
   }, [fetchLatestState]);

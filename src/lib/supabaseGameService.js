@@ -12,25 +12,66 @@ function formatDbError(err, fallbackMsg = 'Database operation failed') {
   return new Error(msg || fallbackMsg);
 }
 
+let _clientGameStateCache = null;
+let _clientGameStateCachedAt = 0;
+let _clientGameStatePromise = null;
+const CLIENT_CACHE_TTL_MS = 2500;
+
+export function invalidateClientStateCache() {
+  _clientGameStateCache = null;
+  _clientGameStateCachedAt = 0;
+  _clientGameStatePromise = null;
+}
+
+export function updateCachedGameStateDirect(rawState) {
+  if (!rawState || typeof rawState !== 'object') return null;
+  const sanitized = { ...rawState };
+  delete sanitized.draftCrises;
+  delete sanitized.crisesByRound;
+  _clientGameStateCache = sanitized;
+  _clientGameStateCachedAt = Date.now();
+  return sanitized;
+}
+
 /**
  * Fetch authoritative game state directly from Supabase
  */
-export async function fetchGameStateDirect() {
-  const { data, error } = await supabase
-    .from('investomania_state')
-    .select('state_json')
-    .eq('id', 1)
-    .single();
-
-  if (error) throw formatDbError(error, 'Failed to fetch floor state');
-  const state = data?.state_json || null;
-  if (state && typeof state === 'object') {
-    const sanitized = { ...state };
-    delete sanitized.draftCrises;
-    delete sanitized.crisesByRound;
-    return sanitized;
+export async function fetchGameStateDirect(forceFresh = false) {
+  if (!forceFresh && _clientGameStateCache && Date.now() - _clientGameStateCachedAt < CLIENT_CACHE_TTL_MS) {
+    return _clientGameStateCache;
   }
-  return state;
+  if (!forceFresh && _clientGameStatePromise) {
+    return _clientGameStatePromise;
+  }
+
+  const run = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('investomania_state')
+        .select('state_json')
+        .eq('id', 1)
+        .single();
+
+      if (error) throw formatDbError(error, 'Failed to fetch floor state');
+      const state = data?.state_json || null;
+      if (state && typeof state === 'object') {
+        const sanitized = { ...state };
+        delete sanitized.draftCrises;
+        delete sanitized.crisesByRound;
+        _clientGameStateCache = sanitized;
+        _clientGameStateCachedAt = Date.now();
+        return sanitized;
+      }
+      _clientGameStateCache = state;
+      _clientGameStateCachedAt = Date.now();
+      return state;
+    } finally {
+      _clientGameStatePromise = null;
+    }
+  };
+
+  _clientGameStatePromise = run();
+  return _clientGameStatePromise;
 }
 
 /**
@@ -60,6 +101,7 @@ export async function placeTradeDirect({ teamId, symbol, side, quantity }) {
 
   if (error) throw formatDbError(error, 'Trade routing failed');
   if (!data?.ok) throw new Error(data?.error || 'Trade execution failed');
+  invalidateClientStateCache();
   return data.data;
 }
 

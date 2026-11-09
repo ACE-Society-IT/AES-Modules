@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchMonopolyStore, supabase } from '../lib/monopolyService.js';
+import { fetchMonopolyStore, updateCachedMonopolyStore, supabase } from '../lib/monopolyService.js';
 import { KARACHI_PROPERTIES, computePropertyRent, computePropertyValuation } from '../data/monopolyData.js';
 import { UtilityIcon, LandPlotIllustration } from './LandPlotSvg.jsx';
 import aesLogo from '../../assets/aes-logo.png';
@@ -82,7 +82,14 @@ export default function MonopolyProjectorView() {
     // Supabase Realtime subscription
     const channel = supabase
       .channel('monopoly_projector_channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_state' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_state' }, (payload) => {
+        if (payload?.new?.state_json) {
+          const updated = updateCachedMonopolyStore(payload.new.state_json);
+          if (updated) {
+            setStore(updated);
+            return;
+          }
+        }
         loadData();
       })
       .subscribe();

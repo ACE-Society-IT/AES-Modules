@@ -29,6 +29,7 @@ import {
   executePropertySpecificationUpgrade,
   executeTeamWheelSpinAndPayRent,
   computeTeamSummary,
+  updateCachedMonopolyStore,
   supabase
 } from '../lib/monopolyService.js';
 import { UtilityIcon, LandPlotIllustration, PropertyCategoryBackdrop } from './LandPlotSvg.jsx';
@@ -183,7 +184,14 @@ export default function MarketMonopolyApp() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'monopoly_state', filter: 'id=eq.1' },
-        () => {
+        (payload) => {
+          if (payload?.new?.state_json) {
+            const updated = updateCachedMonopolyStore(payload.new.state_json);
+            if (updated) {
+              setStore(updated);
+              return;
+            }
+          }
           refreshStore(true);
         }
       )
@@ -203,16 +211,26 @@ export default function MarketMonopolyApp() {
       )
       .subscribe();
 
-    // Lightweight fallback sync every 5 seconds (realtime handles instant updates)
+    // Lightweight fallback sync every 25 seconds (realtime handles instant updates)
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshStore(false);
       }
-    }, 5000);
+    }, 25000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshStore(false);
+      }
+    };
+    window.addEventListener('focus', handleVisibility);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       supabase.removeChannel(sub);
       clearInterval(poll);
+      window.removeEventListener('focus', handleVisibility);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [refreshStore]);
 
