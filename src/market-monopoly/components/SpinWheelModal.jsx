@@ -323,7 +323,7 @@ export default function SpinWheelModal({
                       </div>
                     ) : mySpinForCurrentRound ? (
                       <div className="p-3.5 rounded-2xl bg-[#2E7D52]/15 border border-[#2E7D52]/40 text-xs font-rounded font-bold text-[#2E7D52] text-center">
-                        ✓ Spin #{currentWheelRound} Result Recorded & Rent Settled.
+                        [Settled] Spin #{currentWheelRound} Result Recorded & Rent Settled.
                       </div>
                     ) : (
                       <div className="p-3.5 rounded-2xl capsule-inset text-xs font-rounded font-semibold text-center" style={{ color: 'var(--text-sub)' }}>

@@ -1003,11 +1003,11 @@ export default function MarketMonopolyApp() {
                                   </div>
                                 </div>
 
-                                {/* LEVEL PROGRESS BAR (1–3 Resources) */}
+                                {/* LEVEL PROGRESS BAR & UPGRADE STATUS */}
                                 <div className="capsule-inset rounded-xl px-3 py-2 space-y-1.5">
                                   <div className="flex items-center justify-between text-[10px] font-rounded font-bold">
                                     <span style={{ color: 'var(--text-sub)' }}>
-                                      Level Progress ({attachedIds.length}/3 Resources)
+                                      Level Progress ({attachedIds.length} Attached Tokens)
                                     </span>
                                     <span className="text-[#2E7D52]">
                                       {lvl >= 3 ? 'Level 3 Max' : `Level ${lvl} / 3`}
@@ -1023,6 +1023,113 @@ export default function MarketMonopolyApp() {
                                     ))}
                                   </div>
                                 </div>
+
+                                {/* WHAT RESOURCES NEEDED TO UPGRADE IN LAND */}
+                                {lvl < 3 ? (() => {
+                                  const nextLvl = lvl + 1;
+                                  const reqs = (prop.upgradeRequirements && prop.upgradeRequirements[String(nextLvl)]) || [];
+                                  const costs = prop.upgradeCosts || [10, 15, 20];
+                                  const cashCost = costs[nextLvl - 1] || 10;
+                                  const hasCash = Number(currentTeam.cash || 0) >= cashCost;
+                                  const targetVal = prop.targetValues?.[nextLvl] || prop.level3Target;
+
+                                  const readyTokens = (currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId);
+                                  let allTokensReady = true;
+                                  const recipeStatus = reqs.map((item) => {
+                                    const have = readyTokens.filter((r) => Number(r.utilityId) === Number(item.utilityId)).length;
+                                    if (have < item.count) allTokensReady = false;
+                                    return { ...item, have, needed: item.count, ready: have >= item.count };
+                                  });
+                                  const canUpgradeCard = hasCash && allTokensReady;
+
+                                  return (
+                                    <div className="p-2.5 rounded-xl border border-[var(--border-soft)] capsule-card space-y-2">
+                                      <div className="flex items-center justify-between text-[10.5px] font-rounded font-bold border-b border-[var(--border-soft)] pb-1.5">
+                                        <div>
+                                          <span className="text-[9px] font-mono uppercase text-[#2E7D52] block font-bold">
+                                            Next Upgrade
+                                          </span>
+                                          <span style={{ color: 'var(--text-main)' }}>
+                                            Level {nextLvl} (Target: Rs {targetVal}L)
+                                          </span>
+                                        </div>
+                                        <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                          hasCash ? 'bg-[#2E7D52]/15 text-[#2E7D52]' : 'bg-[#C0392B]/15 text-[#C0392B]'
+                                        }`}>
+                                          Rs {cashCost}L {hasCash ? '[Ready]' : `[Need Rs ${cashCost - Number(currentTeam.cash || 0)}L]`}
+                                        </span>
+                                      </div>
+
+                                      {/* Token Requirements Checklist */}
+                                      <div className="space-y-1">
+                                        <span className="text-[9.5px] font-rounded font-bold block" style={{ color: 'var(--text-sub)' }}>
+                                          Required Utility Tokens:
+                                        </span>
+                                        <div className="flex flex-wrap gap-1">
+                                          {recipeStatus.map((item) => (
+                                            <span
+                                              key={item.utilityId}
+                                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9.5px] font-rounded font-bold border ${
+                                                item.ready
+                                                  ? 'bg-[#2E7D52]/15 text-[#2E7D52] border-[#2E7D52]/40'
+                                                  : 'bg-[#C0392B]/10 text-[#C0392B] border-[#C0392B]/30'
+                                              }`}
+                                            >
+                                              <UtilityIcon id={item.utilityId} className="w-2.5 h-2.5 shrink-0" />
+                                              <span>{item.count}× {item.utilityName}</span>
+                                              <span className="font-mono text-[8.5px] opacity-90">
+                                                ({item.have}/{item.needed})
+                                              </span>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Upgrade Execution or Action Prompt */}
+                                      <div className="pt-1">
+                                        {canUpgradeCard ? (
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleExecuteRecipeUpgrade(prop.id);
+                                            }}
+                                            className="w-full py-1.5 px-3 rounded-xl text-xs font-rounded font-bold bg-[#2E7D52] hover:bg-[#256643] text-white transition-all cursor-pointer shadow-sm text-center"
+                                          >
+                                            Upgrade to Level {nextLvl} (Cost: Rs {cashCost}L)
+                                          </button>
+                                        ) : (
+                                          <div className="flex items-center justify-between gap-1.5 text-[10px] font-rounded">
+                                            <span className="text-[#C0392B] font-bold truncate">
+                                              {!hasCash
+                                                ? `Need Rs ${cashCost - Number(currentTeam.cash || 0)}L cash`
+                                                : 'Missing tokens to upgrade'}
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveTab('buy-resources');
+                                              }}
+                                              className="px-2.5 py-1 rounded-lg text-[10px] font-rounded font-bold bg-[#701020] text-[#F1CA7E] hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                                            >
+                                              Store
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })() : (
+                                  <div className="p-2.5 rounded-xl bg-[#2E7D52]/10 border border-[#2E7D52]/30 text-center space-y-0.5">
+                                    <span className="text-[10px] font-mono font-bold uppercase text-[#2E7D52] block">
+                                      Max Level 3 Achieved
+                                    </span>
+                                    <span className="text-[10px] font-rounded" style={{ color: 'var(--text-sub)' }}>
+                                      Full Valuation Rs {prop.level3Target}L · Rent Rs {rent}L
+                                    </span>
+                                  </div>
+                                )}
 
                                 {/* Attached Resource Badges */}
                                 {attachedIds.length > 0 && (
@@ -1052,13 +1159,13 @@ export default function MarketMonopolyApp() {
                                   {lvl >= 3 ? (
                                     <span style={{ color: 'var(--text-sub)' }}>Maximum Level 3 Reached</span>
                                   ) : (
-                                    <span className="text-[#2E7D52]">+ Click or Drag Resource to Upgrade</span>
+                                    <span className="text-[#2E7D52] font-semibold">Inspect full recipe & attach</span>
                                   )}
                                   <span
                                     className="capsule-inset px-2.5 py-0.5 rounded-full text-[10px] font-rounded font-bold"
                                     style={{ color: 'var(--text-main)' }}
                                   >
-                                    Info
+                                    Inspect Plot
                                   </span>
                                 </div>
                               </div>
@@ -2245,6 +2352,56 @@ export default function MarketMonopolyApp() {
                               </div>
                             </div>
 
+                            {/* How Much it Takes to Upgrade Level (Document Upgrade Recipe Breakdown) */}
+                            {Array.isArray(prop.upgradeCosts) && prop.upgradeCosts.length >= 3 && (
+                              <div className="p-2.5 rounded-xl capsule-card border border-[var(--border-soft)] space-y-2">
+                                <div className="flex items-center justify-between text-[10.5px] font-rounded font-bold border-b border-[var(--border-soft)] pb-1.5">
+                                  <div>
+                                    <span className="text-[9px] font-mono uppercase text-[#2E7D52] block font-bold">
+                                      Level Upgrade Pricing & Requirements
+                                    </span>
+                                    <span style={{ color: 'var(--text-main)' }}>
+                                      How Much to Upgrade Each Level:
+                                    </span>
+                                  </div>
+                                  <span className="font-mono text-[#2E7D52] font-bold text-[10px] px-2 py-0.5 rounded-md capsule-inset">
+                                    Total L1-L3: Rs {prop.upgradeCosts[0] + prop.upgradeCosts[1] + prop.upgradeCosts[2]}L
+                                  </span>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  {[1, 2, 3].map((lvlNum) => {
+                                    const cost = prop.upgradeCosts[lvlNum - 1];
+                                    const targetVal = prop.targetValues?.[lvlNum] || 0;
+                                    const reqList = (prop.upgradeRequirements && prop.upgradeRequirements[String(lvlNum)]) || [];
+
+                                    return (
+                                      <div key={lvlNum} className="p-2 rounded-lg capsule-inset space-y-1 text-[10.5px]">
+                                        <div className="flex items-center justify-between font-bold">
+                                          <span className="font-rounded" style={{ color: 'var(--text-main)' }}>
+                                            Level {lvlNum} (Target: Rs {targetVal}L)
+                                          </span>
+                                          <span className="font-mono text-[#2E7D52]">
+                                            Cost: Rs {cost}L
+                                          </span>
+                                        </div>
+                                        {reqList.length > 0 && (
+                                          <div className="flex items-center gap-1 flex-wrap text-[9px] font-mono" style={{ color: 'var(--text-sub)' }}>
+                                            <span className="font-rounded font-bold">Requires:</span>
+                                            {reqList.map((r, rIdx) => (
+                                              <span key={rIdx} className="px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10">
+                                                {r.count}× {r.utilityName}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
                             {/* Deed Note Highlight (From New Note PDF) */}
                             {(() => {
                               const dossier = KARACHI_PROPERTY_DOSSIERS[prop.id];
@@ -2646,7 +2803,7 @@ export default function MarketMonopolyApp() {
                             style={!active ? { color: 'var(--text-main)' } : undefined}
                           >
                             {lvlOpt === 0 ? 'Empty' : `Lvl ${lvlOpt}`}
-                            {isCurrent ? ' ★' : ''}
+                            {isCurrent ? ' [Current]' : ''}
                           </button>
                         );
                       })}
@@ -2674,8 +2831,87 @@ export default function MarketMonopolyApp() {
                   </div>
                 </div>
 
+                {/* OFFICIAL 3-LEVEL UPGRADE ROADMAP & PRICING (Visible for All Properties in Info & Land) */}
+                <div className="p-4 rounded-2xl capsule-card border border-[var(--border-card)] space-y-3">
+                  <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-2.5">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase text-[#2E7D52] block">
+                        Official Upgrade Specification
+                      </span>
+                      <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
+                        3-Level Upgrade Costs & Required Tokens
+                      </h5>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: '#2E7D52' }}>
+                      Total L1–L3: Rs {(inspectedProperty.upgradeCosts?.[0] || 0) + (inspectedProperty.upgradeCosts?.[1] || 0) + (inspectedProperty.upgradeCosts?.[2] || 0)}L
+                    </span>
+                  </div>
 
-                {/* OFFICIAL LEVEL UPGRADE RECIPE CHECKLIST & UPGRADE ACTION */}
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((lvlNum) => {
+                      const cost = inspectedProperty.upgradeCosts?.[lvlNum - 1] || 0;
+                      const targetVal = inspectedProperty.targetValues?.[lvlNum] || 0;
+                      const reqList = (inspectedProperty.upgradeRequirements && inspectedProperty.upgradeRequirements[String(lvlNum)]) || [];
+                      const isReached = actualLevel >= lvlNum;
+                      const isNext = actualLevel === lvlNum - 1;
+
+                      return (
+                        <div
+                          key={lvlNum}
+                          className={`p-3 rounded-xl border text-xs font-rounded space-y-1.5 transition-all ${
+                            isReached
+                              ? 'border-[#2E7D52]/40 bg-[#2E7D52]/10'
+                              : isNext && isOwnedByMe
+                              ? 'border-[#8D5B3A] bg-[#8D5B3A]/10'
+                              : 'border-[var(--border-soft)] capsule-inset'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between font-bold">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-md font-mono text-[10px] ${
+                                isReached ? 'bg-[#2E7D52] text-white' : 'bg-black/15 dark:bg-white/15'
+                              }`}>
+                                LEVEL {lvlNum}
+                              </span>
+                              <span style={{ color: 'var(--text-main)' }}>
+                                Target: Rs {targetVal}L
+                              </span>
+                              {isReached && (
+                                <span className="text-[10px] text-[#2E7D52] font-mono">[Unlocked]</span>
+                              )}
+                              {isNext && isOwnedByMe && (
+                                <span className="text-[10px] text-[#8D5B3A] font-mono">[Next Target]</span>
+                              )}
+                            </div>
+                            <span className="font-mono text-[#2E7D52] font-bold">
+                              Upgrade Cost: Rs {cost}L
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold block" style={{ color: 'var(--text-sub)' }}>
+                              Required Utility Tokens ({reqList.length} types):
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {reqList.map((item, iIdx) => (
+                                <span
+                                  key={iIdx}
+                                  className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-semibold bg-black/10 dark:bg-white/10 flex items-center gap-1.5"
+                                  style={{ color: 'var(--text-main)' }}
+                                >
+                                  <UtilityIcon id={item.utilityId} className="w-3 h-3 shrink-0" />
+                                  <span>{item.count}× {item.utilityName}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ACTIVE LEVEL UPGRADE RECIPE CHECKLIST & EXECUTE (For Owned Plots) */}
                 {isOwnedByMe && actualLevel < 3 && (() => {
                   const nextLvl = actualLevel + 1;
                   const reqs = (inspectedProperty.upgradeRequirements && inspectedProperty.upgradeRequirements[nextLvl]) || [];
@@ -2699,14 +2935,14 @@ export default function MarketMonopolyApp() {
                       <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-2.5">
                         <div>
                           <span className="text-[10px] font-mono font-bold uppercase text-[#2E7D52] block">
-                            Specification Upgrade Engine
+                            Upgrade Execution Console
                           </span>
                           <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
-                            Upgrade to Level {nextLvl} Recipe
+                            Upgrade to Level {nextLvl} (Cost: Rs {cashCost}L)
                           </h5>
                         </div>
                         <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: hasCash ? '#2E7D52' : '#C0392B' }}>
-                          Cost: Rs {cashCost}L {hasCash ? '✓' : '(Need Cash)'}
+                          Cash: Rs {cashCost}L {hasCash ? '[Ready]' : '[Need Cash]'}
                         </span>
                       </div>
 
@@ -2741,11 +2977,11 @@ export default function MarketMonopolyApp() {
                       <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                         <div className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
                           {canUpgrade ? (
-                            <span className="text-[#2E7D52] font-bold">✓ Ready: Tokens verified & cash available!</span>
+                            <span className="text-[#2E7D52] font-bold">[Ready] Tokens verified & cash available!</span>
                           ) : !hasCash ? (
-                            <span className="text-[#C0392B] font-bold">✗ Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
+                            <span className="text-[#C0392B] font-bold">[Alert] Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
                           ) : (
-                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy required utility tokens in the Store tab.</span>
+                            <span className="text-[#C0392B] font-bold">[Alert] Missing tokens: Buy required utility tokens in the Store tab.</span>
                           )}
                         </div>
 
@@ -2872,7 +3108,7 @@ export default function MarketMonopolyApp() {
                       {dossier.importance && (
                         <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
                           <strong className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-main)' }}>
-                            <span>📌</span> Why is this property important?
+                            <span className="font-mono text-[#8D5B3A]">[Context]</span> Why is this property important?
                           </strong>
                           <p className="text-xs leading-relaxed" style={{ color: 'var(--text-sub)' }}>
                             {dossier.importance}
@@ -2884,7 +3120,7 @@ export default function MarketMonopolyApp() {
                       {dossier.valueReasoning && (
                         <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
                           <strong className="text-xs flex items-center gap-1.5 text-[#2E7D52]">
-                            <span>💡</span> Valuation Justification
+                            <span className="font-mono text-[#2E7D52]">[Analysis]</span> Valuation Justification
                           </strong>
                           <p className="text-xs leading-relaxed" style={{ color: 'var(--text-sub)' }}>
                             {dossier.valueReasoning}
@@ -2897,7 +3133,7 @@ export default function MarketMonopolyApp() {
                         {dossier.problems && (
                           <div className="p-3 rounded-2xl capsule-inset border border-[#C0392B]/30 space-y-1">
                             <strong className="text-xs flex items-center gap-1.5 text-[#C0392B]">
-                              <span>⚠️</span> Area Challenges & Problems
+                              <span className="font-mono text-[#C0392B]">[Risk]</span> Area Challenges & Problems
                             </strong>
                             <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-sub)' }}>
                               {dossier.problems}
@@ -2908,7 +3144,7 @@ export default function MarketMonopolyApp() {
                         {dossier.benefits && (
                           <div className="p-3 rounded-2xl capsule-inset border border-[#2E7D52]/30 space-y-1">
                             <strong className="text-xs flex items-center gap-1.5 text-[#2E7D52]">
-                              <span>✨</span> Area Benefits & Opportunities
+                              <span className="font-mono text-[#2E7D52]">[Upside]</span> Area Benefits & Opportunities
                             </strong>
                             <p className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-sub)' }}>
                               {dossier.benefits}
@@ -3169,7 +3405,7 @@ export default function MarketMonopolyApp() {
                           Treasury Credit · Wave #{events[0]?.wheelRound || store?.currentWheelRound || 1}
                         </span>
                         <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
-                          Rent Collected! 💰
+                          Rent Collected!
                         </h4>
                       </div>
                       <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#ECFDF3] text-[#027A48] border border-[#A6F4C5]">
