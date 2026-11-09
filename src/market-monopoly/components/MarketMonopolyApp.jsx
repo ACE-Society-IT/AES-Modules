@@ -138,6 +138,19 @@ export default function MarketMonopolyApp() {
   const [inspectedPropertyId, setInspectedPropertyId] = useState(null);
   const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+
+  // Auto-Popup when Admin triggers wheel spin for this team
+  const lastProcessedSpinRef = React.useRef(null);
+  useEffect(() => {
+    if (!currentTeam || !store) return;
+    const currentWave = Number(store.currentWheelRound || 1);
+    const mySpin = store.wheelSpinsByRound?.[currentWave]?.[currentTeam.id];
+    if (mySpin && mySpin.timestamp && mySpin.timestamp !== lastProcessedSpinRef.current) {
+      lastProcessedSpinRef.current = mySpin.timestamp;
+      setIsWheelModalOpen(true);
+    }
+  }, [store?.wheelSpinsByRound, store?.currentWheelRound, currentTeam?.id]);
+
   const [purchasingUtilityId, setPurchasingUtilityId] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -2245,32 +2258,7 @@ export default function MarketMonopolyApp() {
         </AnimatePresence>
       </main>
 
-      {/* FLOATING RIGHT SIDEBAR BUTTON FOR CENTER-SCREEN PROPERTY SPIN WHEEL */}
-      <div className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 pointer-events-auto">
-        <motion.button
-          onClick={() => setIsWheelModalOpen(true)}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.96 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="group relative flex items-center justify-center w-13 h-13 sm:w-14 sm:h-14 rounded-full shadow-2xl border-2 border-[#F1CA7E] bg-[#b81434] hover:bg-[#cf1a3d] text-[#FFFFFF] cursor-pointer transition-colors"
-          aria-label="Open Property Rent Wheel"
-        >
-          <IconRadar className="w-6 h-6 text-[#F1CA7E]" />
-
-          <span
-            className={`absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full border border-[#F1CA7E] text-[9px] font-mono font-bold text-white shadow-md ${!store.wheelSpinsByRound?.[store.currentWheelRound || 1]?.[currentTeam.id]
-                ? 'bg-[#2E7D52]'
-                : 'bg-[#701020]'
-              }`}
-          >
-            #{store.currentWheelRound || 1}
-          </span>
-
-          <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-xl bg-[#1E1E1E] border border-[#3d000e] px-3 py-1.5 text-xs font-rounded font-bold text-[#FFFFFF] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            Spin Wheel #{store.currentWheelRound || 1}
-          </span>
-        </motion.button>
-      </div>
+      {/* Floating spin button removed per specification */}
 
       {/* CENTER-SCREEN LARGE 25-PROPERTY SPIN WHEEL MODAL */}
       <SpinWheelModal

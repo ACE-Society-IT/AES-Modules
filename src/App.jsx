@@ -11,6 +11,7 @@ const TradingPortal = lazy(() => import('./pages/TradingPortal.jsx'));
 const ProjectorView = lazy(() => import('./pages/ProjectorView.jsx'));
 const EmpirePortalShell = lazy(() => import('./defend-the-empire/components/EmpirePortalShell.jsx'));
 const MarketMonopolyApp = lazy(() => import('./market-monopoly/components/MarketMonopolyApp.jsx'));
+const MonopolyProjectorView = lazy(() => import('./market-monopoly/components/MonopolyProjectorView.jsx'));
 
 function PageTitleSync() {
   const location = useLocation();
@@ -93,6 +94,8 @@ export default function App() {
 
               {/* Defend the Empire Participant Module */}
               <Route path="/defend-the-empire" element={<EmpirePortalShell />} />
+                            {/* Market Monopoly Classroom Projector (Hidden URL) */}
+              <Route path="/market-monopoly/projector" element={<MonopolyProjectorView />} />
               <Route path="/market-monopoly/*" element={<MarketMonopolyApp />} />
 
               {/* Explicitly Block & Redirect Any Admin Access Attempts from Modules */}

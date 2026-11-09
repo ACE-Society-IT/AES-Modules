@@ -89,6 +89,27 @@ export default function SpinWheelModal({
   );
 
   const displayedOutcome = mySpinForCurrentRound || recentSpinOutcome;
+
+  // Auto-animate wheel rotation when an outcome is received from Admin!
+  useEffect(() => {
+    if (displayedOutcome && displayedOutcome.propertyId) {
+      const pId = Number(displayedOutcome.propertyId);
+      const winningIndex = properties.findIndex(p => Number(p.id) === pId);
+      if (winningIndex !== -1) {
+        const sliceCenter = (winningIndex + 0.5) * sliceAngle;
+        const desiredMod = (360 - sliceCenter + 360) % 360;
+        const currentMod = ((wheelRotation % 360) + 360) % 360;
+        let deltaAngle = desiredMod - currentMod;
+        if (deltaAngle <= 0) deltaAngle += 360;
+        setIsSpinning(true);
+        setWheelRotation(prev => prev + 360 * 5 + deltaAngle);
+        const t = setTimeout(() => {
+          setIsSpinning(false);
+        }, 4200);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [displayedOutcome?.timestamp, displayedOutcome?.propertyId]);
   const landedProperty = displayedOutcome
     ? properties.find((p) => Number(p.id) === Number(displayedOutcome.propertyId))
     : null;
@@ -295,17 +316,18 @@ export default function SpinWheelModal({
                       </div>
                     )}
 
-                    {!mySpinForCurrentRound ? (
-                      <TactileButton
-                        onClick={handleStartSpin}
-                        disabled={isSpinning}
-                        className="w-full rounded-full py-3 px-4 font-display font-bold text-sm btn-primary shadow-md cursor-pointer disabled:opacity-50"
-                      >
-                        {isSpinning ? 'Spinning...' : `Spin Wheel (#${currentWheelRound})`}
-                      </TactileButton>
+                    {isSpinning ? (
+                      <div className="p-3.5 rounded-2xl bg-[#F1CA7E]/20 border border-[#F1CA7E]/40 text-xs font-rounded font-bold text-[#F1CA7E] text-center flex items-center justify-center gap-2">
+                        <span className="w-3.5 h-3.5 rounded-full border-2 border-[#F1CA7E] border-t-transparent animate-spin" />
+                        Admin triggered spin! Wheel is spinning...
+                      </div>
+                    ) : mySpinForCurrentRound ? (
+                      <div className="p-3.5 rounded-2xl bg-[#2E7D52]/15 border border-[#2E7D52]/40 text-xs font-rounded font-bold text-[#2E7D52] text-center">
+                        ✓ Spin #{currentWheelRound} Result Recorded & Rent Settled.
+                      </div>
                     ) : (
-                      <div className="p-3 rounded-2xl bg-[#2E7D52]/15 border border-[#2E7D52]/40 text-xs font-rounded font-bold text-[#2E7D52] text-center">
-                        Spin #{currentWheelRound} completed. Waiting for Admin to release Spin #{currentWheelRound + 1}.
+                      <div className="p-3.5 rounded-2xl capsule-inset text-xs font-rounded font-semibold text-center" style={{ color: 'var(--text-sub)' }}>
+                        Waiting for Admin to spin the wheel for your team...
                       </div>
                     )}
                   </div>
