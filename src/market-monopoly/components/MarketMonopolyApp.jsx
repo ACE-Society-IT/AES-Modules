@@ -50,7 +50,7 @@ export default function MarketMonopolyApp() {
     document.documentElement.setAttribute('data-theme', theme);
     try {
       localStorage.setItem('investomania_monopoly_theme', theme);
-    } catch {}
+    } catch { }
   }, [theme]);
 
   const cycleTheme = () => {
@@ -58,7 +58,7 @@ export default function MarketMonopolyApp() {
   };
 
   const [store, setStore] = useState(null);
-  
+
   // Persist session across page refreshes
   const [activeTeamId, setActiveTeamId] = useState(() => {
     try {
@@ -92,7 +92,7 @@ export default function MarketMonopolyApp() {
         sessionStorage.removeItem('investomania_monopoly_team_name');
         localStorage.removeItem('investomania_monopoly_team_name');
       }
-    } catch {}
+    } catch { }
   }, [activeTeamId, activeTeamName]);
 
   const [loginName, setLoginName] = useState('');
@@ -138,6 +138,7 @@ export default function MarketMonopolyApp() {
   const [inspectedPropertyId, setInspectedPropertyId] = useState(null);
   const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [purchasingUtilityId, setPurchasingUtilityId] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = useCallback((message, type = 'success') => {
@@ -253,7 +254,7 @@ export default function MarketMonopolyApp() {
       sessionStorage.removeItem('investomania_monopoly_team_name');
       localStorage.removeItem('investomania_monopoly_team_id');
       localStorage.removeItem('investomania_monopoly_team_name');
-    } catch {}
+    } catch { }
     setIsSignOutModalOpen(false);
   };
 
@@ -628,17 +629,16 @@ export default function MarketMonopolyApp() {
                   <TactileButton
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full whitespace-nowrap rounded-full px-4 py-2.5 flex items-center justify-between gap-2.5 text-xs font-rounded font-bold transition-all shrink-0 ${
-                      active
+                    className={`w-full whitespace-nowrap rounded-full px-4 py-2.5 flex items-center justify-between gap-2.5 text-xs font-rounded font-bold transition-all shrink-0 ${active
                         ? 'border-2 border-[var(--border-active)] shadow-sm'
                         : 'border-2 border-transparent opacity-80 text-[var(--text-sub)] hover:text-[var(--text-main)] hover:bg-[var(--row-hover)]'
-                    }`}
+                      }`}
                     style={
                       active
                         ? {
-                            backgroundColor: 'var(--tab-active-bg)',
-                            color: 'var(--tab-active-text)'
-                          }
+                          backgroundColor: 'var(--tab-active-bg)',
+                          color: 'var(--tab-active-text)'
+                        }
                         : {}
                     }
                   >
@@ -648,13 +648,13 @@ export default function MarketMonopolyApp() {
                       style={
                         active
                           ? {
-                              backgroundColor: 'var(--tab-badge-bg)',
-                              color: 'var(--tab-badge-text)'
-                            }
+                            backgroundColor: 'var(--tab-badge-bg)',
+                            color: 'var(--tab-badge-text)'
+                          }
                           : {
-                              backgroundColor: 'var(--bg-inset)',
-                              color: 'var(--text-sub)'
-                            }
+                            backgroundColor: 'var(--bg-inset)',
+                            color: 'var(--text-sub)'
+                          }
                       }
                     >
                       {item.badge}
@@ -836,13 +836,12 @@ export default function MarketMonopolyApp() {
                                 onDragLeave={() => setHoveredPropertyId(null)}
                                 onDrop={(e) => onDropOnPlot(e, prop.id)}
                                 onContextMenu={(e) => onPlotContextMenu(e, prop.id)}
-                                className={`group relative rounded-2xl p-3 transition-all cursor-pointer select-none border-2 capsule-card flex flex-col gap-2.5 ${
-                                  isDropTarget
+                                className={`group relative rounded-2xl p-3 transition-all cursor-pointer select-none border-2 capsule-card flex flex-col gap-2.5 ${isDropTarget
                                     ? 'scale-[1.02] shadow-2xl ring-2 ring-[#ECC37A]'
                                     : isSelected
-                                    ? 'shadow-xl ring-2 ring-[var(--border-active)]'
-                                    : 'hover:shadow-lg'
-                                }`}
+                                      ? 'shadow-xl ring-2 ring-[var(--border-active)]'
+                                      : 'hover:shadow-lg'
+                                  }`}
                                 style={{
                                   backgroundColor: 'var(--bg-card)',
                                   borderColor:
@@ -921,9 +920,8 @@ export default function MarketMonopolyApp() {
                                     {[1, 2, 3].map((step) => (
                                       <div
                                         key={step}
-                                        className={`h-2 rounded-full transition-all ${
-                                          lvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
-                                        }`}
+                                        className={`h-2 rounded-full transition-all ${lvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
+                                          }`}
                                       />
                                     ))}
                                   </div>
@@ -1115,7 +1113,7 @@ export default function MarketMonopolyApp() {
 
 
             {/* ================================================================= */}
-            
+
             {/* ============================================================= */}
             {/* TAB: BANK STORE (BUY TOKENS & UTILITIES FROM BANK)          */}
             {/* ============================================================= */}
@@ -1259,18 +1257,22 @@ export default function MarketMonopolyApp() {
 
                         {/* Purchase Action Button */}
                         <div className="pt-3 border-t border-[var(--border-soft)] flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-mono" style={{ color: 'var(--text-sub)' }}>
-                            Token Cost: <strong style={{ color: 'var(--text-main)' }}>Rs {cost}L</strong>
-                          </span>
+                          <div className="space-y-0.5">
+                            <span className="text-[11px] font-mono block" style={{ color: 'var(--text-sub)' }}>
+                              Price: <strong style={{ color: 'var(--text-main)' }}>Rs {cost}L</strong>
+                            </span>
+                            <span className="text-[10px] font-rounded font-semibold block" style={{ color: ownedCopies > 0 ? '#2E7D52' : 'var(--text-sub)' }}>
+                              You own: <strong className="font-mono">{ownedCopies}</strong> ({readyCopies} available)
+                            </span>
+                          </div>
 
                           <TactileButton
                             disabled={!canAfford}
-                            onClick={() => handleBuyTokenFromBank(res.id)}
-                            className={`rounded-full px-4 py-1.5 text-xs font-rounded font-bold transition-all cursor-pointer ${
-                              canAfford
-                                ? 'btn-primary shadow-sm'
+                            onClick={() => setPurchasingUtilityId(res.id)}
+                            className={`rounded-full px-4 py-1.5 text-xs font-rounded font-bold transition-all cursor-pointer ${canAfford
+                                ? 'btn-primary shadow-sm hover:scale-[1.02]'
                                 : 'opacity-40 cursor-not-allowed capsule-inset'
-                            }`}
+                              }`}
                             style={!canAfford ? { color: 'var(--text-sub)' } : undefined}
                           >
                             {canAfford ? `Buy for Rs ${cost}L` : 'Insufficient Cash'}
@@ -1504,15 +1506,15 @@ export default function MarketMonopolyApp() {
                                       style={
                                         res.attachedToPropertyName
                                           ? {
-                                              backgroundColor: 'rgba(46, 125, 82, 0.15)',
-                                              color: '#2E7D52',
-                                              borderColor: 'rgba(46, 125, 82, 0.3)'
-                                            }
+                                            backgroundColor: 'rgba(46, 125, 82, 0.15)',
+                                            color: '#2E7D52',
+                                            borderColor: 'rgba(46, 125, 82, 0.3)'
+                                          }
                                           : {
-                                              backgroundColor: 'var(--resource-badge-bg)',
-                                              color: 'var(--resource-badge-text)',
-                                              borderColor: 'var(--resource-badge-border)'
-                                            }
+                                            backgroundColor: 'var(--resource-badge-bg)',
+                                            color: 'var(--resource-badge-text)',
+                                            borderColor: 'var(--resource-badge-border)'
+                                          }
                                       }
                                     >
                                       {res.attachedToPropertyName
@@ -1616,11 +1618,10 @@ export default function MarketMonopolyApp() {
                           return (
                             <div
                               key={tx.id}
-                              className={`p-4 rounded-2xl capsule-card border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                                isMyTeam
+                              className={`p-4 rounded-2xl capsule-card border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isMyTeam
                                   ? 'border-2 border-[var(--border-active)]'
                                   : 'border-[var(--border-soft)]'
-                              }`}
+                                }`}
                             >
                               <div className="space-y-1.5 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -1673,9 +1674,8 @@ export default function MarketMonopolyApp() {
                               {Number(tx.amount) > 0 && (
                                 <div className="text-left sm:text-right shrink-0 font-mono">
                                   <span
-                                    className={`text-sm sm:text-base font-bold block ${
-                                      isRefund ? 'text-[#2E7D52]' : 'text-[#C0392B]'
-                                    }`}
+                                    className={`text-sm sm:text-base font-bold block ${isRefund ? 'text-[#2E7D52]' : 'text-[#C0392B]'
+                                      }`}
                                   >
                                     {isRefund ? `+Rs ${tx.amount}L Refunded` : `-Rs ${tx.amount}L Deducted`}
                                   </span>
@@ -2014,9 +2014,8 @@ export default function MarketMonopolyApp() {
                         <TactileButton
                           key={cat}
                           onClick={() => setCategoryFilter(cat)}
-                          className={`px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold transition-colors ${
-                            categoryFilter === cat ? 'btn-primary' : 'capsule-card'
-                          }`}
+                          className={`px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold transition-colors ${categoryFilter === cat ? 'btn-primary' : 'capsule-card'
+                            }`}
                           style={categoryFilter !== cat ? { color: 'var(--text-main)' } : undefined}
                         >
                           {cat === 'ALL' ? 'All (25)' : cat}
@@ -2118,9 +2117,8 @@ export default function MarketMonopolyApp() {
                                 {[1, 2, 3].map((step) => (
                                   <div
                                     key={step}
-                                    className={`h-1.5 rounded-full transition-all ${
-                                      plotLvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
-                                    }`}
+                                    className={`h-1.5 rounded-full transition-all ${plotLvl >= step ? 'bg-[#2E7D52]' : 'bg-black/15 dark:bg-white/15'
+                                      }`}
                                   />
                                 ))}
                               </div>
@@ -2163,9 +2161,8 @@ export default function MarketMonopolyApp() {
                       return (
                         <div
                           key={res.id}
-                          className={`p-4 rounded-2xl capsule-card border transition-all flex flex-col justify-between gap-3 ${
-                            isOwnedByMyTeam ? 'border-[#2E7D52]/60 ring-1 ring-[#2E7D52]/40' : 'border-[var(--border-soft)]'
-                          }`}
+                          className={`p-4 rounded-2xl capsule-card border transition-all flex flex-col justify-between gap-3 ${isOwnedByMyTeam ? 'border-[#2E7D52]/60 ring-1 ring-[#2E7D52]/40' : 'border-[var(--border-soft)]'
+                            }`}
                         >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between gap-1">
@@ -2236,11 +2233,10 @@ export default function MarketMonopolyApp() {
           <IconRadar className="w-6 h-6 text-[#F1CA7E]" />
 
           <span
-            className={`absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full border border-[#F1CA7E] text-[9px] font-mono font-bold text-white shadow-md ${
-              !store.wheelSpinsByRound?.[store.currentWheelRound || 1]?.[currentTeam.id]
+            className={`absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full border border-[#F1CA7E] text-[9px] font-mono font-bold text-white shadow-md ${!store.wheelSpinsByRound?.[store.currentWheelRound || 1]?.[currentTeam.id]
                 ? 'bg-[#2E7D52]'
                 : 'bg-[#701020]'
-            }`}
+              }`}
           >
             #{store.currentWheelRound || 1}
           </span>
@@ -2347,9 +2343,8 @@ export default function MarketMonopolyApp() {
                         setActiveTab(item.id);
                         setIsMobileNavOpen(false);
                       }}
-                      className={`w-full rounded-2xl p-3 flex items-center justify-between text-xs font-rounded font-bold ${
-                        active ? 'border-2 border-[var(--border-active)]' : 'border-2 border-transparent'
-                      }`}
+                      className={`w-full rounded-2xl p-3 flex items-center justify-between text-xs font-rounded font-bold ${active ? 'border-2 border-[var(--border-active)]' : 'border-2 border-transparent'
+                        }`}
                       style={
                         active
                           ? { backgroundColor: 'var(--tab-active-bg)', color: 'var(--tab-active-text)' }
@@ -2415,9 +2410,8 @@ export default function MarketMonopolyApp() {
                           handleInstallUtility(contextProperty.id, res.utilityId);
                           setContextMenu(null);
                         }}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-rounded font-semibold flex items-center justify-between cursor-pointer ${
-                          alreadyInstalled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-inset)]'
-                        }`}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-rounded font-semibold flex items-center justify-between cursor-pointer ${alreadyInstalled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-inset)]'
+                          }`}
                         style={{ color: 'var(--text-main)' }}
                       >
                         <span className="flex items-center gap-1.5 truncate">
@@ -2534,11 +2528,10 @@ export default function MarketMonopolyApp() {
                             onClick={() =>
                               setPreviewLevelOverride(lvlOpt === actualLevel ? null : lvlOpt)
                             }
-                            className={`px-2.5 py-1 rounded-xl text-[10px] font-rounded font-bold transition-all cursor-pointer ${
-                              active
+                            className={`px-2.5 py-1 rounded-xl text-[10px] font-rounded font-bold transition-all cursor-pointer ${active
                                 ? 'bg-[#701020] text-[#F1CA7E] shadow-sm'
                                 : 'hover:bg-black/10'
-                            }`}
+                              }`}
                             style={!active ? { color: 'var(--text-main)' } : undefined}
                           >
                             {lvlOpt === 0 ? 'Empty' : `Lvl ${lvlOpt}`}
@@ -2578,7 +2571,7 @@ export default function MarketMonopolyApp() {
                   const costs = inspectedProperty.upgradeCosts || [10, 15, 20];
                   const cashCost = costs[nextLvl - 1] || 10;
                   const hasCash = Number(currentTeam.cash || 0) >= cashCost;
-                  
+
                   // Check token readiness
                   const readyList = (currentTeam.ownedResources || []).filter(r => !r.attachedToPropertyId);
                   let allTokensReady = true;
@@ -2615,19 +2608,17 @@ export default function MarketMonopolyApp() {
                           {recipeStatus.map((item) => (
                             <div
                               key={item.utilityId}
-                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs font-rounded font-semibold ${
-                                item.ready
+                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs font-rounded font-semibold ${item.ready
                                   ? 'border-[#2E7D52]/50 bg-[#2E7D52]/10 text-[var(--text-main)]'
                                   : 'border-[#C0392B]/50 bg-[#C0392B]/10 text-[var(--text-main)]'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-2 truncate">
                                 <UtilityIcon id={item.utilityId} className="w-4 h-4 shrink-0" style={{ color: item.ready ? '#2E7D52' : '#C0392B' }} />
                                 <span className="truncate">{item.count}× {item.utilityName}</span>
                               </div>
-                              <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                                item.ready ? 'bg-[#2E7D52] text-white' : 'bg-[#C0392B] text-white'
-                              }`}>
+                              <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${item.ready ? 'bg-[#2E7D52] text-white' : 'bg-[#C0392B] text-white'
+                                }`}>
                                 {item.have} / {item.needed}
                               </span>
                             </div>
@@ -2650,11 +2641,10 @@ export default function MarketMonopolyApp() {
                         <TactileButton
                           disabled={!canUpgrade}
                           onClick={() => handleExecuteRecipeUpgrade(inspectedProperty.id)}
-                          className={`rounded-full px-5 py-2 text-xs font-rounded font-bold transition-all cursor-pointer ${
-                            canUpgrade
+                          className={`rounded-full px-5 py-2 text-xs font-rounded font-bold transition-all cursor-pointer ${canUpgrade
                               ? 'btn-primary shadow-md hover:scale-[1.02]'
                               : 'opacity-40 cursor-not-allowed capsule-inset'
-                          }`}
+                            }`}
                           style={!canUpgrade ? { color: 'var(--text-sub)' } : undefined}
                         >
                           Execute Level {nextLvl} Upgrade
@@ -2664,7 +2654,7 @@ export default function MarketMonopolyApp() {
                   );
                 })()}
 
-                                {/* LEVEL PROGRESS & ATTACH BID RESOURCES PANEL (FOR OWNED PLOTS) */}
+                {/* LEVEL PROGRESS & ATTACH BID RESOURCES PANEL (FOR OWNED PLOTS) */}
                 {isOwnedByMe && (
                   <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2.5">
                     <div className="flex items-center justify-between text-xs font-rounded font-bold">
@@ -2680,9 +2670,8 @@ export default function MarketMonopolyApp() {
                       {[1, 2, 3].map((step) => (
                         <div
                           key={step}
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            actualLevel >= step ? 'bg-[#2E7D52]' : 'bg-black/15'
-                          }`}
+                          className={`h-2 rounded-full transition-all duration-300 ${actualLevel >= step ? 'bg-[#2E7D52]' : 'bg-black/15'
+                            }`}
                         />
                       ))}
                     </div>
@@ -2731,11 +2720,10 @@ export default function MarketMonopolyApp() {
                                   type="button"
                                   disabled={alreadyInstalled}
                                   onClick={() => handleInstallUtility(inspectedProperty.id, res.utilityId)}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-rounded font-bold flex items-center justify-between border transition-all cursor-pointer ${
-                                    alreadyInstalled
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-rounded font-bold flex items-center justify-between border transition-all cursor-pointer ${alreadyInstalled
                                       ? 'opacity-40 cursor-not-allowed border-transparent capsule-inset'
                                       : 'border-[#2E7D52]/50 capsule-inset hover:border-[#2E7D52]'
-                                  }`}
+                                    }`}
                                   style={{ color: 'var(--text-main)' }}
                                 >
                                   <span className="flex items-center gap-1.5 truncate">
@@ -2771,6 +2759,129 @@ export default function MarketMonopolyApp() {
         })()}
       </AnimatePresence>
 
+      {/* BUY TOKEN CONFIRMATION DIALOG */}
+      <AnimatePresence>
+        {purchasingUtilityId !== null && (() => {
+          const res = KARACHI_UTILITIES.find((u) => u.id === Number(purchasingUtilityId));
+          if (!res) return null;
+          const cost = Number(res.cost || 0);
+          const currentCash = Number(currentTeam.cash || 0);
+          const canAfford = currentCash >= cost;
+          const cashAfter = currentCash - cost;
+          const ownedCount = (currentTeam.ownedResources || []).filter(
+            (r) => Number(r.utilityId) === Number(res.id)
+          ).length;
+          const readyCount = (currentTeam.ownedResources || []).filter(
+            (r) => Number(r.utilityId) === Number(res.id) && !r.attachedToPropertyId
+          ).length;
+
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                className="w-full max-w-md surface-box rounded-[32px] p-6 space-y-5 border-2 border-[var(--border-card)] shadow-2xl"
+              >
+                <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-10 h-10 rounded-2xl flex items-center justify-center border shadow-sm"
+                      style={{
+                        backgroundColor: 'var(--resource-icon-bg)',
+                        borderColor: 'var(--resource-badge-border)'
+                      }}
+                    >
+                      <UtilityIcon id={res.id} className="w-5 h-5" style={{ color: 'var(--resource-icon-color)' }} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono font-bold uppercase block text-[#2E7D52]">
+                        Confirm Bank Purchase
+                      </span>
+                      <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
+                        {res.name} Token
+                      </h4>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPurchasingUtilityId(null)}
+                    className="p-1.5 rounded-xl capsule-inset cursor-pointer"
+                  >
+                    <IconClose className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Current Quantity Owned Callout */}
+                <div className="p-3.5 rounded-2xl capsule-inset space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-rounded font-bold">
+                    <span style={{ color: 'var(--text-sub)' }}>Current Quantity in Your Inventory:</span>
+                    <span className="font-mono text-sm font-bold text-[#2E7D52]">
+                      {ownedCount} Token{ownedCount === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-mono" style={{ color: 'var(--text-sub)' }}>
+                    <span>Available for upgrades (unattached):</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{readyCount}</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-mono" style={{ color: 'var(--text-sub)' }}>
+                    <span>Already attached to properties:</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{ownedCount - readyCount}</strong>
+                  </div>
+                </div>
+
+                {/* Financial Impact Breakdown */}
+                <div className="space-y-2 p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] text-xs font-mono">
+                  <div className="flex items-center justify-between">
+                    <span style={{ color: 'var(--text-sub)' }}>Token Price:</span>
+                    <strong className="text-[#C0392B]">-Rs {cost}L</strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span style={{ color: 'var(--text-sub)' }}>Current Available Cash:</span>
+                    <strong style={{ color: 'var(--text-main)' }}>Rs {currentCash}L</strong>
+                  </div>
+                  <div className="pt-2 border-t border-[var(--border-soft)] flex items-center justify-between font-bold">
+                    <span style={{ color: 'var(--text-main)' }}>Cash Balance After Purchase:</span>
+                    <strong className={canAfford ? 'text-[#2E7D52]' : 'text-[#C0392B]'}>
+                      Rs {cashAfter}L
+                    </strong>
+                  </div>
+                </div>
+
+                <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                  This token will be added to your inventory immediately and can be applied toward completing property level recipes in your Karachi Land Grid.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-2.5 pt-2">
+                  <TactileButton
+                    onClick={() => setPurchasingUtilityId(null)}
+                    className="rounded-full px-4 py-2 text-xs font-rounded font-bold capsule-card cursor-pointer"
+                    style={{ color: 'var(--text-main)' }}
+                  >
+                    Cancel
+                  </TactileButton>
+
+                  <TactileButton
+                    disabled={!canAfford}
+                    onClick={async () => {
+                      const id = purchasingUtilityId;
+                      setPurchasingUtilityId(null);
+                      await handleBuyTokenFromBank(id);
+                    }}
+                    className={`rounded-full px-5 py-2 text-xs font-rounded font-bold cursor-pointer transition-all ${
+                      canAfford ? 'btn-primary shadow-md hover:scale-[1.02]' : 'opacity-40 cursor-not-allowed capsule-inset'
+                    }`}
+                  >
+                    Confirm Purchase (Rs {cost}L)
+                  </TactileButton>
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
+      </AnimatePresence>
+
       {/* TOAST */}
       <AnimatePresence>
         {toast && (
@@ -2779,9 +2890,8 @@ export default function MarketMonopolyApp() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
-            className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-2xl shadow-xl text-xs font-rounded font-bold ${
-              toast.type === 'error' ? 'bg-[#C0392B] text-white' : 'bg-[#2E7D52] text-white'
-            }`}
+            className={`fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-2xl shadow-xl text-xs font-rounded font-bold ${toast.type === 'error' ? 'bg-[#C0392B] text-white' : 'bg-[#2E7D52] text-white'
+              }`}
           >
             {toast.message}
           </motion.div>
