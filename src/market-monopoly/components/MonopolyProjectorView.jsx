@@ -186,24 +186,19 @@ export default function MonopolyProjectorView() {
     : null;
 
   return (
-    <div className="w-full min-h-screen bg-[#14040A] text-[#F8EEE1] flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden relative font-sans">
-      {/* Background Glow */}
-      <div className="absolute inset-0 pointer-events-none opacity-40" style={{
-        background: 'radial-gradient(circle at 50% 40%, #701020 0%, #1A040B 65%, #0B0105 100%)'
-      }} />
-
+    <div className="w-full min-h-screen bg-[#0C0A09] text-[#F8EEE1] flex flex-col justify-between p-6 sm:p-10 select-none overflow-hidden relative font-sans">
       {/* TOP AUDITORIUM BANNER */}
       <header className="relative z-10 flex items-center justify-between border-b border-[#ECC37A]/30 pb-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#3B0C18] border border-[#ECC37A] flex items-center justify-center p-2 shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-[#1C050B] border border-[#ECC37A]/60 flex items-center justify-center p-2">
             <img src={aesLogo} alt="AES Logo" className="max-h-full max-w-full object-contain" />
           </div>
           <div>
             <span className="text-xs font-mono uppercase font-bold tracking-widest text-[#F1CA7E]">
-              ALPHA ENTREPRENEURSHIP SUMMIT 2026 · AUDITORIUM PROJECTOR
+              ALPHA ENTREPRENEURSHIP SUMMIT 2026
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#F8EEE1] leading-tight">
-              Market Monopoly · Live Classroom Property Wheel
+              Market Monopoly
             </h1>
           </div>
         </div>
@@ -338,14 +333,14 @@ export default function MonopolyProjectorView() {
 
         {/* RIGHT SCOREBOARD & OUTCOME CARD */}
         <div className="w-full max-w-md lg:max-w-lg flex flex-col gap-5">
-          <div className="p-6 sm:p-7 rounded-[28px] bg-[#22060E]/95 border-2 border-[#ECC37A] shadow-2xl space-y-4">
+          <div className="p-6 sm:p-7 rounded-2xl bg-[#18040A] border-2 border-[#ECC37A]/50 shadow-2xl space-y-4">
             {isCountingDown ? (
               <div className="py-10 flex flex-col items-center justify-center space-y-5 text-center">
-                <div className="w-28 h-28 rounded-full border-2 border-[#F59E0B] bg-[#170308] flex items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.45)]">
+                <div className="w-28 h-28 rounded-full border-2 border-[#F59E0B] bg-[#120207] flex items-center justify-center">
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`suspense-timer-${countdown}`}
-                      initial={{ scale: 1.6, opacity: 0 }}
+                      initial={{ scale: 1.4, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.6, opacity: 0 }}
                       transition={{ duration: 0.25 }}
@@ -370,19 +365,19 @@ export default function MonopolyProjectorView() {
               </div>
             ) : isSpinning ? (
               <div className="py-10 flex flex-col items-center justify-center space-y-5 text-center">
-                <div className="w-28 h-28 rounded-full border-2 border-[#F1CA7E] bg-[#170308] flex items-center justify-center shadow-[0_0_30px_rgba(241,202,126,0.35)]">
+                <div className="w-28 h-28 rounded-full border-2 border-[#F1CA7E] bg-[#120207] flex items-center justify-center">
                   <div className="w-12 h-12 border-3 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
                 </div>
 
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-mono uppercase tracking-widest text-[#F1CA7E]/70 font-semibold block">
-                    Decelerating Wheel
+                    Wheel Rotating
                   </span>
                   <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#F8EEE1]">
                     {activeOutcome?.teamName || 'Team'}
                   </h2>
                   <p className="text-xs font-mono uppercase tracking-widest text-[#F1CA7E] font-bold pt-1">
-                    Selecting Acquisition at Random...
+                    Selecting Property at Random...
                   </p>
                 </div>
               </div>
@@ -390,7 +385,7 @@ export default function MonopolyProjectorView() {
               <div className="space-y-4 animate-in fade-in duration-300">
                 {/* Team Info Header */}
                 <div className="flex items-center justify-between pb-1">
-                  <span className="px-2.5 py-1 rounded-md bg-[#3B0C18] border border-[#ECC37A]/40 text-[#F1CA7E] font-mono text-[11px] font-bold uppercase tracking-wider">
+                  <span className="px-2.5 py-1 rounded-md bg-[#2C0812] border border-[#ECC37A]/40 text-[#F1CA7E] font-mono text-[11px] font-bold uppercase tracking-wider">
                     Wave #{activeOutcome.round || activeOutcome.wheelRound || store?.currentWheelRound || 1}
                   </span>
                   <span className="text-sm font-serif font-bold text-[#F8EEE1] uppercase tracking-wide">
@@ -401,20 +396,20 @@ export default function MonopolyProjectorView() {
                 {/* BIG PROPERTY NAME DISPLAY */}
                 <div className="space-y-1 pt-1 border-t border-[#ECC37A]/20">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded bg-[#701020] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold tracking-wider uppercase">
+                    <span className="px-2 py-0.5 rounded bg-[#4A0D1A] border border-[#ECC37A]/60 text-[#F1CA7E] font-mono text-xs font-bold tracking-wider uppercase">
                       Plot #{landedProp.id}
                     </span>
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F1CA7E]/80">
                       {landedProp.category || 'Karachi Real Estate'}
                     </span>
                   </div>
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif text-[#F8EEE1] tracking-tight leading-tight drop-shadow-md">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-serif text-[#F8EEE1] tracking-tight leading-tight">
                     {landedProp.name}
                   </h1>
                 </div>
 
                 {/* 3D Property Preview Plinth */}
-                <div className="rounded-2xl overflow-hidden border-2 border-[#ECC37A]/40 bg-[#120207] shadow-inner">
+                <div className="rounded-2xl overflow-hidden border-2 border-[#ECC37A]/40 bg-[#120207]">
                   <LandPlotIllustration
                     category={landedProp.category}
                     level={Number(landedProp.upgradeLevel || 0)}
@@ -424,7 +419,7 @@ export default function MonopolyProjectorView() {
                 </div>
 
                 {/* Financial Telemetry Card */}
-                <div className="p-4 rounded-2xl bg-[#18040B] border border-[#ECC37A]/30 space-y-3">
+                <div className="p-4 rounded-2xl bg-[#120207] border border-[#ECC37A]/30 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-mono uppercase tracking-wider text-[#F1CA7E]/75">
                       Estate Owner
@@ -464,10 +459,10 @@ export default function MonopolyProjectorView() {
                 {/* Status Indicator */}
                 <div className={`p-3 rounded-xl border text-center font-bold text-xs uppercase tracking-wider font-mono ${
                   activeOutcome.status === 'PAID_RENT'
-                    ? 'bg-[#701020]/80 border-[#EF4444] text-[#FCA5A5]'
+                    ? 'bg-[#4A0D1A] border-[#EF4444] text-[#FCA5A5]'
                     : activeOutcome.status === 'OWN_PROPERTY'
-                    ? 'bg-[#1C3D2B]/80 border-[#22C55E] text-[#86EFAC]'
-                    : 'bg-[#3B0C18]/80 border-[#ECC37A] text-[#F1CA7E]'
+                    ? 'bg-[#143020] border-[#22C55E] text-[#86EFAC]'
+                    : 'bg-[#2C0812] border-[#ECC37A] text-[#F1CA7E]'
                 }`}>
                   {activeOutcome.status === 'PAID_RENT'
                     ? `Penalty Paid to ${activeOutcome.ownerTeamName}`
@@ -477,16 +472,16 @@ export default function MonopolyProjectorView() {
                 </div>
               </div>
             ) : (
-              <div className="py-16 text-center space-y-3">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#3B0C18] border border-[#ECC37A]/50 flex items-center justify-center p-3 shadow-lg">
-                  <img src={aesLogo} alt="AES Logo" className="max-h-full max-w-full object-contain opacity-85" />
+              <div className="py-20 text-center space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#2C0812] border border-[#ECC37A]/50 flex items-center justify-center p-3">
+                  <img src={aesLogo} alt="AES Logo" className="max-h-full max-w-full object-contain" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#F8EEE1]">
-                    Classroom Property Wheel
-                  </h3>
-                  <p className="text-xs font-mono text-[#F1CA7E]/70 uppercase tracking-wider">
-                    Awaiting Tournament Director Command
+                  <h2 className="font-serif text-3xl sm:text-4xl font-black text-[#F8EEE1] tracking-tight uppercase">
+                    Are You Ready?
+                  </h2>
+                  <p className="text-xs font-mono text-[#F1CA7E]/75 uppercase tracking-widest font-semibold">
+                    Next Spin Starting Shortly
                   </p>
                 </div>
               </div>
@@ -497,7 +492,7 @@ export default function MonopolyProjectorView() {
 
       {/* FOOTER */}
       <footer className="relative z-10 pt-3 border-t border-[#ECC37A]/25 flex items-center justify-center text-xs font-mono text-[#F1CA7E]/75 tracking-wider">
-        <span>Alpha Entrepreneurship Summit 2026 · Market Monopoly Arena</span>
+        <span>Alpha Entrepreneurship Summit 2026</span>
       </footer>
     </div>
   );
