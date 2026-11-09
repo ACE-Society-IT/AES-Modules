@@ -433,9 +433,195 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
   });
 }
 
-export async function upgradePropertyLevel() {
-  throw new Error('Properties level up by attaching Bid Resources (Max Level 3), not by cash.');
+
+/**
+ * Purchase a utility token directly from the Bank using game cash.
+ * @param {string} teamId
+ * @param {number} utilityId
+ */
+export async function buyUtilityTokenFromBank(teamId, utilityId) {
+  const latest = await fetchMonopolyStore();
+  const team = latest.teams.find((t) => String(t.id) === String(teamId));
+  if (!team) throw new Error("Team not found.");
+
+  const util = KARACHI_UTILITIES.find((u) => Number(u.id) === Number(utilityId));
+  if (!util) throw new Error("Utility token not found.");
+
+  const cost = Number(util.cost || 0);
+  if (Number(team.cash || 0) < cost) {
+    throw new Error(`Insufficient cash. ${util.name} costs Rs ${cost}L, but ${team.name} only has Rs ${team.cash}L.`);
+  }
+
+  const nextCash = Number(team.cash) - cost;
+  const newResource = {
+    id: `res_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    utilityId: util.id,
+    utilityName: util.name,
+    category: util.category,
+    cost: util.cost,
+    attachedToPropertyId: null,
+    attachedToPropertyName: null,
+    acquiredAt: new Date().toISOString()
+  };
+
+  const currentResources = Array.isArray(team.ownedResources) ? team.ownedResources : [];
+  const nextOwnedResources = [...currentResources, newResource];
+
+  const nextTeams = latest.teams.map((t) =>
+    String(t.id) === String(team.id)
+      ? { ...t, cash: nextCash, ownedResources: nextOwnedResources }
+      : t
+  );
+
+  const tx = {
+    id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    type: "UTILITY_PURCHASED",
+    teamId: team.id,
+    teamName: team.name,
+    utilityId: util.id,
+    utilityName: util.name,
+    amount: cost,
+    note: `${team.name} purchased ${util.name} token from Bank for Rs ${cost}L`,
+    createdAt: new Date().toISOString()
+  };
+
+  await supabase.from("monopoly_transactions").upsert({
+    id: tx.id,
+    type: tx.type,
+    team_id: tx.teamId,
+    team_name: tx.teamName,
+    utility_id: tx.utilityId,
+    utility_name: tx.utilityName,
+    amount: tx.amount,
+    note: tx.note,
+    created_at: tx.createdAt
+  });
+
+  return persistMonopolyStore({
+    ...latest,
+    teams: nextTeams,
+    transactions: [tx, ...(latest.transactions || [])]
+  });
 }
+
+/**
+ * Execute Official Specification Property Upgrade:
+ * Verifies required utility tokens and deducts cash upgrade cost.
+ */
+export async function executePropertySpecificationUpgrade(teamId, propertyId) {
+  const latest = await fetchMonopolyStore();
+  const team = latest.teams.find((t) => String(t.id) === String(teamId));
+  if (!team) throw new Error("Team not found.");
+
+  const prop = latest.properties.find((p) => Number(p.id) === Number(propertyId));
+  if (!prop) throw new Error("Property not found.");
+  if (String(prop.ownerTeamId) !== String(team.id)) {
+    throw new Error(`Only the property owner (${prop.ownerTeamName || "Unknown"}) can upgrade this property.`);
+  }
+
+  const currentLevel = Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)));
+  if (currentLevel >= 3) {
+    throw new Error(`${prop.name} is already at Maximum Level 3.`);
+  }
+
+  const targetLevel = currentLevel + 1;
+  const upgradeCosts = Array.isArray(prop.upgradeCosts) ? prop.upgradeCosts : [10, 15, 20];
+  const cashCost = Number(upgradeCosts[targetLevel - 1] || 10);
+
+  if (Number(team.cash || 0) < cashCost) {
+    throw new Error(`Insufficient cash. Level ${targetLevel} upgrade requires Rs ${cashCost}L, but you have Rs ${team.cash}L.`);
+  }
+
+  const recipeList = (prop.upgradeRequirements && prop.upgradeRequirements[targetLevel]) || [];
+  
+  // Available unassigned resources of this team
+  const owned = Array.isArray(team.ownedResources) ? team.ownedResources : [];
+  const unassigned = owned.filter((r) => !r.attachedToPropertyId);
+
+  // Check if team has enough tokens for each required utility
+  const tokensToConsumeIds = [];
+  for (const item of recipeList) {
+    const matching = unassigned.filter(
+      (r) => Number(r.utilityId) === Number(item.utilityId) && !tokensToConsumeIds.includes(r.id)
+    );
+    if (matching.length < item.count) {
+      throw new Error(
+        `Missing required tokens for Level ${targetLevel}: need ${item.count}× ${item.utilityName}, but you have ${matching.length} available.`
+      );
+    }
+    for (let i = 0; i < item.count; i++) {
+      tokensToConsumeIds.push(matching[i].id);
+    }
+  }
+
+  // Update team resources (mark as attached to this property)
+  const nextOwnedResources = owned.map((r) =>
+    tokensToConsumeIds.includes(r.id)
+      ? { ...r, attachedToPropertyId: prop.id, attachedToPropertyName: prop.name }
+      : r
+  );
+
+  const nextCash = Number(team.cash) - cashCost;
+  const nextTeams = latest.teams.map((t) =>
+    String(t.id) === String(team.id)
+      ? { ...t, cash: nextCash, ownedResources: nextOwnedResources }
+      : t
+  );
+
+  const currentAttached = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
+  const newlyAttachedUtilIds = tokensToConsumeIds.map((rId) => {
+    const res = owned.find((r) => r.id === rId);
+    return res ? res.utilityId : null;
+  }).filter(Boolean);
+
+  const nextAttached = [...currentAttached, ...newlyAttachedUtilIds];
+
+  const nextProps = latest.properties.map((p) =>
+    Number(p.id) === Number(prop.id)
+      ? {
+          ...p,
+          upgradeLevel: targetLevel,
+          attachedUtilities: nextAttached
+        }
+      : p
+  );
+
+  const targetVal = Array.isArray(prop.targetValues) && prop.targetValues[targetLevel]
+    ? prop.targetValues[targetLevel]
+    : prop.level3Target;
+
+  const tx = {
+    id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    type: "PROPERTY_UPGRADED_RECIPE",
+    teamId: team.id,
+    teamName: team.name,
+    propertyId: prop.id,
+    propertyName: prop.name,
+    amount: cashCost,
+    note: `${team.name} upgraded ${prop.name} to Level ${targetLevel} (Paid Rs ${cashCost}L, applied ${tokensToConsumeIds.length} tokens). Target Value: Rs ${targetVal}L`,
+    createdAt: new Date().toISOString()
+  };
+
+  await supabase.from("monopoly_transactions").upsert({
+    id: tx.id,
+    type: tx.type,
+    team_id: tx.teamId,
+    team_name: tx.teamName,
+    property_id: tx.propertyId,
+    property_name: tx.propertyName,
+    amount: tx.amount,
+    note: tx.note,
+    created_at: tx.createdAt
+  });
+
+  return persistMonopolyStore({
+    ...latest,
+    teams: nextTeams,
+    properties: nextProps,
+    transactions: [tx, ...(latest.transactions || [])]
+  });
+}
+
 
 /**
  * Automatic Supabase-Backed Wheel Spin & Rent Settlement:

@@ -1,6 +1,7 @@
 import React from 'react';
 
-// Custom Vector Icons for all 17 Utilities (Zero Lucide, Zero Emojis)
+// Custom Vector Icons for all 15 Utilities (Zero Lucide, Zero Emojis)
+// Spec: Market_Monopoly_Property_Upgrade_System.docx
 export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
   const mergedClass = `${className} utility-icon shrink-0`;
   switch (Number(id)) {
@@ -31,7 +32,7 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
           <circle cx="12" cy="20" r="1" fill="currentColor" />
         </svg>
       );
-    case 5: // Sewerage
+    case 5: // Sewerage System
       return (
         <svg data-utility-icon="5" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
@@ -39,7 +40,7 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
           <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
         </svg>
       );
-    case 6: // Car Parking
+    case 6: // Car Parking Space
       return (
         <svg data-utility-icon="6" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -67,60 +68,48 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
         </svg>
       );
-    case 10: // CCTV
+    case 10: // CCTV Cameras
       return (
         <svg data-utility-icon="10" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M2 8l13-5 5 10-13 5z" />
           <path d="M15 13l5 3v4" />
         </svg>
       );
-    case 11: // Public Transport
+    case 11: // Geyser
       return (
         <svg data-utility-icon="11" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="6" y="2" width="12" height="20" rx="3" />
+          <circle cx="12" cy="14" r="3" />
+          <path d="M12 6v2" />
+        </svg>
+      );
+    case 12: // Public Transport Service
+      return (
+        <svg data-utility-icon="12" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="4" y="3" width="16" height="15" rx="2" />
           <path d="M4 11h16M8 18v3M16 18v3" />
           <circle cx="8.5" cy="14.5" r="1" fill="currentColor" />
           <circle cx="15.5" cy="14.5" r="1" fill="currentColor" />
         </svg>
       );
-    case 12: // Road Maintenance
+    case 13: // Road Maintenance
       return (
-        <svg data-utility-icon="12" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg data-utility-icon="13" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 22L8 2M20 22L16 2M12 6v3M12 13v3M12 20v2" />
         </svg>
       );
-    case 13: // Burglary Alarm
+    case 14: // Burglary Alarm
       return (
-        <svg data-utility-icon="13" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg data-utility-icon="14" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
       );
-    case 14: // Water Filter
-      return (
-        <svg data-utility-icon="14" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-        </svg>
-      );
-    case 15: // Surge Protection
+    case 15: // Surge Protection System
       return (
         <svg data-utility-icon="15" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           <polyline points="9 12 11 14 15 10" />
-        </svg>
-      );
-    case 16: // Trading
-      return (
-        <svg data-utility-icon="16" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-          <polyline points="17 6 23 6 23 12" />
-        </svg>
-      );
-    case 17: // Warehouse
-      return (
-        <svg data-utility-icon="17" className={mergedClass} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 21V8l9-5 9 5v13" />
-          <path d="M9 21v-8h6v8" />
         </svg>
       );
     default:
@@ -132,12 +121,6 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
   }
 }
 
-/**
- * Isometric 3D Architectural Backdrop for Properties Tab Cards
- * Uses the exact same mathematical isometric 3D projection engine (`iso(u, v, z)`)
- * as LandPlotIllustration so every wall, roof, lawn, and driveway is 100% locked
- * to the ground plane with zero floating or misaligned angles.
- */
 export const PropertyCategoryBackdrop = React.memo(function PropertyCategoryBackdrop({
   category = 'Residential',
   className = 'w-full h-28'

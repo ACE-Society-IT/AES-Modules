@@ -23,7 +23,8 @@ import {
   fetchMonopolyStore,
   authenticateMonopolyTeam,
   attachUtilityToProperty,
-  upgradePropertyLevel,
+  buyUtilityTokenFromBank,
+  executePropertySpecificationUpgrade,
   executeTeamWheelSpinAndPayRent,
   computeTeamSummary,
   supabase
@@ -254,6 +255,30 @@ export default function MarketMonopolyApp() {
       localStorage.removeItem('investomania_monopoly_team_name');
     } catch {}
     setIsSignOutModalOpen(false);
+  };
+
+  const handleBuyTokenFromBank = async (utilityId) => {
+    if (!currentTeam) return;
+    try {
+      const updated = await buyUtilityTokenFromBank(currentTeam.id, utilityId);
+      setStore(updated);
+      const util = KARACHI_UTILITIES.find((u) => u.id === Number(utilityId));
+      showToast(`Purchased ${util ? util.name : 'Token'} from Bank for Rs ${util ? util.cost : 0}L!`);
+    } catch (err) {
+      showToast(err.message || 'Failed to purchase token', 'error');
+    }
+  };
+
+  const handleExecuteRecipeUpgrade = async (propertyId) => {
+    if (!currentTeam) return;
+    try {
+      const updated = await executePropertySpecificationUpgrade(currentTeam.id, propertyId);
+      setStore(updated);
+      const prop = updated.properties.find((p) => p.id === Number(propertyId));
+      showToast(`Successfully upgraded ${prop ? prop.name : 'Property'} to Level ${prop ? prop.upgradeLevel : ''}!`);
+    } catch (err) {
+      showToast(err.message || 'Failed to upgrade property', 'error');
+    }
   };
 
   const handleInstallUtility = async (propertyId, utilityId) => {
@@ -493,10 +518,11 @@ export default function MarketMonopolyApp() {
   // =========================================================================
   const sidebarItems = [
     { id: 'land', label: 'My Land', badge: currentTeam.propertyCount },
+    { id: 'buy-resources', label: 'Bank Store', badge: '15 Tokens' },
     { id: 'bank', label: 'History', badge: store.transactions?.length || 0 },
     { id: 'standings', label: 'Rankings', badge: store.teams?.length || 0 },
     { id: 'guide', label: 'Rules', badge: '2R' },
-    { id: 'catalogue', label: 'Info', badge: '25P·17R' }
+    { id: 'catalogue', label: 'Info', badge: '25P·15R' }
   ];
 
   return (
@@ -2376,7 +2402,101 @@ export default function MarketMonopolyApp() {
                   </div>
                 </div>
 
-                {/* LEVEL PROGRESS & ATTACH BID RESOURCES PANEL (FOR OWNED PLOTS) */}
+
+                {/* OFFICIAL LEVEL UPGRADE RECIPE CHECKLIST & UPGRADE ACTION */}
+                {isOwnedByMe && actualLevel < 3 && (() => {
+                  const nextLvl = actualLevel + 1;
+                  const reqs = (inspectedProperty.upgradeRequirements && inspectedProperty.upgradeRequirements[nextLvl]) || [];
+                  const costs = inspectedProperty.upgradeCosts || [10, 15, 20];
+                  const cashCost = costs[nextLvl - 1] || 10;
+                  const hasCash = Number(currentTeam.cash || 0) >= cashCost;
+                  
+                  // Check token readiness
+                  const readyList = (currentTeam.ownedResources || []).filter(r => !r.attachedToPropertyId);
+                  let allTokensReady = true;
+                  const recipeStatus = reqs.map(item => {
+                    const have = readyList.filter(r => Number(r.utilityId) === Number(item.utilityId)).length;
+                    if (have < item.count) allTokensReady = false;
+                    return { ...item, have, needed: item.count, ready: have >= item.count };
+                  });
+
+                  const canUpgrade = hasCash && allTokensReady;
+
+                  return (
+                    <div className="p-4 rounded-2xl capsule-card border-2 border-[var(--border-card)] space-y-3">
+                      <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-2.5">
+                        <div>
+                          <span className="text-[10px] font-mono font-bold uppercase text-[#2E7D52] block">
+                            Specification Upgrade Engine
+                          </span>
+                          <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
+                            Upgrade to Level {nextLvl} Recipe
+                          </h5>
+                        </div>
+                        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: hasCash ? '#2E7D52' : '#C0392B' }}>
+                          Cost: Rs {cashCost}L {hasCash ? '✓' : '(Need Cash)'}
+                        </span>
+                      </div>
+
+                      {/* Required Tokens Checklist */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10.5px] font-rounded font-bold block" style={{ color: 'var(--text-sub)' }}>
+                          Required Utility Tokens for Level {nextLvl}:
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {recipeStatus.map((item) => (
+                            <div
+                              key={item.utilityId}
+                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs font-rounded font-semibold ${
+                                item.ready
+                                  ? 'border-[#2E7D52]/50 bg-[#2E7D52]/10 text-[var(--text-main)]'
+                                  : 'border-[#C0392B]/50 bg-[#C0392B]/10 text-[var(--text-main)]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <UtilityIcon id={item.utilityId} className="w-4 h-4 shrink-0" style={{ color: item.ready ? '#2E7D52' : '#C0392B' }} />
+                                <span className="truncate">{item.count}× {item.utilityName}</span>
+                              </div>
+                              <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                item.ready ? 'bg-[#2E7D52] text-white' : 'bg-[#C0392B] text-white'
+                              }`}>
+                                {item.have} / {item.needed}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Execute Upgrade Button */}
+                      <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                        <div className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
+                          {canUpgrade ? (
+                            <span className="text-[#2E7D52] font-bold">✓ Ready: Tokens verified & cash available!</span>
+                          ) : !hasCash ? (
+                            <span className="text-[#C0392B] font-bold">✗ Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
+                          ) : (
+                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy tokens in Bank Store or win in Admin Bid.</span>
+                          )}
+                        </div>
+
+                        <TactileButton
+                          disabled={!canUpgrade}
+                          onClick={() => handleExecuteRecipeUpgrade(inspectedProperty.id)}
+                          className={`rounded-full px-5 py-2 text-xs font-rounded font-bold transition-all cursor-pointer ${
+                            canUpgrade
+                              ? 'btn-primary shadow-md hover:scale-[1.02]'
+                              : 'opacity-40 cursor-not-allowed capsule-inset'
+                          }`}
+                          style={!canUpgrade ? { color: 'var(--text-sub)' } : undefined}
+                        >
+                          Execute Level {nextLvl} Upgrade
+                        </TactileButton>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                                {/* LEVEL PROGRESS & ATTACH BID RESOURCES PANEL (FOR OWNED PLOTS) */}
                 {isOwnedByMe && (
                   <div className="p-3.5 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2.5">
                     <div className="flex items-center justify-between text-xs font-rounded font-bold">
