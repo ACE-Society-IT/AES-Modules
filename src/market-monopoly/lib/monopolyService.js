@@ -345,6 +345,17 @@ export async function authenticateMonopolyTeam({ identifier, passcode }) {
  * Resources can only be obtained from the Admin Bid (money is deducted when Admin assigns the resource).
  */
 export async function attachUtilityToProperty({ store, teamId, propertyId, utilityId }) {
+  if (supabase) {
+    const { data: res, error } = await supabase.rpc('monopoly_attach_utility', {
+      p_team_id: String(teamId),
+      p_property_id: Number(propertyId),
+      p_utility_id: Number(utilityId)
+    });
+    if (error) throw error;
+    if (res && !res.ok) throw new Error(res.error || 'Server rejected utility attachment.');
+    return await fetchMonopolyStore(true);
+  }
+
   const latest = await fetchMonopolyStore();
   const prop = latest.properties.find((p) => Number(p.id) === Number(propertyId));
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
@@ -444,6 +455,16 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
  * @param {number} utilityId
  */
 export async function buyUtilityTokenFromBank(teamId, utilityId) {
+  if (supabase) {
+    const { data: res, error } = await supabase.rpc('monopoly_buy_utility', {
+      p_team_id: String(teamId),
+      p_utility_id: Number(utilityId)
+    });
+    if (error) throw error;
+    if (res && !res.ok) throw new Error(res.error || 'Server rejected token purchase.');
+    return await fetchMonopolyStore(true);
+  }
+
   const latest = await fetchMonopolyStore();
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
   if (!team) throw new Error("Team not found.");
@@ -655,6 +676,16 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
  * Deducts rent from the spinning team and credits the owner of the landed property automatically.
  */
 export async function executeTeamWheelSpinAndPayRent({ store, teamId, propertyId }) {
+  if (supabase) {
+    const { data: res, error } = await supabase.rpc('monopoly_execute_wheel_spin', {
+      p_team_id: String(teamId),
+      p_property_id: Number(propertyId)
+    });
+    if (error) throw error;
+    if (res && !res.ok) throw new Error(res.error || 'Server rejected wheel spin.');
+    return await fetchMonopolyStore(true);
+  }
+
   const latest = await fetchMonopolyStore();
   const prop = latest.properties.find((p) => Number(p.id) === Number(propertyId));
   const payer = latest.teams.find((t) => String(t.id) === String(teamId));
@@ -826,6 +857,16 @@ export function computeTeamSummary(team, properties = []) {
  * @param {string|'ALL'} targetTeamId
  */
 export async function triggerWheelSpinAdmin({ teamId }) {
+  if (supabase) {
+    const { data: res, error } = await supabase.rpc('monopoly_execute_wheel_spin', {
+      p_team_id: String(teamId),
+      p_property_id: 0
+    });
+    if (error) throw error;
+    if (res && !res.ok) throw new Error(res.error || 'Server rejected wheel spin.');
+    return await fetchMonopolyStore(true);
+  }
+
   const latest = await fetchMonopolyStore();
   const currentWave = Number(latest.currentWheelRound || 1);
   const properties = latest.properties || [];
@@ -947,6 +988,16 @@ export async function triggerWheelSpinAdmin({ teamId }) {
  * removes the spin record, updates lastWheelResult, and logs transaction.
  */
 export async function deleteWheelSpinAdmin({ round, teamId }) {
+  if (supabase) {
+    const { data: res, error } = await supabase.rpc('monopoly_delete_wheel_spin', {
+      p_round: Number(round),
+      p_team_id: String(teamId)
+    });
+    if (error) throw error;
+    if (res && !res.ok) throw new Error(res.error || 'Server rejected deleting wheel spin.');
+    return await fetchMonopolyStore(true);
+  }
+
   const latest = await fetchMonopolyStore();
   const wave = Number(round || latest.currentWheelRound || 1);
   const nextWheelSpinsByRound = { ...(latest.wheelSpinsByRound || {}) };
