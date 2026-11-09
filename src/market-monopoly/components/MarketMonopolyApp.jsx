@@ -139,17 +139,7 @@ export default function MarketMonopolyApp() {
   const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
 
-  // Auto-Popup when Admin triggers wheel spin for this team
-  const lastProcessedSpinRef = React.useRef(null);
-  useEffect(() => {
-    if (!currentTeam || !store) return;
-    const currentWave = Number(store.currentWheelRound || 1);
-    const mySpin = store.wheelSpinsByRound?.[currentWave]?.[currentTeam.id];
-    if (mySpin && mySpin.timestamp && mySpin.timestamp !== lastProcessedSpinRef.current) {
-      lastProcessedSpinRef.current = mySpin.timestamp;
-      setIsWheelModalOpen(true);
-    }
-  }, [store?.wheelSpinsByRound, store?.currentWheelRound, currentTeam?.id]);
+
 
   const [purchasingUtilityId, setPurchasingUtilityId] = useState(null);
   const [toast, setToast] = useState(null);
@@ -2260,14 +2250,7 @@ export default function MarketMonopolyApp() {
 
       {/* Floating spin button removed per specification */}
 
-      {/* CENTER-SCREEN LARGE 25-PROPERTY SPIN WHEEL MODAL */}
-      <SpinWheelModal
-        isOpen={isWheelModalOpen}
-        onClose={() => setIsWheelModalOpen(false)}
-        store={store}
-        currentTeam={currentTeam}
-        onCompleteSpin={handleTeamSpinWheel}
-      />
+      {/* Wheel spin is exclusively projected in classroom on /market-monopoly/projector */}
 
       {/* SIGN OUT MODAL */}
       <AnimatePresence>
