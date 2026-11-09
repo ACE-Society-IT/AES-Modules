@@ -387,21 +387,23 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
   );
 
   const nextAttached = [...prop.attachedUtilities, util.id];
-  const nextLevel = Math.min(3, nextAttached.length);
+  // Do NOT change property upgradeLevel on individual utility attach.
+  // Levels only increase when the full recipe is verified and paid for via executePropertySpecificationUpgrade.
+  const currentLvl = Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)));
 
   const nextProps = latest.properties.map((p) =>
     Number(p.id) === Number(prop.id)
       ? {
           ...p,
           attachedUtilities: nextAttached,
-          upgradeLevel: nextLevel
+          upgradeLevel: currentLvl
         }
       : p
   );
 
   const tx = {
     id: `tx_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-    type: 'RESOURCE_LEVEL_UP',
+    type: 'RESOURCE_ATTACHED',
     teamId: team.id,
     teamName: team.name,
     propertyId: prop.id,
@@ -409,7 +411,7 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
     utilityId: util.id,
     utilityName: util.name,
     amount: 0,
-    note: `${team.name} attached ${util.name} to ${prop.name} -> Level ${nextLevel}/3`,
+    note: `${team.name} attached ${util.name} to ${prop.name} (Attached: ${nextAttached.length}/3)`,
     createdAt: new Date().toISOString()
   };
 
@@ -511,6 +513,29 @@ export async function buyUtilityTokenFromBank(teamId, utilityId) {
  * Verifies required utility tokens and deducts cash upgrade cost.
  */
 export async function executePropertySpecificationUpgrade(teamId, propertyId) {
+  // 1. Try server-side Supabase verification first via monopoly_execute_recipe_upgrade RPC
+  if (supabase) {
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('monopoly_execute_recipe_upgrade', {
+        p_team_id: String(teamId),
+        p_property_id: Number(propertyId)
+      });
+      if (!rpcErr && rpcRes) {
+        if (!rpcRes.ok) {
+          throw new Error(rpcRes.error || 'Upgrade rejected by server.');
+        }
+        // Successfully verified and applied on Supabase server!
+        return await fetchMonopolyStore(true);
+      }
+    } catch (rpcCallErr) {
+      // If error was thrown from server validation, rethrow it directly
+      if (rpcCallErr.message && !rpcCallErr.message.includes('failed to fetch') && !rpcCallErr.message.includes('NetworkError')) {
+        throw rpcCallErr;
+      }
+    }
+  }
+
+  // 2. Client-side verification and fallback
   const latest = await fetchMonopolyStore();
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
   if (!team) throw new Error("Team not found.");

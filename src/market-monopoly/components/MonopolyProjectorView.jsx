@@ -202,7 +202,10 @@ export default function MonopolyProjectorView() {
             <div
               className="w-full h-full rounded-full will-change-transform"
               style={{
-                transform: `rotate(${wheelRotation}deg)`,
+                transform: `rotate(${wheelRotation}deg) translateZ(0)`,
+                transformOrigin: 'center center',
+                backfaceVisibility: 'hidden',
+                willChange: 'transform',
                 transition: isSpinning
                   ? 'transform 5.0s cubic-bezier(0.12, 0.82, 0.22, 1)'
                   : 'none'

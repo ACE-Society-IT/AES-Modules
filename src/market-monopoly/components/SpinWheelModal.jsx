@@ -218,7 +218,10 @@ export default function SpinWheelModal({
                     <div
                       className="w-full h-full rounded-full will-change-transform"
                       style={{
-                        transform: `rotate(${wheelRotation}deg)`,
+                        transform: `rotate(${wheelRotation}deg) translateZ(0)`,
+                        transformOrigin: 'center center',
+                        backfaceVisibility: 'hidden',
+                        willChange: 'transform',
                         transition: isSpinning
                           ? 'transform 4.2s cubic-bezier(0.15, 0.85, 0.25, 1)'
                           : 'none'

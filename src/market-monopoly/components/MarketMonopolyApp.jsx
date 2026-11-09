@@ -142,6 +142,7 @@ export default function MarketMonopolyApp() {
 
   // Rent settlement popup state (for paying rent & collecting rent)
   const [activeRentDialog, setActiveRentDialog] = useState(null);
+  const initialSpinsSeededRef = useRef({});
   const [dismissedRentKeys, setDismissedRentKeys] = useState(() => {
     try {
       const stored = localStorage.getItem('monopoly_dismissed_rent_keys');
@@ -235,12 +236,37 @@ export default function MarketMonopolyApp() {
   // Detect new wheel spin outcomes:
   // 1. If my team spun -> show dialog that I landed on X and rent was settled / paid to owner
   // 2. If another team landed on my property -> show dialog that I collected rent from them (supports multiple teams paying for the same land!)
+  // Rent settlement popup state (for paying rent & collecting rent)
+  // Deterministic event keys prevent repeat popups across refreshes/logins.
+  // Historical spins that existed before login are seeded once so they never trigger on login.
   useEffect(() => {
     if (!currentTeam || !store?.wheelSpinsByRound) return;
 
     const teamKey = String(currentTeam.id);
-    const seenMap = dismissedRentKeys[teamKey] || {};
 
+    // If this is the initial load for this team, seed existing spins so past spins never pop up on login!
+    if (!initialSpinsSeededRef.current[teamKey]) {
+      initialSpinsSeededRef.current[teamKey] = true;
+      setDismissedRentKeys((prev) => {
+        const teamMap = { ...(prev[teamKey] || {}) };
+        Object.keys(store.wheelSpinsByRound).forEach((roundKey) => {
+          const roundSpins = store.wheelSpinsByRound[roundKey] || {};
+          Object.values(roundSpins).forEach((spin) => {
+            if (!spin) return;
+            teamMap[`payer_${roundKey}_${spin.propertyId}_${spin.teamId}`] = true;
+            teamMap[`rcv_${roundKey}_${spin.teamId}_${spin.propertyId}`] = true;
+          });
+        });
+        const next = { ...prev, [teamKey]: teamMap };
+        try {
+          localStorage.setItem('monopoly_dismissed_rent_keys', JSON.stringify(next));
+        } catch (_) {}
+        return next;
+      });
+      return;
+    }
+
+    const seenMap = dismissedRentKeys[teamKey] || {};
     const unseenPayerEvents = [];
     const unseenReceiverEvents = [];
 
@@ -249,11 +275,10 @@ export default function MarketMonopolyApp() {
       const roundSpins = store.wheelSpinsByRound[roundKey] || {};
       Object.values(roundSpins).forEach((spin) => {
         if (!spin) return;
-        const spinNonce = spin.nonce || spin.timestamp || `${roundKey}_${spin.propertyId}`;
 
         // 1. As Spinner (My team spun and landed on a property)
         if (String(spin.teamId) === teamKey) {
-          const payerKey = `payer_${roundKey}_${spin.propertyId}_${spinNonce}`;
+          const payerKey = `payer_${roundKey}_${spin.propertyId}_${spin.teamId}`;
           if (!seenMap[payerKey]) {
             unseenPayerEvents.push({ ...spin, eventKey: payerKey, roundKey });
           }
@@ -265,7 +290,7 @@ export default function MarketMonopolyApp() {
           String(spin.ownerTeamId) === teamKey &&
           String(spin.teamId) !== teamKey
         ) {
-          const receiverKey = `rcv_${roundKey}_${spin.teamId}_${spin.propertyId}_${spinNonce}`;
+          const receiverKey = `rcv_${roundKey}_${spin.teamId}_${spin.propertyId}`;
           if (!seenMap[receiverKey]) {
             unseenReceiverEvents.push({ ...spin, eventKey: receiverKey, roundKey });
           }
@@ -857,11 +882,11 @@ export default function MarketMonopolyApp() {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.16, ease: 'easeOut' }}
-            className="w-full"
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full will-change-transform"
           >
             {/* ================================================================= */}
             {/* TAB 1: MY LAND (9 Cols, Extra Tall) + UTILITIES SHOP (3 Cols)     */}
@@ -921,7 +946,7 @@ export default function MarketMonopolyApp() {
                             const val = computePropertyValuation(prop);
                             const rent = computePropertyRent(prop);
                             const attachedIds = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
-                            const lvl = Math.min(3, Math.max(Number(prop.upgradeLevel || 0), attachedIds.length));
+                            const lvl = Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)));
                             const isDropTarget = hoveredPropertyId === prop.id;
                             const isSelected = Number(inspectedPropertyId) === Number(prop.id);
 
@@ -2276,7 +2301,7 @@ export default function MarketMonopolyApp() {
                         const rent = computePropertyRent(prop);
                         const attachedIds = Array.isArray(prop.attachedUtilities) ? prop.attachedUtilities : [];
                         const plotLvl = owner
-                          ? Math.min(3, Math.max(Number(prop.upgradeLevel || 0), attachedIds.length))
+                          ? Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)))
                           : 3;
 
                         return (
@@ -2706,7 +2731,7 @@ export default function MarketMonopolyApp() {
             : [];
           const actualLevel = Math.min(
             3,
-            Math.max(Number(inspectedProperty.upgradeLevel || 0), attachedIds.length)
+            Math.max(0, Number(inspectedProperty.upgradeLevel || 0))
           );
           const displayedLevel =
             previewLevelOverride !== null ? previewLevelOverride : actualLevel;
