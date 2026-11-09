@@ -9,6 +9,14 @@ import {
 
 const GameContext = createContext(null);
 
+function sanitizeParticipantGameState(rawState) {
+  if (!rawState || typeof rawState !== 'object') return rawState;
+  const sanitized = { ...rawState };
+  delete sanitized.draftCrises;
+  delete sanitized.crisesByRound;
+  return sanitized;
+}
+
 export function GameProvider({ children }) {
   const [gameState, setGameState] = useState(null);
   const [team, setTeam] = useState(() => {
@@ -59,7 +67,7 @@ export function GameProvider({ children }) {
     try {
       const directState = await fetchGameStateDirect();
       if (directState) {
-        setGameState(directState);
+        setGameState(sanitizeParticipantGameState(directState));
       }
 
       // If team is signed in, sync fresh team row directly from investomania_teams
@@ -114,7 +122,7 @@ export function GameProvider({ children }) {
           { event: '*', schema: 'public', table: 'investomania_state' },
           (payload) => {
             if (payload.new && payload.new.state_json) {
-              setGameState(payload.new.state_json);
+              setGameState(sanitizeParticipantGameState(payload.new.state_json));
             } else {
               fetchLatestState();
             }

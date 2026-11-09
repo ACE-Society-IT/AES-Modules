@@ -5,7 +5,8 @@ import {
   DEFAULT_MONOPOLY_TEAMS,
   STARTING_BUDGET_LAKH,
   computePropertyRent,
-  computePropertyValuation
+  computePropertyValuation,
+  computePropertyUpgradeLevel
 } from '../data/monopolyData.js';
 
 export const SUPABASE_URL = 'https://dvynsvvmqaibybjdsukb.supabase.co';
@@ -164,7 +165,7 @@ export async function fetchMonopolyStore(forceFresh = false) {
 
   const [stateRes, teamsRes, propsRes] = await Promise.all([
     supabase.from('monopoly_state').select('state_json').eq('id', 1).maybeSingle(),
-    supabase.from('monopoly_teams').select('id, name, username, passcode, cash, starting_budget, owned_resources').order('updated_at', { ascending: true }),
+    supabase.from('monopoly_teams').select('id, name, username, cash, starting_budget, owned_resources').order('updated_at', { ascending: true }),
     supabase.from('monopoly_properties').select('*').order('id', { ascending: true })
   ]);
 
@@ -177,7 +178,6 @@ export async function fetchMonopolyStore(forceFresh = false) {
         id: String(row.id),
         name: row.name,
         username: (row.username || row.name || '').toLowerCase().replace(/\s+/g, '_'),
-        passcode: String(row.passcode || '1234'),
         cash: Number(row.cash ?? row.starting_budget ?? STARTING_BUDGET_LAKH),
         startingBudget: Number(row.starting_budget ?? STARTING_BUDGET_LAKH),
         ownedResources: Array.isArray(row.owned_resources) ? row.owned_resources : []
@@ -344,32 +344,14 @@ export async function authenticateMonopolyTeam({ identifier, passcode }) {
     p_passcode: cleanCode
   });
 
-  if (!rpcErr && rpcResult) {
-    if (!rpcResult.ok) {
-      throw new Error(rpcResult.error || 'Authentication failed.');
-    }
-    const matched =
-      latestStore.teams.find((t) => String(t.id) === String(rpcResult.team?.id)) ||
-      rpcResult.team;
-    return { team: matched, store: latestStore };
+  if (rpcErr || !rpcResult?.ok) {
+    throw new Error(rpcResult?.error || rpcErr?.message || 'Authentication failed. Please verify credentials.');
   }
 
-  // Fallback check against latestStore.teams if RPC is unavailable
-  const found = latestStore.teams.find(
-    (t) =>
-      t.name.toLowerCase() === cleanId.toLowerCase() ||
-      (t.username && t.username.toLowerCase() === cleanId.toLowerCase()) ||
-      t.id.toLowerCase() === cleanId.toLowerCase()
-  );
-
-  if (!found) {
-    throw new Error('Team username not found. Check with the organizer desk.');
-  }
-  if (String(found.passcode).trim() !== cleanCode) {
-    throw new Error('Incorrect team passcode.');
-  }
-
-  return { team: found, store: latestStore };
+  const matched =
+    latestStore.teams.find((t) => String(t.id) === String(rpcResult.team?.id)) ||
+    rpcResult.team;
+  return { team: matched, store: latestStore };
 }
 
 /**
@@ -426,17 +408,16 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
     String(t.id) === String(team.id) ? { ...t, ownedResources: nextOwnedResources } : t
   );
 
-  const nextAttached = [...prop.attachedUtilities, util.id];
-  // Do NOT change property upgradeLevel on individual utility attach.
-  // Levels only increase when the full recipe is verified and paid for via executePropertySpecificationUpgrade.
-  const currentLvl = Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)));
+  const nextAttached = [...(prop.attachedUtilities || []), util.id];
+  // Calculate new level: if attached utilities satisfy recipe requirements, level automatically increases!
+  const newLvl = computePropertyUpgradeLevel(prop, nextAttached);
 
   const nextProps = latest.properties.map((p) =>
     Number(p.id) === Number(prop.id)
       ? {
           ...p,
           attachedUtilities: nextAttached,
-          upgradeLevel: currentLvl
+          upgradeLevel: newLvl
         }
       : p
   );
@@ -451,7 +432,7 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
     utilityId: util.id,
     utilityName: util.name,
     amount: 0,
-    note: `${team.name} attached ${util.name} to ${prop.name} (Attached: ${nextAttached.length}/3)`,
+    note: `${team.name} attached ${util.name} to ${prop.name} (Level: ${newLvl}, Attached: ${nextAttached.length})`,
     createdAt: new Date().toISOString()
   };
 
@@ -611,23 +592,32 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
 
   const recipeList = (prop.upgradeRequirements && prop.upgradeRequirements[targetLevel]) || [];
   
-  // Available unassigned resources of this team
+  // Available resources of this team
   const owned = Array.isArray(team.ownedResources) ? team.ownedResources : [];
-  const unassigned = owned.filter((r) => !r.attachedToPropertyId);
+  const attachedToThisProp = (prop.attachedUtilities || []).map(Number);
 
-  // Check if team has enough tokens for each required utility
+  // Check if team has enough tokens for each required utility, counting tokens already installed on this property!
   const tokensToConsumeIds = [];
   for (const item of recipeList) {
-    const matching = unassigned.filter(
-      (r) => Number(r.utilityId) === Number(item.utilityId) && !tokensToConsumeIds.includes(r.id)
-    );
-    if (matching.length < item.count) {
-      throw new Error(
-        `Missing required tokens for Level ${targetLevel}: need ${item.count}× ${item.utilityName}, but you have ${matching.length} available.`
+    const uId = Number(item.utilityId);
+    const countNeeded = Number(item.count || 1);
+    
+    // Tokens already installed on this property for this requirement
+    const installedCount = attachedToThisProp.filter((id) => id === uId).length;
+    const stillNeededCount = Math.max(0, countNeeded - installedCount);
+
+    if (stillNeededCount > 0) {
+      const matching = owned.filter(
+        (r) => Number(r.utilityId) === uId && !r.attachedToPropertyId && !tokensToConsumeIds.includes(r.id)
       );
-    }
-    for (let i = 0; i < item.count; i++) {
-      tokensToConsumeIds.push(matching[i].id);
+      if (matching.length < stillNeededCount) {
+        throw new Error(
+          `Missing required tokens for Level ${targetLevel}: need ${countNeeded}× ${item.utilityName}, but you have ${installedCount} installed on plot and ${matching.length} in bag.`
+        );
+      }
+      for (let i = 0; i < stillNeededCount; i++) {
+        tokensToConsumeIds.push(matching[i].id);
+      }
     }
   }
 
@@ -652,12 +642,13 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
   }).filter(Boolean);
 
   const nextAttached = [...currentAttached, ...newlyAttachedUtilIds];
+  const finalLevel = Math.max(targetLevel, computePropertyUpgradeLevel(prop, nextAttached));
 
   const nextProps = latest.properties.map((p) =>
     Number(p.id) === Number(prop.id)
       ? {
           ...p,
-          upgradeLevel: targetLevel,
+          upgradeLevel: finalLevel,
           attachedUtilities: nextAttached
         }
       : p

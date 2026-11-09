@@ -23,7 +23,14 @@ export async function fetchGameStateDirect() {
     .single();
 
   if (error) throw formatDbError(error, 'Failed to fetch floor state');
-  return data?.state_json || null;
+  const state = data?.state_json || null;
+  if (state && typeof state === 'object') {
+    const sanitized = { ...state };
+    delete sanitized.draftCrises;
+    delete sanitized.crisesByRound;
+    return sanitized;
+  }
+  return state;
 }
 
 /**

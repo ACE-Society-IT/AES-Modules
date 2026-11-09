@@ -17,7 +17,8 @@ import {
 import {
   KARACHI_UTILITIES,
   computePropertyValuation,
-  computePropertyRent
+  computePropertyRent,
+  computePropertyUpgradeLevel
 } from '../data/monopolyData.js';
 import { KARACHI_PROPERTY_DOSSIERS } from '../data/propertyDossiers.js';
 import {
@@ -424,6 +425,8 @@ export default function MarketMonopolyApp() {
   const handleInstallUtility = async (propertyId, utilityId) => {
     if (!currentTeam) return;
     try {
+      const prevProp = store.properties.find((p) => Number(p.id) === Number(propertyId));
+      const prevLvl = Number(prevProp?.upgradeLevel || 0);
       const updated = await attachUtilityToProperty({
         store,
         teamId: currentTeam.id,
@@ -432,8 +435,13 @@ export default function MarketMonopolyApp() {
       });
       setStore(updated);
       const util = KARACHI_UTILITIES.find((u) => Number(u.id) === Number(utilityId));
-      const prop = store.properties.find((p) => Number(p.id) === Number(propertyId));
-      showToast(`Added ${util?.name} to ${prop?.name}`);
+      const prop = updated.properties.find((p) => Number(p.id) === Number(propertyId));
+      const newLvl = Number(prop?.upgradeLevel || 0);
+      if (newLvl > prevLvl) {
+        showToast(`Installed ${util?.name}! ${prop?.name} UPGRADED to Level ${newLvl}!`);
+      } else {
+        showToast(`Attached ${util?.name} to ${prop?.name}`);
+      }
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -1081,14 +1089,29 @@ export default function MarketMonopolyApp() {
                                   const hasCash = Number(currentTeam.cash || 0) >= cashCost;
                                   const targetVal = prop.targetValues?.[nextLvl] || prop.level3Target;
 
-                                  const readyTokens = (currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId);
+                                  const attachedToProp = (prop.attachedUtilities || []).map(Number);
+                                  const unassignedTokens = (currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId);
+
                                   let allTokensReady = true;
+                                  let allTokensInstalled = reqs.length > 0;
                                   const recipeStatus = reqs.map((item) => {
-                                    const have = readyTokens.filter((r) => Number(r.utilityId) === Number(item.utilityId)).length;
-                                    if (have < item.count) allTokensReady = false;
-                                    return { ...item, have, needed: item.count, ready: have >= item.count };
+                                    const uId = Number(item.utilityId);
+                                    const countNeeded = Number(item.count || 1);
+                                    const installed = attachedToProp.filter((id) => id === uId).length;
+                                    const inBag = unassignedTokens.filter((r) => Number(r.utilityId) === uId).length;
+                                    const totalHave = installed + inBag;
+                                    if (totalHave < countNeeded) allTokensReady = false;
+                                    if (installed < countNeeded) allTokensInstalled = false;
+                                    return {
+                                      ...item,
+                                      have: totalHave,
+                                      installed,
+                                      needed: countNeeded,
+                                      ready: totalHave >= countNeeded,
+                                      isFullyInstalled: installed >= countNeeded
+                                    };
                                   });
-                                  const canUpgradeCard = hasCash && allTokensReady;
+                                  const canUpgradeCard = allTokensInstalled || (hasCash && allTokensReady);
 
                                   return (
                                     <div className="p-2.5 rounded-xl border border-[var(--border-soft)] capsule-card space-y-2">
@@ -1102,9 +1125,9 @@ export default function MarketMonopolyApp() {
                                           </span>
                                         </div>
                                         <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                          hasCash ? 'bg-[#2E7D52]/15 text-[#2E7D52]' : 'bg-[#C0392B]/15 text-[#C0392B]'
+                                          allTokensInstalled || hasCash ? 'bg-[#2E7D52]/15 text-[#2E7D52]' : 'bg-[#C0392B]/15 text-[#C0392B]'
                                         }`}>
-                                          Rs {cashCost}L {hasCash ? '[Ready]' : `[Need Rs ${cashCost - Number(currentTeam.cash || 0)}L]`}
+                                          {allTokensInstalled ? 'Ready to Upgrade' : `Rs ${cashCost}L ${hasCash ? '[Ready]' : `[Need Rs ${cashCost - Number(currentTeam.cash || 0)}L]`}`}
                                         </span>
                                       </div>
 
@@ -1118,15 +1141,17 @@ export default function MarketMonopolyApp() {
                                             <span
                                               key={item.utilityId}
                                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9.5px] font-rounded font-bold border ${
-                                                item.ready
-                                                  ? 'bg-[#2E7D52]/15 text-[#2E7D52] border-[#2E7D52]/40'
+                                                item.isFullyInstalled
+                                                  ? 'bg-[#2E7D52]/20 text-[#2E7D52] border-[#2E7D52]/50'
+                                                  : item.ready
+                                                  ? 'bg-[#D97706]/15 text-[#D97706] border-[#D97706]/40'
                                                   : 'bg-[#C0392B]/10 text-[#C0392B] border-[#C0392B]/30'
                                               }`}
                                             >
                                               <UtilityIcon id={item.utilityId} className="w-2.5 h-2.5 shrink-0" />
                                               <span>{item.count}× {item.utilityName}</span>
                                               <span className="font-mono text-[8.5px] opacity-90">
-                                                ({item.have}/{item.needed})
+                                                {item.isFullyInstalled ? '[Installed]' : `(${item.have}/${item.needed})`}
                                               </span>
                                             </span>
                                           ))}
@@ -1144,12 +1169,14 @@ export default function MarketMonopolyApp() {
                                             }}
                                             className="w-full py-1.5 px-3 rounded-xl text-xs font-rounded font-bold bg-[#2E7D52] hover:bg-[#256643] text-white transition-all cursor-pointer shadow-sm text-center"
                                           >
-                                            Upgrade to Level {nextLvl} (Cost: Rs {cashCost}L)
+                                            {allTokensInstalled
+                                              ? `Complete Level ${nextLvl} Upgrade`
+                                              : `Upgrade to Level ${nextLvl} (Cost: Rs ${cashCost}L)`}
                                           </button>
                                         ) : (
                                           <div className="flex items-center justify-between gap-1.5 text-[10px] font-rounded">
                                             <span className="text-[#C0392B] font-bold truncate">
-                                              {!hasCash
+                                              {!hasCash && allTokensReady
                                                 ? `Need Rs ${cashCost - Number(currentTeam.cash || 0)}L cash`
                                                 : 'Missing tokens to upgrade'}
                                             </span>
@@ -2748,7 +2775,7 @@ export default function MarketMonopolyApp() {
                           <span className="truncate">{res.name}</span>
                         </span>
                         <span className="font-mono text-[11px] font-bold text-[#2E7D52] shrink-0">
-                          {alreadyInstalled ? 'Added' : '+1 Lvl'}
+                          {alreadyInstalled ? 'Added' : '+Attach'}
                         </span>
                       </button>
                     );
@@ -2980,16 +3007,30 @@ export default function MarketMonopolyApp() {
                   const cashCost = costs[nextLvl - 1] || 10;
                   const hasCash = Number(currentTeam.cash || 0) >= cashCost;
 
-                  // Check token readiness
-                  const readyList = (currentTeam.ownedResources || []).filter(r => !r.attachedToPropertyId);
+                  // Check token readiness: count both tokens already installed on this property AND tokens in unassigned inventory
+                  const attachedToThisPlot = (inspectedProperty.attachedUtilities || []).map(Number);
+                  const unassignedTokens = (currentTeam.ownedResources || []).filter(r => !r.attachedToPropertyId);
                   let allTokensReady = true;
+                  let allTokensInstalled = reqs.length > 0;
                   const recipeStatus = reqs.map(item => {
-                    const have = readyList.filter(r => Number(r.utilityId) === Number(item.utilityId)).length;
-                    if (have < item.count) allTokensReady = false;
-                    return { ...item, have, needed: item.count, ready: have >= item.count };
+                    const uId = Number(item.utilityId);
+                    const countNeeded = Number(item.count || 1);
+                    const installed = attachedToThisPlot.filter(id => id === uId).length;
+                    const inBag = unassignedTokens.filter(r => Number(r.utilityId) === uId).length;
+                    const totalHave = installed + inBag;
+                    if (totalHave < countNeeded) allTokensReady = false;
+                    if (installed < countNeeded) allTokensInstalled = false;
+                    return {
+                      ...item,
+                      have: totalHave,
+                      installed,
+                      needed: countNeeded,
+                      ready: totalHave >= countNeeded,
+                      isFullyInstalled: installed >= countNeeded
+                    };
                   });
 
-                  const canUpgrade = hasCash && allTokensReady;
+                  const canUpgrade = allTokensInstalled || (hasCash && allTokensReady);
 
                   return (
                     <div className="p-4 rounded-2xl capsule-card border-2 border-[var(--border-card)] space-y-3">
@@ -2999,11 +3040,11 @@ export default function MarketMonopolyApp() {
                             Upgrade Execution Console
                           </span>
                           <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
-                            Upgrade to Level {nextLvl} (Cost: Rs {cashCost}L)
+                            Upgrade to Level {nextLvl} {allTokensInstalled ? '(Ready)' : `(Cost: Rs ${cashCost}L)`}
                           </h5>
                         </div>
-                        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: hasCash ? '#2E7D52' : '#C0392B' }}>
-                          Cash: Rs {cashCost}L {hasCash ? '[Ready]' : '[Need Cash]'}
+                        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: allTokensInstalled || hasCash ? '#2E7D52' : '#C0392B' }}>
+                          {allTokensInstalled ? 'Ready to Upgrade' : `Cash: Rs ${cashCost}L ${hasCash ? '[Ready]' : '[Need Cash]'}`}
                         </span>
                       </div>
 
@@ -3016,18 +3057,20 @@ export default function MarketMonopolyApp() {
                           {recipeStatus.map((item) => (
                             <div
                               key={item.utilityId}
-                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs font-rounded font-semibold ${item.ready
-                                  ? 'border-[#2E7D52]/50 bg-[#2E7D52]/10 text-[var(--text-main)]'
+                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs font-rounded font-semibold ${item.isFullyInstalled
+                                  ? 'border-[#2E7D52]/60 bg-[#2E7D52]/15 text-[var(--text-main)]'
+                                  : item.ready
+                                  ? 'border-[#D97706]/50 bg-[#D97706]/10 text-[var(--text-main)]'
                                   : 'border-[#C0392B]/50 bg-[#C0392B]/10 text-[var(--text-main)]'
                                 }`}
                             >
                               <div className="flex items-center gap-2 truncate">
                                 <UtilityIcon id={item.utilityId} className="w-4 h-4 shrink-0" style={{ color: item.ready ? '#2E7D52' : '#C0392B' }} />
-                                <span className="truncate">{item.count}× {item.utilityName}</span>
+                                <span className="truncate">{item.needed}× {item.utilityName}</span>
                               </div>
-                              <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${item.ready ? 'bg-[#2E7D52] text-white' : 'bg-[#C0392B] text-white'
+                              <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${item.isFullyInstalled ? 'bg-[#2E7D52] text-white' : item.ready ? 'bg-[#D97706] text-white' : 'bg-[#C0392B] text-white'
                                 }`}>
-                                {item.have} / {item.needed}
+                                {item.isFullyInstalled ? 'Installed' : `${item.have} / ${item.needed}`}
                               </span>
                             </div>
                           ))}
@@ -3037,10 +3080,12 @@ export default function MarketMonopolyApp() {
                       {/* Execute Upgrade Button */}
                       <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                         <div className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                          {canUpgrade ? (
+                          {allTokensInstalled ? (
+                            <span className="text-[#2E7D52] font-bold">[Ready] All required utilities installed! Click below to complete upgrade.</span>
+                          ) : canUpgrade ? (
                             <span className="text-[#2E7D52] font-bold">[Ready] Tokens verified & cash available!</span>
                           ) : !hasCash ? (
-                            <span className="text-[#C0392B] font-bold">[Alert] Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
+                            <span className="text-[#C0392B] font-bold">[Alert] Short on Cash: Need Rs ${cashCost - currentTeam.cash}L more.</span>
                           ) : (
                             <span className="text-[#C0392B] font-bold">[Alert] Missing tokens: Buy required utility tokens in the Store tab.</span>
                           )}
@@ -3055,7 +3100,7 @@ export default function MarketMonopolyApp() {
                             }`}
                           style={!canUpgrade ? { color: 'var(--text-sub)' } : undefined}
                         >
-                          Execute Level {nextLvl} Upgrade
+                          {allTokensInstalled ? `Complete Level ${nextLvl} Upgrade` : `Execute Level ${nextLvl} Upgrade`}
                         </TactileButton>
                       </div>
                     </div>
