@@ -139,7 +139,16 @@ export default function MarketMonopolyApp() {
   const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
 
-
+  // Rent settlement popup state (for paying rent & collecting rent)
+  const [activeRentDialog, setActiveRentDialog] = useState(null);
+  const [dismissedRentKeys, setDismissedRentKeys] = useState(() => {
+    try {
+      const stored = localStorage.getItem('monopoly_dismissed_rent_keys');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const [purchasingUtilityId, setPurchasingUtilityId] = useState(null);
   const [toast, setToast] = useState(null);
@@ -221,6 +230,84 @@ export default function MarketMonopolyApp() {
       ) || null
     );
   }, [activeTeamId, activeTeamName, allTeamSummaries]);
+
+  // Detect new wheel spin outcomes:
+  // 1. If my team spun -> show dialog that I landed on X and rent was settled / paid to owner
+  // 2. If another team landed on my property -> show dialog that I collected rent from them (supports multiple teams paying for the same land!)
+  useEffect(() => {
+    if (!currentTeam || !store?.wheelSpinsByRound) return;
+
+    const teamKey = String(currentTeam.id);
+    const seenMap = dismissedRentKeys[teamKey] || {};
+
+    const unseenPayerEvents = [];
+    const unseenReceiverEvents = [];
+
+    const rounds = Object.keys(store.wheelSpinsByRound);
+    rounds.forEach((roundKey) => {
+      const roundSpins = store.wheelSpinsByRound[roundKey] || {};
+      Object.values(roundSpins).forEach((spin) => {
+        if (!spin) return;
+        const spinNonce = spin.nonce || spin.timestamp || `${roundKey}_${spin.propertyId}`;
+
+        // 1. As Spinner (My team spun and landed on a property)
+        if (String(spin.teamId) === teamKey) {
+          const payerKey = `payer_${roundKey}_${spin.propertyId}_${spinNonce}`;
+          if (!seenMap[payerKey]) {
+            unseenPayerEvents.push({ ...spin, eventKey: payerKey, roundKey });
+          }
+        }
+
+        // 2. As Landlord (Another team landed on my property and paid rent)
+        if (
+          spin.status === 'PAID_RENT' &&
+          String(spin.ownerTeamId) === teamKey &&
+          String(spin.teamId) !== teamKey
+        ) {
+          const receiverKey = `rcv_${roundKey}_${spin.teamId}_${spin.propertyId}_${spinNonce}`;
+          if (!seenMap[receiverKey]) {
+            unseenReceiverEvents.push({ ...spin, eventKey: receiverKey, roundKey });
+          }
+        }
+      });
+    });
+
+    if (unseenPayerEvents.length > 0) {
+      setActiveRentDialog({
+        type: 'PAYER',
+        data: unseenPayerEvents[0],
+        keysToDismiss: [unseenPayerEvents[0].eventKey]
+      });
+    } else if (unseenReceiverEvents.length > 0) {
+      setActiveRentDialog({
+        type: 'RECEIVER',
+        events: unseenReceiverEvents,
+        keysToDismiss: unseenReceiverEvents.map((e) => e.eventKey)
+      });
+    } else {
+      setActiveRentDialog(null);
+    }
+  }, [store?.wheelSpinsByRound, currentTeam?.id, dismissedRentKeys]);
+
+  const handleDismissRentDialog = useCallback(() => {
+    if (!activeRentDialog || !currentTeam) return;
+    const teamKey = String(currentTeam.id);
+    const keys = activeRentDialog.keysToDismiss || [];
+
+    setDismissedRentKeys((prev) => {
+      const teamMap = { ...(prev[teamKey] || {}) };
+      keys.forEach((k) => {
+        teamMap[k] = true;
+      });
+      const next = { ...prev, [teamKey]: teamMap };
+      try {
+        localStorage.setItem('monopoly_dismissed_rent_keys', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    setActiveRentDialog(null);
+  }, [activeRentDialog, currentTeam]);
 
   const inspectedProperty = useMemo(() => {
     if (!store || !inspectedPropertyId) return null;
@@ -2876,6 +2963,140 @@ export default function MarketMonopolyApp() {
             </div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* RENT SETTLEMENT POPUP DIALOG (PAYER & RECEIVER) */}
+      <AnimatePresence>
+        {activeRentDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="w-full max-w-md surface-box rounded-[32px] p-6 space-y-5 border-2 border-[var(--border-card)] shadow-2xl"
+            >
+              {activeRentDialog.type === 'PAYER' ? (() => {
+                const data = activeRentDialog.data;
+                const isRentPaid = data.status === 'PAID_RENT';
+                const isOwn = data.status === 'OWN_PROPERTY';
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold uppercase block text-[#701020] dark:text-[#F1CA7E]">
+                          Wheel Spin Settlement · Wave #{data.wheelRound || store?.currentWheelRound || 1}
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          {isRentPaid ? 'Rent Payment Settled' : isOwn ? 'Safe Landing' : 'Unclaimed Plot'}
+                        </h4>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+                        isRentPaid
+                          ? 'bg-[#FEF3F2] text-[#B42318] border-[#FECDCA]'
+                          : 'bg-[#ECFDF3] text-[#027A48] border-[#A6F4C5]'
+                      }`}>
+                        {isRentPaid ? `-Rs ${data.rentAmount}L` : 'Rs 0L'}
+                      </span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl capsule-inset space-y-2.5">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span style={{ color: 'var(--text-sub)' }}>Landed Property:</span>
+                        <strong className="text-sm" style={{ color: 'var(--text-main)' }}>
+                          #{data.propertyId} {data.propertyName}
+                        </strong>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span style={{ color: 'var(--text-sub)' }}>Property Owner:</span>
+                        <strong className="text-sm" style={{ color: 'var(--text-main)' }}>
+                          {data.ownerTeamName || 'Unowned'}
+                        </strong>
+                      </div>
+                      <div className="pt-2 border-t border-[var(--border-soft)] flex items-center justify-between text-xs font-mono">
+                        <span style={{ color: 'var(--text-sub)' }}>Rent Settlement:</span>
+                        <strong className={`text-base font-bold ${isRentPaid ? 'text-[#C0392B]' : 'text-[#2E7D52]'}`}>
+                          {isRentPaid ? `-Rs ${data.rentAmount}L (Paid)` : 'Rs 0L (No Rent)'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <p className="text-xs font-mono text-center" style={{ color: 'var(--text-sub)' }}>
+                      {isRentPaid
+                        ? `You landed on ${data.propertyName} owned by ${data.ownerTeamName}. Rs ${data.rentAmount}L rent has been transferred to their treasury.`
+                        : isOwn
+                        ? `You landed on ${data.propertyName}. Since your team owns this property, no rent was deducted.`
+                        : `You landed on ${data.propertyName}. This plot has no owner yet, so no rent was charged.`}
+                    </p>
+
+                    <TactileButton
+                      onClick={handleDismissRentDialog}
+                      className="w-full py-3 text-xs font-black uppercase tracking-wider btn-primary"
+                    >
+                      Understood
+                    </TactileButton>
+                  </>
+                );
+              })() : (() => {
+                const events = activeRentDialog.events || [];
+                const totalRent = events.reduce((sum, e) => sum + Number(e.rentAmount || 0), 0);
+
+                return (
+                  <>
+                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold uppercase block text-[#2E7D52]">
+                          Treasury Credit · Wave #{events[0]?.wheelRound || store?.currentWheelRound || 1}
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          Rent Collected! 💰
+                        </h4>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#ECFDF3] text-[#027A48] border border-[#A6F4C5]">
+                        +Rs {totalRent}L Total
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1 modal-scrollbar">
+                      {events.map((evt, idx) => (
+                        <div
+                          key={idx}
+                          className="p-3.5 rounded-2xl capsule-inset border border-[var(--border-soft)] flex items-center justify-between"
+                        >
+                          <div>
+                            <strong className="text-xs block" style={{ color: 'var(--text-main)' }}>
+                              {evt.teamName}
+                            </strong>
+                            <span className="text-[11px] font-mono block" style={{ color: 'var(--text-sub)' }}>
+                              Landed on #{evt.propertyId} {evt.propertyName}
+                            </span>
+                          </div>
+                          <span className="font-mono text-sm font-bold text-[#2E7D52]">
+                            +Rs {evt.rentAmount}L
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="text-xs font-mono text-center" style={{ color: 'var(--text-sub)' }}>
+                      {events.length === 1
+                        ? `${events[0].teamName} landed on your property. Rs ${events[0].rentAmount}L has been credited to your treasury.`
+                        : `${events.length} teams landed on your properties! Rs ${totalRent}L has been credited to your treasury.`}
+                    </p>
+
+                    <TactileButton
+                      onClick={handleDismissRentDialog}
+                      className="w-full py-3 text-xs font-black uppercase tracking-wider btn-primary"
+                    >
+                      Collect Rent & Close
+                    </TactileButton>
+                  </>
+                );
+              })()}
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* TOAST */}
