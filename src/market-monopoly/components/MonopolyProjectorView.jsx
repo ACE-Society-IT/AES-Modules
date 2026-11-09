@@ -42,16 +42,18 @@ const PROP_SLICE_PALETTE = [
 ];
 
 const TEAM_SLICE_PALETTE = [
-  { bg: '#8B1E32', text: '#FFF8F6', accent: '#ECC37A' }, // Crimson
-  { bg: '#1E3A8A', text: '#EFF6FF', accent: '#93C5FD' }, // Sapphire Blue
-  { bg: '#14532D', text: '#F0FDF4', accent: '#86EFAC' }, // Emerald Green
-  { bg: '#78350F', text: '#FFFBEB', accent: '#FDE047' }, // Amber Gold
-  { bg: '#581C87', text: '#FAF5FF', accent: '#D8B4FE' }, // Royal Purple
-  { bg: '#0F766E', text: '#F0FDFA', accent: '#5EEAD4' }, // Teal
-  { bg: '#9A3412', text: '#FFF7ED', accent: '#FDBA74' }, // Burnt Orange
-  { bg: '#831843', text: '#FDF2F8', accent: '#F472B6' }, // Rose Pink
-  { bg: '#312E81', text: '#EEF2FF', accent: '#A5B4FC' }, // Indigo
-  { bg: '#365314', text: '#F7FEE7', accent: '#BEF264' }  // Lime Green
+  { bg: '#701020', text: '#F8EEE1', accent: '#F1CA7E' }, // AES Crimson
+  { bg: '#2A1215', text: '#F1CA7E', accent: '#FFF8F6' }, // Dark Mahogany
+  { bg: '#8D5B3A', text: '#FFF8F6', accent: '#F1CA7E' }, // Brand Terracotta
+  { bg: '#47131C', text: '#E8DCC6', accent: '#ECC37A' }, // Deep Espresso
+  { bg: '#8B1E32', text: '#FFF8F6', accent: '#ECC37A' }, // Rich Ruby
+  { bg: '#1C050B', text: '#F1CA7E', accent: '#FFF8F6' }, // Obsidian Black-Red
+  { bg: '#5E1B21', text: '#F8EEE1', accent: '#F1CA7E' }, // Imperial Burgundy
+  { bg: '#3B1D11', text: '#FFF8F6', accent: '#ECC37A' }, // Warm Cocoa
+  { bg: '#9E2A2B', text: '#FFF8F6', accent: '#F1CA7E' }, // Vivid Terracotta
+  { bg: '#581420', text: '#F1CA7E', accent: '#FFF8F6' }, // Royal Bordeaux
+  { bg: '#78281F', text: '#F8EEE1', accent: '#ECC37A' }, // Brick Red
+  { bg: '#330810', text: '#ECC37A', accent: '#FFF8F6' }  // Dark Velvet
 ];
 
 function polarToCartesian(cx, cy, r, angleInDegrees) {
@@ -403,15 +405,15 @@ export default function MonopolyProjectorView() {
             </div>
 
             <div className="relative flex items-center justify-center">
-              {/* Top Golden Pointer */}
+              {/* Top Golden Pointer (Matches Wheel 1 Theme) */}
               <div className="absolute -top-5 z-30 drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]">
                 <svg width="40" height="48" viewBox="0 0 48 58">
                   <polygon points="24,56 4,14 44,14" fill="#F1CA7E" stroke="#22050D" strokeWidth="2.5" />
-                  <circle cx="24" cy="14" r="6" fill="#1E3A8A" stroke="#F1CA7E" strokeWidth="2" />
+                  <circle cx="24" cy="14" r="6" fill="#701020" stroke="#F1CA7E" strokeWidth="2" />
                 </svg>
               </div>
 
-              <div className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] xl:w-[420px] xl:h-[420px] rounded-full p-2.5 bg-[#0A1024] shadow-[0_16px_50px_rgba(0,0,0,0.85)] border-4 sm:border-6 border-[#F1CA7E] flex items-center justify-center relative">
+              <div className="w-[300px] h-[300px] sm:w-[380px] sm:h-[380px] xl:w-[420px] xl:h-[420px] rounded-full p-2.5 bg-[#24060E] shadow-[0_16px_50px_rgba(0,0,0,0.85)] border-4 sm:border-6 border-[#F1CA7E] flex items-center justify-center relative">
                 <div
                   className="w-full h-full rounded-full will-change-transform"
                   style={{
@@ -452,8 +454,8 @@ export default function MonopolyProjectorView() {
                               cx={dotPos.x}
                               cy={dotPos.y}
                               r="3.5"
-                              fill={palette.accent}
-                              stroke="#0C0A09"
+                              fill="#ECC37A"
+                              stroke="#701020"
                               strokeWidth="1"
                             />
                             <text
@@ -461,7 +463,7 @@ export default function MonopolyProjectorView() {
                               y={labelPos.y}
                               fill={palette.text}
                               fontSize={teams.length > 12 ? '9' : '10.5'}
-                              fontWeight="800"
+                              fontWeight="700"
                               fontFamily="system-ui, -apple-system, sans-serif"
                               textAnchor="middle"
                               dominantBaseline="central"
@@ -476,10 +478,10 @@ export default function MonopolyProjectorView() {
                   </svg>
                 </div>
 
-                {/* Team Hub */}
-                <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#050C1E] border-3 sm:border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20 text-center">
+                {/* Team Hub (Matches Wheel 1 Luxury Editorial Theme) */}
+                <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#180308] border-3 sm:border-4 border-[#F1CA7E] shadow-2xl flex items-center justify-center pointer-events-none overflow-hidden z-20 text-center">
                   <span className="font-serif font-black text-[10px] sm:text-xs text-[#F1CA7E] tracking-widest uppercase block leading-tight">
-                    PAYING<br />TEAM
+                    AES<br />TEAM
                   </span>
                 </div>
               </div>
