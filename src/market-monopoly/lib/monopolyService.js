@@ -372,7 +372,7 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
 
   if (availableIdx === -1) {
     throw new Error(
-      `You do not have an unassigned ${util.name}. Resources can only be won in the Admin Bid.`
+      `You do not have an unassigned ${util.name}. Tokens can be purchased directly in the Bank Store tab.`
     );
   }
 

@@ -815,7 +815,7 @@ export default function MarketMonopolyApp() {
                             Your Land Grid is Vacant
                           </span>
                           <span className="text-xs font-rounded max-w-sm" style={{ color: 'var(--text-sub)' }}>
-                            Acquire properties from the Wheel Spin or Admin Bid to place them onto your Karachi Master Land Grid.
+                            Acquire properties from the Wheel Spin or Auction to place them onto your Karachi Master Land Grid.
                           </span>
                         </div>
                       ) : (
@@ -998,7 +998,7 @@ export default function MarketMonopolyApp() {
                   <div className="surface-box rounded-[28px] p-4 border border-[var(--border-card)] min-h-[700px] lg:min-h-[760px] flex flex-col gap-3">
                     <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-2.5 shrink-0">
                       <h3 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
-                        Your Bid Resources ({(currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId).length})
+                        Your Utility Tokens ({(currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId).length})
                       </h3>
                       <span className="text-[10px] font-rounded font-bold px-2 py-0.5 rounded-full bg-[#701020] text-[#F1CA7E]">
                         Drag to Level Up
@@ -1007,13 +1007,19 @@ export default function MarketMonopolyApp() {
 
                     <div className="space-y-2 overflow-y-auto modal-scrollbar pr-1 flex-1">
                       {(currentTeam.ownedResources || []).filter((r) => !r.attachedToPropertyId).length === 0 ? (
-                        <div className="p-4 rounded-2xl capsule-inset text-center space-y-1">
+                        <div className="p-4 rounded-2xl capsule-inset text-center space-y-2">
                           <span className="block text-xs font-rounded font-bold" style={{ color: 'var(--text-main)' }}>
                             No Unassigned Resources
                           </span>
                           <span className="block text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                            Win resources in the Admin Bid to drag them onto your land plots and level up.
+                            Buy utility tokens in the Bank Store to apply them toward property upgrades.
                           </span>
+                          <TactileButton
+                            onClick={() => setActiveTab('buy-resources')}
+                            className="btn-primary rounded-full px-3.5 py-1.5 text-xs font-rounded font-bold cursor-pointer inline-block"
+                          >
+                            Open Bank Store
+                          </TactileButton>
                         </div>
                       ) : (
                         (currentTeam.ownedResources || [])
@@ -1044,7 +1050,7 @@ export default function MarketMonopolyApp() {
                                     {res.name}
                                   </span>
                                   <span className="text-[10px] font-mono text-[#2E7D52] block">
-                                    Won in Bid (Rs {res.bidPrice}L) · +1 Lvl
+                                    Ready in Inventory
                                   </span>
                                 </div>
                               </div>
@@ -1068,42 +1074,6 @@ export default function MarketMonopolyApp() {
                             </div>
                           ))
                       )}
-
-                      {/* All 17 Bid Resources Catalogue (Bid-Only Reference) */}
-                      <div className="pt-3 border-t border-[var(--border-soft)] space-y-1.5">
-                        <span className="text-[10px] font-mono uppercase font-bold block px-1" style={{ color: 'var(--text-sub)' }}>
-                          All 17 Bid Resources Pool
-                        </span>
-                        {KARACHI_UTILITIES.map((util) => {
-                          const ownedReady = (currentTeam.ownedResources || []).some(
-                            (r) => Number(r.utilityId) === Number(util.id) && !r.attachedToPropertyId
-                          );
-                          return (
-                            <div
-                              key={util.id}
-                              className="p-2 rounded-xl capsule-inset flex items-center justify-between gap-2 opacity-85"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div
-                                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-colors"
-                                  style={{
-                                    backgroundColor: 'var(--resource-icon-bg)',
-                                    borderColor: 'var(--resource-badge-border)'
-                                  }}
-                                >
-                                  <UtilityIcon id={util.id} className="w-3 h-3" style={{ color: 'var(--resource-icon-color)' }} />
-                                </div>
-                                <span className="text-[11px] font-rounded font-semibold truncate" style={{ color: 'var(--text-main)' }}>
-                                  {util.name}
-                                </span>
-                              </div>
-                              <span className="font-mono text-[10px] font-bold shrink-0" style={{ color: ownedReady ? '#2E7D52' : 'var(--text-sub)' }}>
-                                {ownedReady ? 'Owned' : `Bid ~${util.cost}L`}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1130,7 +1100,7 @@ export default function MarketMonopolyApp() {
                         Municipal Infrastructure & Utility Tokens
                       </h3>
                       <p className="text-xs font-rounded mt-1 max-w-2xl" style={{ color: 'var(--text-sub)' }}>
-                        Buy tokens directly using your team cash or receive them in the Admin Bid. These tokens satisfy the exact Level 1, 2, and 3 development recipes for your Karachi properties.
+                        Buy utility tokens directly using your team cash from the Bank Store. These tokens satisfy the exact Level 1, 2, and 3 development recipes for your Karachi properties.
                       </p>
                     </div>
 
@@ -1476,7 +1446,7 @@ export default function MarketMonopolyApp() {
                       {teamOwnedResources.length === 0 ? (
                         <div className="p-6 rounded-2xl capsule-inset text-center">
                           <p className="text-xs font-rounded font-bold" style={{ color: 'var(--text-sub)' }}>
-                            No resources received yet. Resources won in the Admin Bid appear here with the exact bid money deducted.
+                            No utility tokens purchased yet. Tokens purchased from the Bank Store appear here.
                           </p>
                         </div>
                       ) : (
@@ -2141,7 +2111,7 @@ export default function MarketMonopolyApp() {
                         17 Bid Resources Directory
                       </h3>
                       <p className="text-xs font-rounded mt-0.5" style={{ color: 'var(--text-sub)' }}>
-                        Resources are won through the Admin Bid. Drag them onto your Karachi Land Plots to level up your properties (+1 Level per resource, up to Max Level 3).
+                        Purchase tokens directly from the Bank Store to fulfill property upgrade recipes and level up.
                       </p>
                     </div>
                     <span className="px-3 py-1 rounded-full text-xs font-mono font-bold capsule-inset self-start sm:self-auto">
@@ -2634,7 +2604,7 @@ export default function MarketMonopolyApp() {
                           ) : !hasCash ? (
                             <span className="text-[#C0392B] font-bold">✗ Short on Cash: Need Rs {cashCost - currentTeam.cash}L more.</span>
                           ) : (
-                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy tokens in Bank Store or win in Admin Bid.</span>
+                            <span className="text-[#C0392B] font-bold">✗ Missing tokens: Buy required utility tokens in the Bank Store tab.</span>
                           )}
                         </div>
 
@@ -2708,7 +2678,7 @@ export default function MarketMonopolyApp() {
                         </span>
                         {unassignedResources.length === 0 ? (
                           <div className="p-2 rounded-xl capsule-inset text-[11px] font-rounded text-center" style={{ color: 'var(--text-sub)' }}>
-                            No unassigned Bid Resources in your inventory. Win resources in the Admin Bid!
+                            No unassigned utility tokens in your inventory. Purchase tokens in the Bank Store!
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
