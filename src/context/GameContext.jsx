@@ -270,7 +270,6 @@ export function GameProvider({ children }) {
         return next;
       });
     }
-    fetchLatestState();
     return enriched;
   };
 
@@ -285,7 +284,6 @@ export function GameProvider({ children }) {
         return next;
       });
     }
-    fetchLatestState();
     return result;
   };
 

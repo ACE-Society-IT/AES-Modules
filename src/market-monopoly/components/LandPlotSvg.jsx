@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 
 // Custom Vector Icons for all 15 Utilities (Zero Lucide, Zero Emojis)
 // Spec: Market_Monopoly_Property_Upgrade_System.docx
-export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
+export const UtilityIcon = React.memo(function UtilityIcon({ id, className = 'w-4 h-4', style }) {
   const mergedClass = `${className} utility-icon shrink-0`;
   switch (Number(id)) {
     case 1: // Electricity
@@ -119,7 +119,7 @@ export function UtilityIcon({ id, className = 'w-4 h-4', style }) {
         </svg>
       );
   }
-}
+});
 
 export const PropertyCategoryBackdrop = React.memo(function PropertyCategoryBackdrop({
   category = 'Residential',
