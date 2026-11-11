@@ -15,6 +15,7 @@ import {
   IconTrendingUp
 } from '../../components/ui/CustomIcons.jsx';
 import {
+  KARACHI_PROPERTIES,
   KARACHI_UTILITIES,
   computePropertyValuation,
   computePropertyRent,
@@ -141,6 +142,13 @@ export default function MarketMonopolyApp() {
   const [inspectedPropertyId, setInspectedPropertyId] = useState(null);
   const [previewLevelOverride, setPreviewLevelOverride] = useState(null);
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+
+  // Interactive Guide Tab State
+  const [guideSubTab, setGuideSubTab] = useState('all'); // 'all', 'level-up', 'utilities', 'dossiers', 'wheel', 'victory'
+  const [guideSimLevel, setGuideSimLevel] = useState(1); // 0, 1, 2, 3
+  const [guideSimCategory, setGuideSimCategory] = useState('Residential'); // 'Residential', 'Commercial', 'Industrial'
+  const [guideSamplePropId, setGuideSamplePropId] = useState(1); // Default to DHA Phase 6
+  const [guideUtilFilter, setGuideUtilFilter] = useState('ALL'); // 'ALL', 'Power', 'Water', 'Energy', 'Sanitation', 'Access', 'Security', 'Comms'
 
   // Rent settlement popup state (for paying rent & collecting rent)
   const [activeRentDialog, setActiveRentDialog] = useState(null);
@@ -386,6 +394,10 @@ export default function MarketMonopolyApp() {
     if (!store || !contextMenu?.propertyId) return null;
     return store.properties.find((p) => Number(p.id) === Number(contextMenu.propertyId)) || null;
   }, [store, contextMenu]);
+
+  const guideSampleProp = useMemo(() => {
+    return KARACHI_PROPERTIES.find((p) => Number(p.id) === Number(guideSamplePropId)) || KARACHI_PROPERTIES[0];
+  }, [guideSamplePropId]);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -693,7 +705,7 @@ export default function MarketMonopolyApp() {
     { id: 'buy-resources', label: 'Store', badge: '15 Tokens' },
     { id: 'bank', label: 'History', badge: store.transactions?.length || 0 },
     ...(isRankingsVisible ? [{ id: 'standings', label: 'Rankings', badge: store.teams?.length || 0 }] : []),
-    { id: 'guide', label: 'Rules', badge: '2R' },
+    { id: 'guide', label: 'Guide', badge: 'Handbook' },
     { id: 'catalogue', label: 'Info', badge: '25P·15R' }
   ];
 
@@ -2042,270 +2054,793 @@ export default function MarketMonopolyApp() {
             )}
 
             {/* ================================================================= */}
-            {/* TAB 5: RULES & OFFICIAL TOURNAMENT GUIDE                          */}
+            {/* TAB: FIELD GUIDE & MASTER STRATEGY PLAYBOOK                       */}
             {/* ================================================================= */}
             {activeTab === 'guide' && (
               <div className="space-y-6">
-                {/* Rules Header Hero */}
-                <div className="surface-box rounded-[28px] p-6 sm:p-7 border border-[var(--border-card)] space-y-3">
+                {/* 1. Header Hero Card with Quick Nav Pills */}
+                <div className="surface-box rounded-[28px] p-6 sm:p-7 border border-[var(--border-card)] space-y-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-4">
                     <div>
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#F1CA7E] bg-[#701020] px-2.5 py-0.5 rounded inline-block mb-1">
-                        Market Monopoly Official Rulebook
-                      </span>
+                      <div className="inline-flex items-center gap-2 rounded-full bg-[#701020] text-[#F1CA7E] px-3 py-1 text-xs font-mono font-bold uppercase mb-1.5">
+                        Official Tournament Field Guide & Playbook
+                      </div>
                       <h3 className="font-display text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
-                        Tournament Guidelines & Strategic Playbook
+                        Karachi Market Monopoly Master Guide
                       </h3>
-                      <p className="text-xs font-rounded mt-1" style={{ color: 'var(--text-sub)' }}>
-                        Complete guide to Karachi property acquisitions, the 17-resource level-up engine, rent arithmetic, and victory conditions.
+                      <p className="text-xs font-rounded mt-1 max-w-2xl" style={{ color: 'var(--text-sub)' }}>
+                        Complete interactive documentation for Karachi property acquisitions, 3-tier building level ups, utility socketing, deed dossiers, and rent economics.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 font-mono text-xs shrink-0">
-                      <span className="px-3 py-1 rounded-full capsule-inset font-bold">
+
+                    <div className="flex items-center gap-2 font-mono text-xs shrink-0 flex-wrap">
+                      <span className="px-3 py-1 rounded-full capsule-inset font-bold" style={{ color: 'var(--text-main)' }}>
                         Starting: Rs 500L
                       </span>
                       <span className="px-3 py-1 rounded-full text-[#F1CA7E] bg-[#701020] font-bold">
-                        2 Rounds
+                        Round {store.currentRound}
                       </span>
                     </div>
                   </div>
 
-                  {/* 4 Quick Executive Summaries */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-                    <div className="p-3 rounded-2xl capsule-inset space-y-1">
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">Rule 01</span>
-                      <div className="text-xs font-bold" style={{ color: 'var(--text-main)' }}>Starting Capital</div>
-                      <p className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Rs 500 Lakh allocated to every team. Budget wisely across properties and resources.
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-2xl capsule-inset space-y-1">
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">Rule 02</span>
-                      <div className="text-xs font-bold" style={{ color: 'var(--text-main)' }}>No Cash Upgrades</div>
-                      <p className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Properties CANNOT level up with money. Level ups require winning Bid Resources from the Admin.
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-2xl capsule-inset space-y-1">
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#701020] block">Rule 03</span>
-                      <div className="text-xs font-bold" style={{ color: 'var(--text-main)' }}>Level Cap (Max 3)</div>
-                      <p className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Each property accepts up to 3 distinct resources. Each resource grants +1 Level and boosts rent.
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-2xl capsule-inset space-y-1">
-                      <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">Rule 04</span>
-                      <div className="text-xs font-bold" style={{ color: 'var(--text-main)' }}>Spin-Wheel Rent</div>
-                      <p className="text-[11px] font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        In Round 2, spinning the wheel lands on a property. The spinner pays calculated rent to the owner.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Deep Dive: Round 1 & Round 2 Breakdown */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  {/* Round 1 Card */}
-                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
-                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#2E7D52]/15 text-[#2E7D52] inline-block mb-1">
-                          Phase One
-                        </span>
-                        <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-                          Round 1: Karachi Property Auction
-                        </h4>
-                      </div>
-                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset">
-                        25 Land Plots
-                      </span>
-                    </div>
-
-                    <div className="space-y-3 text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">1. Live Floor Auction</strong>
-                        The Admin presents 25 prime Karachi properties across Residential, Commercial, and Industrial zones (DHA, Clifton, Korangi, Gulshan, Port Qasim).
-                      </p>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">2. Bidding & Deductions</strong>
-                        Teams bid their cash balance. When the hammer falls, the Admin assigns the property, and the winning bid is immediately deducted from the team's available cash.
-                      </p>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">3. Land Ownership & Portfolio</strong>
-                        Owned plots appear immediately on your <strong>My Land</strong> board as 3D isometric properties with Base Level 0 (Vacant Land) and standard starting rent.
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl capsule-inset space-y-1.5 font-mono text-[11px]">
-                      <div className="flex items-center justify-between text-[#2E7D52] font-bold">
-                        <span>Property Value Formula:</span>
-                        <span>Base Price + (Level × Value Boost)</span>
-                      </div>
-                      <p className="text-[10px] opacity-75">
-                        High tier assets like Port Qasim and Clifton Marine Drive yield the highest baseline valuations.
-                      </p>
-                    </div>
+                  {/* Section Filter Pills */}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    {[
+                      { id: 'all', label: 'All Sections' },
+                      { id: 'level-up', label: 'How to Level Up' },
+                      { id: 'utilities', label: 'How to Get Utilities' },
+                      { id: 'dossiers', label: 'Property Dossiers & Info' },
+                      { id: 'wheel', label: 'The Rent Wheel' },
+                      { id: 'victory', label: 'Victory Formula' }
+                    ].map((tab) => {
+                      const isActive = guideSubTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setGuideSubTab(tab.id)}
+                          className={`px-4 py-2 rounded-full text-xs font-rounded font-bold transition-all cursor-pointer ${
+                            isActive ? 'btn-primary shadow-sm' : 'capsule-card hover:bg-[var(--border-active)] hover:text-white'
+                          }`}
+                          style={!isActive ? { color: 'var(--text-main)' } : undefined}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  {/* Round 2 Card */}
-                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
-                    <div className="flex items-center justify-between border-b border-[var(--border-soft)] pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#701020] text-[#F1CA7E] inline-block mb-1">
-                          Phase Two
-                        </span>
-                        <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-                          Round 2: Bid Resources & The Rent Wheel
-                        </h4>
-                      </div>
-                      <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full text-[#F1CA7E] bg-[#701020]">
-                        17 Resources
-                      </span>
-                    </div>
-
-                    <div className="space-y-3 text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">1. Admin Resource Bids</strong>
-                        Admin conducts competitive bids for the 17 vital municipal resources (Electricity, Gas, Solar, CCTV, Warehousing). Winning bids deduct cash from the team's balance.
-                      </p>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">2. Drag & Drop Level Ups</strong>
-                        Unassigned resources sit in your inventory. Drag them onto any owned property to level it up (+1 Level). Upgrading from Level 0 to Level 3 transforms the 3D visual from a vacant lot into a cottage, villa, and high-rise landmark tower with an upgrade orb curb.
-                      </p>
-                      <p>
-                        <strong className="text-[var(--text-main)] block font-semibold mb-0.5">3. Wheel Spin & Rent Payment</strong>
-                        When Admin triggers a wheel spin wave, teams spin the 25-sector Karachi Wheel. Landing on another team's property pays the calculated rent directly to them. Landing on your own property costs nothing!
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl capsule-inset space-y-1.5 font-mono text-[11px]">
-                      <div className="flex items-center justify-between text-[#C0392B] font-bold">
-                        <span>Rent Due Formula:</span>
-                        <span>Base Rent + (Level × Rent Increment)</span>
-                      </div>
-                      <p className="text-[10px] opacity-75">
-                        A Level 3 property commands 3× to 5× higher rent than a vacant Level 0 lot.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Level Up Progression Guide */}
-                <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
-                  <div className="border-b border-[var(--border-soft)] pb-3">
-                    <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">
-                      Architectural Hierarchy
+                  {/* Fast Action Shortcuts */}
+                  <div className="capsule-inset rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 border border-[var(--border-soft)]">
+                    <span className="text-xs font-rounded font-bold" style={{ color: 'var(--text-sub)' }}>
+                      Quick Navigation Jump:
                     </span>
-                    <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-                      Visual & Financial Property Level Progression
-                    </h4>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    {/* Level 0 */}
-                    <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-black/10" style={{ color: 'var(--text-main)' }}>
-                          LEVEL 0
-                        </span>
-                        <span className="text-[10px] font-mono text-[#71717A]">0 Resources</span>
-                      </div>
-                      <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Vacant Plot</h5>
-                      <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Raw surveyed land plot with dashed curbs. Produces standard base rent and initial valuation.
-                      </p>
-                    </div>
-
-                    {/* Level 1 */}
-                    <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#8D5B3A] text-white">
-                          LEVEL 1
-                        </span>
-                        <span className="text-[10px] font-mono text-[#2E7D52] font-bold">1 Resource</span>
-                      </div>
-                      <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Cottage Development</h5>
-                      <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Adds small 3D residential / commercial building. Activates 1st golden sphere on the curb. +1 Rent boost.
-                      </p>
-                    </div>
-
-                    {/* Level 2 */}
-                    <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#701020] text-[#F1CA7E]">
-                          LEVEL 2
-                        </span>
-                        <span className="text-[10px] font-mono text-[#2E7D52] font-bold">2 Resources</span>
-                      </div>
-                      <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>3-Story Urban Plaza</h5>
-                      <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Adds central 3-story mansion/office complex with illuminated windows. 2nd golden sphere lights up.
-                      </p>
-                    </div>
-
-                    {/* Level 3 */}
-                    <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-[#F1CA7E] text-[#1B0308]">
-                          LEVEL 3 (MAX)
-                        </span>
-                        <span className="text-[10px] font-mono text-[#2E7D52] font-bold">3 Resources</span>
-                      </div>
-                      <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Landmark High-Rise</h5>
-                      <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
-                        Crowned with a landmark spire, golden beacon, and all 3 upgrade spheres. Maximum rent potential!
-                      </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('land')}
+                        className="px-3 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#8D5B3A] text-white hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        Open My Land Grid
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('buy-resources')}
+                        className="px-3 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#2E7D52] text-white hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        Open Store (15 Tokens)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('catalogue')}
+                        className="px-3 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#701020] text-[#F1CA7E] hover:opacity-90 transition-opacity cursor-pointer"
+                      >
+                        View Full 25-Property Info
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('bank')}
+                        className="px-3 py-1.5 rounded-full text-xs font-rounded font-bold capsule-card hover:bg-[var(--border-active)] hover:text-white transition-colors cursor-pointer"
+                        style={{ color: 'var(--text-main)' }}
+                      >
+                        View Rent History
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Victory Conditions */}
-                <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-3">
-                  <div className="border-b border-[var(--border-soft)] pb-3">
-                    <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">
-                      Tournament Victory Conditions
-                    </span>
-                    <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
-                      How Net Worth & Rankings Are Decided
-                    </h4>
+                {/* 2. Core Overview & 4 Golden Laws */}
+                {(guideSubTab === 'all' || guideSubTab === 'overview') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
+                    <div className="border-b border-[var(--border-soft)] pb-3">
+                      <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">
+                        Core Tournament Architecture
+                      </span>
+                      <h4 className="font-display text-lg font-bold" style={{ color: 'var(--text-main)' }}>
+                        The 4 Golden Rules of Market Monopoly
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">Rule 01</span>
+                        <div className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>Starting Capital</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Every team starts with Rs 500 Lakh. Liquid cash must be balanced between buying land plots and acquiring utility tokens.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">Rule 02</span>
+                        <div className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>No Direct Cash Upgrades</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Properties cannot be leveled up by money alone. Upgrades require specific municipal utility tokens plus a development fee.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#701020] block">Rule 03</span>
+                        <div className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>Level 3 Maximum Cap</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Each plot accepts up to 3 attached utility sockets. Each socket unlocks +1 Level (Vacant L0 to Landmark High-Rise L3).
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">Rule 04</span>
+                        <div className="text-sm font-bold" style={{ color: 'var(--text-main)' }}>Rent Wheel Settlement</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          When the wheel spins, landing on another team's property pays calculated rent directly to that owner. Landing on your own plot is free.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Phase 1 vs Phase 2 Comparison */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#2E7D52]/15 text-[#2E7D52]">
+                            Phase One · Round 1
+                          </span>
+                          <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-sub)' }}>25 Land Plots</span>
+                        </div>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Karachi Property Auction</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          The Admin presents 25 prime Karachi land plots. Teams bid live on the floor. Winning plots appear immediately on your My Land grid at Base Level 0 (Vacant surveyed plot).
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#701020] text-[#F1CA7E]">
+                            Phase Two · Round 2
+                          </span>
+                          <span className="text-xs font-mono font-bold" style={{ color: 'var(--text-sub)' }}>15 Utilities · Wheel</span>
+                        </div>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Store Purchasing, Upgrades & The Rent Wheel</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Buy utility tokens directly from the Store or win them at auction, socket them onto your land to level up to L3, and collect heavy rent payments as competitors spin the wheel!
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-rounded">
-                    <div className="p-4 rounded-2xl capsule-inset space-y-1.5">
-                      <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>
-                        Net Worth Equation
-                      </strong>
-                      <p className="font-mono text-[11px] text-[#2E7D52] font-bold">
-                        Net Worth = Liquid Cash + Total Property Valuations + Unassigned Resources
-                      </p>
-                      <p style={{ color: 'var(--text-sub)' }}>
-                        Both raw cash and upgraded real estate count toward your leaderboard standing.
-                      </p>
+                {/* 3. SECTION: HOW TO LEVEL UP */}
+                {(guideSubTab === 'all' || guideSubTab === 'level-up') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">
+                          Building Progression Guide
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          How to Level Up Your Properties (L0 to L3)
+                        </h4>
+                        <p className="text-xs font-rounded mt-0.5" style={{ color: 'var(--text-sub)' }}>
+                          Follow the exact 3-step workflow to develop raw surveyed land into high-earning landmark high-rises.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('land')}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#8D5B3A] text-white self-start sm:self-auto cursor-pointer"
+                      >
+                        Go to My Land
+                      </button>
                     </div>
 
-                    <div className="p-4 rounded-2xl capsule-inset space-y-1.5">
-                      <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>
-                        Rental Cash Flow
-                      </strong>
-                      <p style={{ color: 'var(--text-sub)' }}>
-                        Teams with upgraded properties steadily siphon cash away from other contestants during the spin wheel phases.
-                      </p>
+                    {/* Step-by-Step 3 Card Flow */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#8D5B3A]/20 text-[#8D5B3A] flex items-center justify-center font-mono font-bold text-sm">
+                          1
+                        </div>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Check Property Recipe</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          In <strong>My Land</strong>, click <strong>Options</strong> on your property. The recipe details the exact tokens required (e.g. Water Supply, Electricity, Solar) and the development fee in Lakhs.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#2E7D52]/20 text-[#2E7D52] flex items-center justify-center font-mono font-bold text-sm">
+                          2
+                        </div>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Acquire Utility Tokens</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Navigate to the <strong>Store</strong> tab and purchase the matching utility tokens using your team cash, or win them during live Admin resource bidding sessions.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-[#701020]/20 text-[#F1CA7E] flex items-center justify-center font-mono font-bold text-sm">
+                          3
+                        </div>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Socket Tokens & Execute</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Drag the token onto your land plot from the right-hand panel, or click <strong>Execute Recipe Upgrade</strong> in the Options modal. The plot transforms visually and rent increases!
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl capsule-inset space-y-1.5">
-                      <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>
-                        Final Podium Ceremony
-                      </strong>
-                      <p style={{ color: 'var(--text-sub)' }}>
-                        When the tournament concludes, the 3D Podium ranks the Top 3 Tycoons with gold, silver, and bronze trophies.
+                    {/* Interactive 3D Visual & Numerical Level Simulator */}
+                    <div className="capsule-inset rounded-2xl p-5 border border-[var(--border-soft)] space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-3">
+                        <div>
+                          <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">
+                            Interactive Architectural Simulator
+                          </span>
+                          <h5 className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
+                            Test Visual & Financial Level Progression
+                          </h5>
+                          <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
+                            Click each level and category below to inspect the 3D isometric evolution and numerical multipliers.
+                          </p>
+                        </div>
+
+                        {/* Category Selector */}
+                        <div className="flex items-center gap-1.5">
+                          {['Residential', 'Commercial', 'Industrial'].map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setGuideSimCategory(cat)}
+                              className={`px-3 py-1 rounded-full text-xs font-rounded font-bold transition-all cursor-pointer ${
+                                guideSimCategory === cat ? 'bg-[#8D5B3A] text-white shadow-xs' : 'capsule-card text-[var(--text-sub)]'
+                              }`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Level Buttons Bar */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { lvl: 0, label: 'Level 0: Vacant Plot', sockets: '0 Sockets' },
+                          { lvl: 1, label: 'Level 1: Cottage', sockets: '1 Socket' },
+                          { lvl: 2, label: 'Level 2: Plaza', sockets: '2 Sockets' },
+                          { lvl: 3, label: 'Level 3: Landmark High-Rise', sockets: '3 Sockets (MAX)' }
+                        ].map((item) => {
+                          const isSel = guideSimLevel === item.lvl;
+                          return (
+                            <button
+                              key={item.lvl}
+                              type="button"
+                              onClick={() => setGuideSimLevel(item.lvl)}
+                              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                                isSel
+                                  ? 'border-[#2E7D52] bg-[#2E7D52]/10 ring-2 ring-[#2E7D52]/40 shadow-sm'
+                                  : 'border-[var(--border-card)] capsule-card hover:bg-[var(--row-hover)]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[10px] font-mono font-bold mb-1">
+                                <span className={isSel ? 'text-[#2E7D52]' : 'text-[var(--text-sub)]'}>
+                                  LVL {item.lvl}
+                                </span>
+                                <span className="opacity-75">{item.sockets}</span>
+                              </div>
+                              <div className="text-xs font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
+                                {item.label.split(':')[1].trim()}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Simulator Output Stage: 3D Illustration + Dynamic Specs */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                        <div className="lg:col-span-6 rounded-2xl overflow-hidden border-2 border-[var(--border-card)] shadow-lg bg-[var(--bg-card)]">
+                          <LandPlotIllustration
+                            category={guideSimCategory}
+                            level={guideSimLevel}
+                            utilityCount={guideSimLevel}
+                            showBadge={true}
+                          />
+                        </div>
+
+                        <div className="lg:col-span-6 space-y-3 text-xs font-rounded">
+                          <div className="p-3.5 rounded-xl capsule-card border border-[var(--border-soft)] space-y-1.5">
+                            <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">
+                              Level {guideSimLevel} Architectural Features
+                            </span>
+                            <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>
+                              {guideSimLevel === 0 && 'Raw Surveyed Plot with Perimeter Boundary'}
+                              {guideSimLevel === 1 && 'Cottage / Single Structure + 1 Golden Curb Sphere'}
+                              {guideSimLevel === 2 && '3-Story Urban Plaza / Complex + 2 Golden Curb Spheres'}
+                              {guideSimLevel === 3 && 'Landmark Skyscraper Spire + Beacon + 3 Golden Curb Spheres'}
+                            </div>
+                            <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                              {guideSimLevel === 0 && 'The plot is in raw surveyed status. Dashed curbs indicate no utilities connected yet. Baseline valuation and base rent apply.'}
+                              {guideSimLevel === 1 && 'First building constructed. The first golden upgrade orb illuminates on the curb. Adds +1 rent multiplier and initial value increment.'}
+                              {guideSimLevel === 2 && 'Expands into a multi-story illuminated plaza. 2 golden upgrade orbs illuminated. Rent increases to 2.5× baseline.'}
+                              {guideSimLevel === 3 && 'Crowned with an architectural landmark spire, illuminated rooftop beacon, and all 3 gold upgrade orbs active. Max rent extraction power!'}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2.5 font-mono text-center">
+                            <div className="p-2.5 rounded-xl capsule-inset">
+                              <span className="text-[10px] block opacity-75" style={{ color: 'var(--text-sub)' }}>Sockets</span>
+                              <strong className="text-sm font-bold text-[#8D5B3A]">{guideSimLevel} / 3</strong>
+                            </div>
+                            <div className="p-2.5 rounded-xl capsule-inset">
+                              <span className="text-[10px] block opacity-75" style={{ color: 'var(--text-sub)' }}>Rent Multiplier</span>
+                              <strong className="text-sm font-bold text-[#2E7D52]">
+                                {guideSimLevel === 0 ? '1.0× Base' : guideSimLevel === 1 ? '1.5×' : guideSimLevel === 2 ? '2.5×' : '3.5× Max'}
+                              </strong>
+                            </div>
+                            <div className="p-2.5 rounded-xl capsule-inset">
+                              <span className="text-[10px] block opacity-75" style={{ color: 'var(--text-sub)' }}>Valuation</span>
+                              <strong className="text-sm font-bold text-[#701020]">
+                                {guideSimLevel === 0 ? 'Opening' : guideSimLevel === 1 ? '+33%' : guideSimLevel === 2 ? '+67%' : 'Target Max'}
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Interactive Real Karachi Asset Recipe Showcase */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-mono uppercase font-bold text-[#701020] block">
+                            Document Recipe Inspection
+                          </span>
+                          <h5 className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
+                            Exact Karachi Upgrade Recipes from Official Catalogue
+                          </h5>
+                        </div>
+                        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: 'var(--text-sub)' }}>
+                          Click a sample to inspect
+                        </span>
+                      </div>
+
+                      {/* Property Selector Pills */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {[
+                          { id: 1, name: 'DHA Phase 6', cat: 'Residential' },
+                          { id: 2, name: 'Clifton Block 5', cat: 'Residential' },
+                          { id: 8, name: 'Tariq Road', cat: 'Commercial' },
+                          { id: 9, name: 'Shahrah-e-Faisal', cat: 'Commercial' },
+                          { id: 13, name: 'Scheme 33', cat: 'Residential' },
+                          { id: 18, name: 'Port Qasim', cat: 'Industrial' }
+                        ].map((p) => {
+                          const isSel = Number(guideSamplePropId) === Number(p.id);
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => setGuideSamplePropId(p.id)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-rounded font-bold transition-all cursor-pointer ${
+                                isSel ? 'btn-primary shadow-xs' : 'capsule-card hover:bg-[var(--border-active)] hover:text-white'
+                              }`}
+                              style={!isSel ? { color: 'var(--text-main)' } : undefined}
+                            >
+                              #{p.id} {p.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Recipe Table & Specs for Selected Property */}
+                      {guideSampleProp && (
+                        <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-soft)] pb-2.5">
+                            <div>
+                              <div className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
+                                #{guideSampleProp.id} {guideSampleProp.name} ({guideSampleProp.category})
+                              </div>
+                              <span className="text-xs font-mono" style={{ color: 'var(--text-sub)' }}>
+                                Opening: Rs {guideSampleProp.openingValue}L · L3 Target: <strong className="text-[#2E7D52]">Rs {guideSampleProp.level3Target}L</strong> · Total Upgrade Cost: Rs {(guideSampleProp.upgradeCosts?.[0] || 0) + (guideSampleProp.upgradeCosts?.[1] || 0) + (guideSampleProp.upgradeCosts?.[2] || 0)}L
+                              </span>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-[#701020] text-[#F1CA7E]">
+                              Zone: {guideSampleProp.zone || 'Karachi Metropolitan'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {[1, 2, 3].map((lvlNum) => {
+                              const cost = guideSampleProp.upgradeCosts?.[lvlNum - 1] || 0;
+                              const targetVal = guideSampleProp.targetValues?.[lvlNum] || 0;
+                              const rentVal = guideSampleProp.rentValues?.[lvlNum] || 0;
+                              const reqList = (guideSampleProp.upgradeRequirements && guideSampleProp.upgradeRequirements[String(lvlNum)]) || [];
+
+                              return (
+                                <div key={lvlNum} className="p-3.5 rounded-xl capsule-inset space-y-2 text-xs font-rounded border border-[var(--border-soft)]">
+                                  <div className="flex items-center justify-between font-bold border-b border-[var(--border-soft)] pb-1.5">
+                                    <span style={{ color: 'var(--text-main)' }}>Level {lvlNum} Upgrade</span>
+                                    <span className="font-mono text-[#2E7D52]">Cost: Rs {cost}L</span>
+                                  </div>
+                                  <div className="space-y-1 font-mono text-[11px]">
+                                    <div className="flex justify-between">
+                                      <span style={{ color: 'var(--text-sub)' }}>Valuation:</span>
+                                      <strong className="text-[#2E7D52]">Rs {targetVal}L</strong>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span style={{ color: 'var(--text-sub)' }}>Rent Payout:</span>
+                                      <strong>Rs {rentVal}L</strong>
+                                    </div>
+                                  </div>
+                                  {reqList.length > 0 && (
+                                    <div className="space-y-1 pt-1">
+                                      <span className="text-[10px] font-mono uppercase font-bold block" style={{ color: 'var(--text-sub)' }}>
+                                        Required Utility Tokens:
+                                      </span>
+                                      <div className="flex items-center gap-1 flex-wrap">
+                                        {reqList.map((r, rIdx) => (
+                                          <span key={rIdx} className="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 text-[10px] font-mono font-bold">
+                                            {r.count}× {r.utilityName}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. SECTION: HOW TO GET UTILITIES */}
+                {(guideSubTab === 'all' || guideSubTab === 'utilities') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#F1CA7E] bg-[#701020] px-2 py-0.5 rounded inline-block mb-1">
+                          Utility Token Procurement
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          How to Acquire & Socket Utility Tokens
+                        </h4>
+                        <p className="text-xs font-rounded mt-0.5" style={{ color: 'var(--text-sub)' }}>
+                          Understand token acquisition from the Bank Store, bidding rules, and socketing methods.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('buy-resources')}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#2E7D52] text-white self-start sm:self-auto cursor-pointer"
+                      >
+                        Open Store Tab
+                      </button>
+                    </div>
+
+                    {/* 2 Ways to Get Tokens */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">Channel A · Instant</span>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Bank Store Direct Purchase</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Click the <strong>Store</strong> tab in the sidebar. All 15 municipal utility tokens are in stock at transparent bank prices (Rs 2L to Rs 12L). Purchasing deducts team cash immediately and places tokens in your unassigned inventory.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">Channel B · Floor Action</span>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Admin Resource Bids (Round 2)</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          During live competition sessions, the Admin conducts floor bidding for high-demand bundled resources. Winning bids deduct team cash and assign the tokens straight into your inventory.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* How Socketing Works */}
+                    <div className="capsule-inset rounded-2xl p-4 space-y-2 text-xs font-rounded border border-[var(--border-soft)]">
+                      <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>
+                        How to Attach / Socket Tokens to Your Land:
+                      </div>
+                      <ul className="list-disc list-inside space-y-1 text-xs leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                        <li><strong>Drag and Drop:</strong> On your <strong>My Land</strong> grid, drag any unassigned token from the right-hand panel directly onto any owned property tile.</li>
+                        <li><strong>Options Modal:</strong> Click <strong>Options</strong> on your plot tile, then click <strong>Install Utility</strong> to socket an individual token, or click <strong>Execute Recipe Upgrade</strong> to apply the complete level upgrade.</li>
+                        <li><strong>Socket Capacity:</strong> Each plot has exactly 3 utility sockets (Level 1, Level 2, Level 3). Once all 3 sockets are filled, the property reaches Landmark High-Rise status.</li>
+                      </ul>
+                    </div>
+
+                    {/* Interactive 15-Utility Directory Explorer */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">
+                            15 Municipal Utility Classes
+                          </span>
+                          <h5 className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
+                            Explore Utility Costs & Functions
+                          </h5>
+                        </div>
+
+                        {/* Category Filter Pills */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {['ALL', 'Power', 'Water', 'Energy', 'Sanitation', 'Access', 'Security', 'Comms'].map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => setGuideUtilFilter(cat)}
+                              className={`px-2.5 py-1 rounded-full text-xs font-rounded font-bold transition-all cursor-pointer ${
+                                guideUtilFilter === cat ? 'btn-primary shadow-xs' : 'capsule-card text-[var(--text-sub)]'
+                              }`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Utilities Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                        {KARACHI_UTILITIES
+                          .filter((u) => guideUtilFilter === 'ALL' || u.category === guideUtilFilter)
+                          .map((u) => (
+                            <div key={u.id} className="p-3 rounded-xl capsule-card border border-[var(--border-soft)] space-y-2 flex flex-col justify-between">
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#701020] text-[#F1CA7E]">
+                                    #{u.id} · {u.category}
+                                  </span>
+                                  <span className="font-mono text-xs font-bold text-[#2E7D52]">
+                                    Rs {u.cost}L
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1">
+                                  <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
+                                    style={{
+                                      backgroundColor: 'var(--resource-icon-bg)',
+                                      borderColor: 'var(--resource-badge-border)'
+                                    }}
+                                  >
+                                    <UtilityIcon id={u.id} className="w-4 h-4" style={{ color: 'var(--resource-icon-color)' }} />
+                                  </div>
+                                  <div className="font-bold text-xs leading-tight truncate" style={{ color: 'var(--text-main)' }}>
+                                    {u.name}
+                                  </div>
+                                </div>
+                                <p className="text-[11px] font-rounded leading-snug line-clamp-2" style={{ color: 'var(--text-sub)' }}>
+                                  {u.summary}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. SECTION: PROPERTY DOSSIERS & DEED INFO */}
+                {(guideSubTab === 'all' || guideSubTab === 'dossiers') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">
+                          Real Estate Terminology & Due Diligence
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          What is Mentioned in the Property Dossiers & Info
+                        </h4>
+                        <p className="text-xs font-rounded mt-0.5" style={{ color: 'var(--text-sub)' }}>
+                          How to evaluate property metrics, identify urban challenges, and spot high-upside acquisitions.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('catalogue')}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold bg-[#701020] text-[#F1CA7E] self-start sm:self-auto cursor-pointer"
+                      >
+                        Open 25 Properties Info
+                      </button>
+                    </div>
+
+                    {/* Metric Glossary Breakdown */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#8D5B3A] block">Metric 01</span>
+                        <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Opening Value</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          The opening auction valuation and baseline purchase benchmark (Rs 55L to Rs 180L). This is what the property contributes to initial net worth.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">Metric 02</span>
+                        <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Level 3 Target</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          The catalogue target valuation after completing all 3 upgrade levels. It represents the maximum asset appreciation cap (up to Rs 285L).
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#701020] block">Metric 03</span>
+                        <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Upgrade Costs Array</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          The 3 expenditure stages [L1, L2, L3]. Always budget for both the cash upgrade fee AND the required utility tokens when calculating ROI.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">Metric 04</span>
+                        <div className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Rent Multipliers</div>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          The 4 rent collection amounts [L0, L1, L2, L3]. Upgraded assets multiply rent harvest power, turning wheel spins into active cash cows.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Karachi Urban Reality & Strategic Playstyles */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#2E7D52]/15 text-[#2E7D52]">
+                          Residential Playstyle
+                        </span>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Elite Residential Hubs</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          <strong>DHA, Clifton, PECHS, Gulshan:</strong> High initial cost, huge Level 3 targets. Face persistent challenges like tanker reliance (needs Water Supply) and voltage surges (needs Solar & Surge Protection).
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#8D5B3A]/20 text-[#8D5B3A]">
+                          Commercial Playstyle
+                        </span>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>High-Yield Commercial Corridors</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          <strong>Shahrah-e-Faisal, Tariq Road, Saddar:</strong> Constant customer footfall and massive rent multipliers. Vulnerable to parking congestion (needs Car Parking) and fire risks (needs Burglary/Fire Safety).
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                        <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-[#701020]/20 text-[#F1CA7E]">
+                          Growth & Industrial Playstyle
+                        </span>
+                        <h5 className="font-bold text-sm" style={{ color: 'var(--text-main)' }}>Affordable Suburban & Ports</h5>
+                        <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          <strong>Scheme 33, Surjani, Port Qasim, Korangi:</strong> Lower entry costs (Rs 55L to Rs 120L) allowing rapid doubling of capital. Dependent on Road Maintenance, Sewerage Systems, and Public Transport.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. SECTION: THE RENT WHEEL */}
+                {(guideSubTab === 'all' || guideSubTab === 'wheel') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-soft)] pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase font-bold text-[#D97706] block">
+                          Round 2 Revenue Mechanism
+                        </span>
+                        <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                          The 25-Sector Karachi Rent Wheel
+                        </h4>
+                        <p className="text-xs font-rounded mt-0.5" style={{ color: 'var(--text-sub)' }}>
+                          How spinning the wheel triggers rent transfers between competing teams.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('bank')}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-rounded font-bold capsule-card hover:bg-[var(--border-active)] hover:text-white self-start sm:self-auto cursor-pointer"
+                        style={{ color: 'var(--text-main)' }}
+                      >
+                        Open Rent Ledger
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-rounded">
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <strong className="block font-bold text-sm text-[#C0392B]">
+                          Landing on Competitor's Land
+                        </strong>
+                        <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          If Team A spins and lands on a property owned by Team B, Team A must immediately pay the calculated rent for that property to Team B.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <strong className="block font-bold text-sm text-[#2E7D52]">
+                          Landing on Your Own Land
+                        </strong>
+                        <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          Safe sanctuary! Landing on a plot that your team already owns costs Rs 0 in rent. Owning more properties increases your safety probability!
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-inset space-y-1.5 border border-[var(--border-soft)]">
+                        <strong className="block font-bold text-sm text-[#8D5B3A]">
+                          Landing on Unowned Bank Land
+                        </strong>
+                        <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                          If the wheel lands on a property that is still unowned or in the bank's custody, no rent is owed by the spinner.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Rent Comparison Card */}
+                    <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-2">
+                      <div className="flex items-center justify-between text-xs font-mono font-bold">
+                        <span style={{ color: 'var(--text-main)' }}>Why Upgrading Maximizes Rent Revenue</span>
+                        <span className="text-[#2E7D52]">Level 3 Commands 3× to 5× Rent</span>
+                      </div>
+                      <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                        In Round 2, the Admin spins the wheel multiple times across all participating teams. If opponents land on your Level 3 high-rises, they pay massive sums (up to Rs 71 Lakh per landing), creating an insurmountable net worth lead.
                       </p>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* 7. SECTION: VICTORY CONDITIONS */}
+                {(guideSubTab === 'all' || guideSubTab === 'victory') && (
+                  <div className="surface-box rounded-[28px] p-6 border border-[var(--border-card)] space-y-4">
+                    <div className="border-b border-[var(--border-soft)] pb-3">
+                      <span className="text-[10px] font-mono uppercase font-bold text-[#2E7D52] block">
+                        Final Leaderboard Arithmetic
+                      </span>
+                      <h4 className="font-display text-xl font-bold" style={{ color: 'var(--text-main)' }}>
+                        Tournament Victory Formula & Net Worth Calculation
+                      </h4>
+                    </div>
+
+                    <div className="p-4 rounded-2xl capsule-inset space-y-2 border border-[#2E7D52]/30">
+                      <span className="text-xs font-mono font-bold uppercase text-[#2E7D52] block">
+                        Authoritative Valuation Equation
+                      </span>
+                      <div className="font-mono text-base sm:text-lg font-bold" style={{ color: 'var(--text-main)' }}>
+                        Net Worth = Liquid Cash + Total Property Valuations + Unassigned Utility Tokens
+                      </div>
+                      <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                        Your ranking on the live leaderboard and final podium is determined by total net worth. Every rupee spent on buying land or utility tokens remains credited to your net worth, plus all appreciation unlocked through leveling up!
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-rounded">
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
+                        <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>Do Not Hoard Cash</strong>
+                        <p style={{ color: 'var(--text-sub)' }}>
+                          Cash earns 0% rent. Investing in properties and leveling them up to Level 2 and Level 3 generates high rental yields and massive capital appreciation.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
+                        <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>Match Recipe Utilities</strong>
+                        <p style={{ color: 'var(--text-sub)' }}>
+                          Only buy the utility tokens that match your owned properties' recipes. Focused upgrades yield faster Level 3 completions.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] space-y-1">
+                        <strong className="block font-bold text-sm" style={{ color: 'var(--text-main)' }}>Podium Ceremony</strong>
+                        <p style={{ color: 'var(--text-sub)' }}>
+                          At the conclusion of Round 2, the live 3D Tournament Podium reveals the top 3 winners with Gold, Silver, and Bronze trophies.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
