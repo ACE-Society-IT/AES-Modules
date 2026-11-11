@@ -186,6 +186,12 @@ export default function MarketMonopolyApp() {
     }
   }, []);
 
+  const activeUtilities = useMemo(() => {
+    return Array.isArray(store?.utilities) && store.utilities.length > 0
+      ? store.utilities
+      : KARACHI_UTILITIES;
+  }, [store?.utilities]);
+
   useEffect(() => {
     refreshStore(true);
 
@@ -435,7 +441,7 @@ export default function MarketMonopolyApp() {
     try {
       const updated = await buyUtilityTokenFromBank(currentTeam.id, utilityId);
       setStore(updated);
-      const util = KARACHI_UTILITIES.find((u) => u.id === Number(utilityId));
+      const util = activeUtilities.find((u) => u.id === Number(utilityId));
       showToast(`Purchased ${util ? util.name : 'Token'} from Bank for Rs ${util ? util.cost : 0}L!`);
     } catch (err) {
       showToast(err.message || 'Failed to purchase token', 'error');
@@ -466,7 +472,7 @@ export default function MarketMonopolyApp() {
         utilityId
       });
       setStore(updated);
-      const util = KARACHI_UTILITIES.find((u) => Number(u.id) === Number(utilityId));
+      const util = activeUtilities.find((u) => Number(u.id) === Number(utilityId));
       const prop = updated.properties.find((p) => Number(p.id) === Number(propertyId));
       const newLvl = Number(prop?.upgradeLevel || 0);
       if (newLvl > prevLvl) {
@@ -1242,7 +1248,7 @@ export default function MarketMonopolyApp() {
                                 {attachedIds.length > 0 && (
                                   <div className="flex items-center gap-1 flex-wrap">
                                     {attachedIds.map((uId) => {
-                                      const util = KARACHI_UTILITIES.find((u) => u.id === Number(uId));
+                                      const util = activeUtilities.find((u) => u.id === Number(uId));
                                       if (!util) return null;
                                       return (
                                         <span
@@ -1482,7 +1488,7 @@ export default function MarketMonopolyApp() {
                       </p>
                     ) : (
                       <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                        {KARACHI_UTILITIES.map((u) => {
+                        {activeUtilities.map((u) => {
                           const total = (currentTeam.ownedResources || []).filter(r => Number(r.utilityId) === Number(u.id)).length;
                           const unassigned = (currentTeam.ownedResources || []).filter(r => Number(r.utilityId) === Number(u.id) && !r.attachedToPropertyId).length;
                           if (total === 0) return null;
@@ -1511,7 +1517,7 @@ export default function MarketMonopolyApp() {
 
                 {/* 15 UTILITY TOKENS GRID FOR DIRECT PURCHASE */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-                  {KARACHI_UTILITIES.map((res) => {
+                  {activeUtilities.map((res) => {
                     const cost = Number(res.cost || 0);
                     const canAfford = Number(currentTeam.cash || 0) >= cost;
                     const ownedCopies = (currentTeam.ownedResources || []).filter(
@@ -2596,7 +2602,7 @@ export default function MarketMonopolyApp() {
 
                       {/* Utilities Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-                        {KARACHI_UTILITIES
+                        {activeUtilities
                           .filter((u) => guideUtilFilter === 'ALL' || u.category === guideUtilFilter)
                           .map((u) => (
                             <div key={u.id} className="p-3 rounded-xl capsule-card border border-[var(--border-soft)] space-y-2 flex flex-col justify-between">
@@ -3093,7 +3099,7 @@ export default function MarketMonopolyApp() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-                    {KARACHI_UTILITIES.map((res) => {
+                    {activeUtilities.map((res) => {
                       const isOwnedByMyTeam = (currentTeam.ownedResources || []).some(
                         (r) => Number(r.utilityId) === Number(res.id)
                       );
@@ -3688,7 +3694,7 @@ export default function MarketMonopolyApp() {
                     {attachedIds.length > 0 && (
                       <div className="flex items-center gap-1.5 flex-wrap pt-1">
                         {attachedIds.map((uId) => {
-                          const util = KARACHI_UTILITIES.find((u) => u.id === Number(uId));
+                          const util = activeUtilities.find((u) => u.id === Number(uId));
                           if (!util) return null;
                           return (
                             <span
@@ -3861,7 +3867,7 @@ export default function MarketMonopolyApp() {
       {/* BUY TOKEN CONFIRMATION DIALOG */}
       <AnimatePresence>
         {purchasingUtilityId !== null && (() => {
-          const res = KARACHI_UTILITIES.find((u) => u.id === Number(purchasingUtilityId));
+          const res = activeUtilities.find((u) => u.id === Number(purchasingUtilityId));
           if (!res) return null;
           const cost = Number(res.cost || 0);
           const currentCash = Number(currentTeam.cash || 0);

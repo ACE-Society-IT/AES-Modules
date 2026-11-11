@@ -41,6 +41,7 @@ export function getInitialStore() {
       upgradeLevel: 0,
       attachedUtilities: []
     })),
+    utilities: KARACHI_UTILITIES.map((u) => ({ ...u })),
     transactions: [],
     updatedAt: Date.now()
   };
@@ -49,6 +50,21 @@ export function getInitialStore() {
 export function hydrateMonopolyState(rawState) {
   const fallback = getInitialStore();
   if (!rawState || typeof rawState !== 'object') return fallback;
+
+  const utilities = (Array.isArray(rawState.utilities) && rawState.utilities.length > 0)
+    ? rawState.utilities.map((u) => {
+        const base = KARACHI_UTILITIES.find((bu) => Number(bu.id) === Number(u.id)) || {};
+        return {
+          ...base,
+          ...u,
+          id: Number(u.id),
+          cost: Number(u.cost ?? base.cost ?? 5),
+          name: u.name || base.name || `Utility #${u.id}`,
+          category: u.category || base.category || 'General',
+          summary: u.summary || u.description || base.summary || ''
+        };
+      })
+    : KARACHI_UTILITIES.map((u) => ({ ...u }));
 
   const teams = (Array.isArray(rawState.teams) ? rawState.teams : []).map((t) => ({
     ...t,
@@ -133,6 +149,7 @@ export function hydrateMonopolyState(rawState) {
     lastWheelResult: rawState.lastWheelResult || null,
     teams,
     properties: mergedProps,
+    utilities,
     transactions: (Array.isArray(rawState.transactions) ? rawState.transactions : []).filter(
       (tx) => tx.type !== 'TEAM_CREATED' && tx.type !== 'TEAM_DELETED'
     ),
@@ -185,15 +202,26 @@ export async function fetchMonopolyStore(forceFresh = false) {
   _activeFetchPromise = (async () => {
     try {
 
-  const [stateRes, teamsRes, propsRes] = await Promise.all([
+  const [stateRes, teamsRes, propsRes, utilsRes] = await Promise.all([
     supabase.from('monopoly_state').select('state_json').eq('id', 1).maybeSingle(),
     supabase.from('monopoly_teams').select('id, name, username, cash, starting_budget, owned_resources').order('updated_at', { ascending: true }),
-    supabase.from('monopoly_properties').select('id, owner_team_id, purchase_price, upgrade_level, attached_utilities, opening_value, level3_target').order('id', { ascending: true })
+    supabase.from('monopoly_properties').select('id, owner_team_id, purchase_price, upgrade_level, attached_utilities, opening_value, level3_target, rent_values').order('id', { ascending: true }),
+    supabase.from('monopoly_utilities').select('*').order('id', { ascending: true })
   ]);
 
   if (stateRes.error) {
     throw new Error(`Supabase fetchMonopolyStore error: ${stateRes.error.message}`);
   }
+
+  const dbUtilities = Array.isArray(utilsRes?.data) && utilsRes.data.length > 0
+    ? utilsRes.data.map((row) => ({
+        id: Number(row.id),
+        name: row.name,
+        cost: Number(row.cost),
+        category: row.category || 'General',
+        summary: row.summary || row.description || ''
+      }))
+    : null;
 
   const dbTeams = Array.isArray(teamsRes.data)
     ? teamsRes.data.map((row) => ({
@@ -209,6 +237,9 @@ export async function fetchMonopolyStore(forceFresh = false) {
   let result;
   if (stateRes.data?.state_json && typeof stateRes.data.state_json === 'object') {
     const raw = { ...stateRes.data.state_json };
+    if (dbUtilities !== null) {
+      raw.utilities = dbUtilities;
+    }
     if (dbTeams !== null) {
       raw.teams = dbTeams;
     } else if (!Array.isArray(raw.teams)) {
