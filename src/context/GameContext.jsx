@@ -64,9 +64,9 @@ export function GameProvider({ children }) {
   }, []);
 
   // Fetch Authoritative State Directly from Supabase
-  const fetchLatestState = useCallback(async () => {
+  const fetchLatestState = useCallback(async (forceFresh = true) => {
     try {
-      const directState = await fetchGameStateDirect();
+      const directState = await fetchGameStateDirect(forceFresh);
       if (directState) {
         setGameState(sanitizeParticipantGameState(directState));
       }
@@ -96,7 +96,10 @@ export function GameProvider({ children }) {
                   initialBudget: Number(dbTeam.initial_budget || 100000),
                   initialRoundBudget: Number(dbTeam.initial_budget || 100000),
                   taxDeducted: Number(dbTeam.tax_deducted || 0),
-                  taxShielded: Number(dbTeam.tax_shielded || 0)
+                  taxDeductedTotal: Number(dbTeam.tax_deducted || 0),
+                  taxShielded: Number(dbTeam.tax_shielded || 0),
+                  taxShieldedTotal: Number(dbTeam.tax_shielded || 0),
+                  taxHistory: Array.isArray(dbTeam.tax_history) ? dbTeam.tax_history : []
                 };
                 sessionStorage.setItem('investomania_team', JSON.stringify(merged));
                 return merged;
@@ -112,7 +115,7 @@ export function GameProvider({ children }) {
 
   // Realtime Supabase Subscription
   useEffect(() => {
-    fetchLatestState();
+    fetchLatestState(true);
 
     let channel = null;
     try {
@@ -126,7 +129,7 @@ export function GameProvider({ children }) {
               updateCachedGameStateDirect(payload.new.state_json);
               setGameState(sanitizeParticipantGameState(payload.new.state_json));
             } else {
-              fetchLatestState();
+              fetchLatestState(true);
             }
           }
         )
@@ -153,7 +156,10 @@ export function GameProvider({ children }) {
                       initialBudget: Number(dbTeam.initial_budget || 100000),
                       initialRoundBudget: Number(dbTeam.initial_budget || 100000),
                       taxDeducted: Number(dbTeam.tax_deducted || 0),
-                      taxShielded: Number(dbTeam.tax_shielded || 0)
+                      taxDeductedTotal: Number(dbTeam.tax_deducted || 0),
+                      taxShielded: Number(dbTeam.tax_shielded || 0),
+                      taxShieldedTotal: Number(dbTeam.tax_shielded || 0),
+                      taxHistory: Array.isArray(dbTeam.tax_history) ? dbTeam.tax_history : []
                     };
                     sessionStorage.setItem('investomania_team', JSON.stringify(merged));
                     return merged;
@@ -162,7 +168,7 @@ export function GameProvider({ children }) {
                 }
               } catch {}
             }
-            // If teams changed and this is an unauthenticated client or spectator, no action needed
+            fetchLatestState(true);
           }
         )
         .subscribe();
@@ -172,18 +178,18 @@ export function GameProvider({ children }) {
 
     const handleFocus = () => {
       if (!document.hidden) {
-        fetchLatestState();
+        fetchLatestState(true);
       }
     };
     window.addEventListener('focus', handleFocus);
     window.addEventListener('visibilitychange', handleFocus);
 
-    // Failover safety heartbeat: 25s (realtime WebSocket delivers instantaneous updates)
+    // Responsive failover safety heartbeat (4s) so updates are always crisp and instant
     const pollInterval = setInterval(() => {
       if (!document.hidden) {
-        fetchLatestState();
+        fetchLatestState(false);
       }
-    }, 25000);
+    }, 4000);
 
     return () => {
       if (channel) supabase.removeChannel(channel);
@@ -220,19 +226,19 @@ export function GameProvider({ children }) {
   useEffect(() => {
     if (!team) return;
     let updated = null;
-    if (gameState?.teams && gameState.teams[team.id]) {
+    if (gameState?.teams && typeof gameState.teams === 'object' && gameState.teams[team.id]) {
       updated = gameState.teams[team.id];
-    } else if (Array.isArray(gameState?.leaderboard)) {
-      updated = gameState.leaderboard.find((t) => t.id === team.id || t.name === team.name);
     }
-    if (updated) {
+    // Do NOT fall back to gameState.leaderboard for live desk cash or tax balances,
+    // as leaderboard is a periodic snapshot that can overwrite fresh values!
+    if (updated && updated.cash !== undefined) {
       setTeam((prev) => {
         const nextTeam = { ...prev, ...updated };
         sessionStorage.setItem('investomania_team', JSON.stringify(nextTeam));
         return nextTeam;
       });
     }
-  }, [gameState, team?.id]);
+  }, [gameState?.teams, team?.id]);
 
   // Contestant Desk Sign-In
   const loginTeam = async (teamName, passcode) => {
@@ -269,6 +275,20 @@ export function GameProvider({ children }) {
         sessionStorage.setItem('investomania_team', JSON.stringify(next));
         return next;
       });
+      setGameState((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        if (next.teams && typeof next.teams === 'object') {
+          next.teams = {
+            ...next.teams,
+            [team.id]: {
+              ...(next.teams[team.id] || {}),
+              ...result.team
+            }
+          };
+        }
+        return next;
+      });
     }
     return enriched;
   };
@@ -281,6 +301,21 @@ export function GameProvider({ children }) {
       setTeam((prev) => {
         const next = { ...prev, ...result.team };
         sessionStorage.setItem('investomania_team', JSON.stringify(next));
+        return next;
+      });
+      // Synchronize gameState.teams immediately so portfolio and views update with zero delay
+      setGameState((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        if (next.teams && typeof next.teams === 'object') {
+          next.teams = {
+            ...next.teams,
+            [team.id]: {
+              ...(next.teams[team.id] || {}),
+              ...result.team
+            }
+          };
+        }
         return next;
       });
     }

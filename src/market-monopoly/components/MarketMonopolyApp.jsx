@@ -211,16 +211,16 @@ export default function MarketMonopolyApp() {
       )
       .subscribe();
 
-    // Lightweight fallback sync every 25 seconds (realtime handles instant updates)
+    // Responsive failover heartbeat (4s) so participant and projector views update with zero lag
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshStore(false);
       }
-    }, 25000);
+    }, 4000);
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        refreshStore(false);
+        refreshStore(true);
       }
     };
     window.addEventListener('focus', handleVisibility);

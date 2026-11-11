@@ -384,7 +384,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               Shielded Offshore
             </span>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[#3B7A57]">
-              PKR {Number(team?.taxShieldedTotal || 0).toLocaleString()}
+              PKR {Number(team?.taxShieldedTotal ?? team?.taxShielded ?? 0).toLocaleString()}
             </div>
             <span className="text-xs font-rounded text-[var(--text-sub)]">Protected from domestic tax</span>
           </div>
@@ -394,7 +394,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               Fines Incurred
             </span>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[#B83A3A]">
-              -PKR {Number(team?.taxDeductedTotal || 0).toLocaleString()}
+              -PKR {Number(team?.taxDeductedTotal ?? team?.taxDeducted ?? 0).toLocaleString()}
             </div>
             <span className="text-xs font-rounded text-[var(--text-sub)]">Penalties from caught transfers</span>
           </div>

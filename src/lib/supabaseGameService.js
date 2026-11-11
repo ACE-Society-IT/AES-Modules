@@ -15,7 +15,7 @@ function formatDbError(err, fallbackMsg = 'Database operation failed') {
 let _clientGameStateCache = null;
 let _clientGameStateCachedAt = 0;
 let _clientGameStatePromise = null;
-const CLIENT_CACHE_TTL_MS = 2500;
+const CLIENT_CACHE_TTL_MS = 0;
 
 export function invalidateClientStateCache() {
   _clientGameStateCache = null;
@@ -37,11 +37,15 @@ export function updateCachedGameStateDirect(rawState) {
  * Fetch authoritative game state directly from Supabase
  */
 export async function fetchGameStateDirect(forceFresh = false) {
-  if (!forceFresh && _clientGameStateCache && Date.now() - _clientGameStateCachedAt < CLIENT_CACHE_TTL_MS) {
-    return _clientGameStateCache;
-  }
-  if (!forceFresh && _clientGameStatePromise) {
-    return _clientGameStatePromise;
+  if (forceFresh) {
+    invalidateClientStateCache();
+  } else {
+    if (_clientGameStateCache && CLIENT_CACHE_TTL_MS > 0 && Date.now() - _clientGameStateCachedAt < CLIENT_CACHE_TTL_MS) {
+      return _clientGameStateCache;
+    }
+    if (_clientGameStatePromise) {
+      return _clientGameStatePromise;
+    }
   }
 
   const run = async () => {
@@ -102,6 +106,41 @@ export async function placeTradeDirect({ teamId, symbol, side, quantity }) {
   if (error) throw formatDbError(error, 'Trade routing failed');
   if (!data?.ok) throw new Error(data?.error || 'Trade execution failed');
   invalidateClientStateCache();
+
+  // Query updated team record immediately so client balance is 100% authoritative and instant
+  try {
+    const { data: teamRow } = await supabase
+      .from('investomania_teams')
+      .select('*')
+      .eq('id', teamId)
+      .single();
+
+    if (teamRow) {
+      return {
+        ...data.data,
+        team: {
+          id: teamRow.id,
+          name: teamRow.name,
+          passcode: teamRow.passcode,
+          cash: Number(teamRow.cash ?? 0),
+          initialBudget: Number(teamRow.initial_budget || 100000),
+          initialRoundBudget: Number(teamRow.initial_budget || 100000),
+          holdings: teamRow.holdings || {},
+          isBanned: !!teamRow.is_banned,
+          round1Profit: Number(teamRow.round1_profit || 0),
+          round2Profit: Number(teamRow.round2_profit || 0),
+          taxDeducted: Number(teamRow.tax_deducted || 0),
+          taxDeductedTotal: Number(teamRow.tax_deducted || 0),
+          taxShielded: Number(teamRow.tax_shielded || 0),
+          taxShieldedTotal: Number(teamRow.tax_shielded || 0),
+          taxHistory: Array.isArray(teamRow.tax_history) ? teamRow.tax_history : []
+        }
+      };
+    }
+  } catch (err) {
+    console.warn('[placeTradeDirect] Failed to re-fetch updated team:', err);
+  }
+
   return data.data;
 }
 
@@ -117,6 +156,44 @@ export async function allocateTaxDirect({ teamId, channelId, amount }) {
 
   if (error) throw formatDbError(error, 'Offshore allocation failed');
   if (!data?.ok) throw new Error(data?.error || 'Offshore allocation failed');
+  invalidateClientStateCache();
+
+  // Immediately query authoritative team record so cash, taxShielded, taxDeducted, and taxHistory update with zero delay
+  try {
+    const { data: teamRow } = await supabase
+      .from('investomania_teams')
+      .select('*')
+      .eq('id', teamId)
+      .single();
+
+    if (teamRow) {
+      const formattedTeam = {
+        id: teamRow.id,
+        name: teamRow.name,
+        passcode: teamRow.passcode,
+        cash: Number(teamRow.cash ?? 0),
+        initialBudget: Number(teamRow.initial_budget || 100000),
+        initialRoundBudget: Number(teamRow.initial_budget || 100000),
+        holdings: teamRow.holdings || {},
+        isBanned: !!teamRow.is_banned,
+        round1Profit: Number(teamRow.round1_profit || 0),
+        round2Profit: Number(teamRow.round2_profit || 0),
+        taxDeducted: Number(teamRow.tax_deducted || 0),
+        taxDeductedTotal: Number(teamRow.tax_deducted || 0),
+        taxShielded: Number(teamRow.tax_shielded || 0),
+        taxShieldedTotal: Number(teamRow.tax_shielded || 0),
+        taxHistory: Array.isArray(teamRow.tax_history) ? teamRow.tax_history : []
+      };
+
+      return {
+        ...data.data,
+        team: formattedTeam
+      };
+    }
+  } catch (err) {
+    console.warn('[allocateTaxDirect] Failed to re-fetch updated team row:', err);
+  }
+
   return data.data;
 }
 

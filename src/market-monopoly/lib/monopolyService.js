@@ -143,11 +143,11 @@ export function hydrateMonopolyState(rawState) {
 // Local in-memory caching to avoid redundant network overhead
 let _cachedStore = null;
 let _cachedAt = 0;
-const CACHE_TTL_MS = 3500; // 3.5s cache for read deduplication
+const CACHE_TTL_MS = 0;
 let _activeFetchPromise = null;
 
 export function getCachedMonopolyStore() {
-  if (_cachedStore && Date.now() - _cachedAt < CACHE_TTL_MS) {
+  if (_cachedStore && CACHE_TTL_MS > 0 && Date.now() - _cachedAt < CACHE_TTL_MS) {
     return _cachedStore;
   }
   return null;
@@ -171,11 +171,15 @@ export function updateCachedMonopolyStore(rawState) {
  * Fetch authoritative Market Monopoly state from Supabase (`public.monopoly_state` row id=1)
  */
 export async function fetchMonopolyStore(forceFresh = false) {
-  if (!forceFresh && _cachedStore && Date.now() - _cachedAt < CACHE_TTL_MS) {
-    return _cachedStore;
-  }
-  if (_activeFetchPromise) {
-    return _activeFetchPromise;
+  if (forceFresh) {
+    invalidateMonopolyStoreCache();
+  } else {
+    if (_cachedStore && CACHE_TTL_MS > 0 && Date.now() - _cachedAt < CACHE_TTL_MS) {
+      return _cachedStore;
+    }
+    if (_activeFetchPromise) {
+      return _activeFetchPromise;
+    }
   }
 
   _activeFetchPromise = (async () => {

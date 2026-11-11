@@ -145,10 +145,23 @@ export default function MonopolyProjectorView() {
         }
         loadData();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_properties' }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_teams' }, () => {
+        loadData();
+      })
       .subscribe();
+
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    }, 4000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
       if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     };
   }, []);

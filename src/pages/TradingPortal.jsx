@@ -237,11 +237,14 @@ export default function TradingPortal({ activeTab = 'market' }) {
     () => detailedHoldings.reduce((sum, h) => sum + h.marketValue, 0),
     [detailedHoldings]
   );
-  const totalNetWorth = Number((teamCash + holdingsVal).toFixed(2));
+  const taxShieldedVal = Number(team?.taxShieldedTotal ?? team?.taxShielded ?? 0);
+  const taxDeductedVal = Number(team?.taxDeductedTotal ?? team?.taxDeducted ?? 0);
+  const totalNetWorth = Number((teamCash + holdingsVal + taxShieldedVal).toFixed(2));
   const allTimePnl = Number((totalNetWorth - initialBudget).toFixed(2));
   const allTimePnlPct = initialBudget > 0 ? ((allTimePnl / initialBudget) * 100).toFixed(2) : '0.00';
   const cashPct = totalNetWorth > 0 ? Math.min(100, Math.max(0, (teamCash / totalNetWorth) * 100)) : 100;
   const holdingsPct = totalNetWorth > 0 ? Math.min(100, Math.max(0, (holdingsVal / totalNetWorth) * 100)) : 0;
+  const shieldedPct = totalNetWorth > 0 ? Math.min(100, Math.max(0, (taxShieldedVal / totalNetWorth) * 100)) : 0;
   const activePositions = detailedHoldings.length;
   const executedTrades = (team?.taxHistory?.length || 0) + (team?.transactions?.length || team?.tradeCount || 0);
 
@@ -1225,18 +1228,28 @@ export default function TradingPortal({ activeTab = 'market' }) {
                 <div className="h-5 w-full rounded-full capsule-inset p-0.5 flex gap-1 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-[#5E1B21] transition-all duration-300"
-                    style={{ width: `${Math.max(4, holdingsPct)}%` }}
+                    style={{ width: `${Math.max(holdingsPct > 0 ? 3 : 0, holdingsPct)}%` }}
                     title={`Invested Holdings: ${holdingsPct.toFixed(1)}%`}
                   />
+                  {shieldedPct > 0 && (
+                    <div
+                      className="h-full rounded-full bg-[#3B7A57] transition-all duration-300"
+                      style={{ width: `${Math.max(3, shieldedPct)}%` }}
+                      title={`Offshore Shielded: ${shieldedPct.toFixed(1)}%`}
+                    />
+                  )}
                   <div
                     className="h-full rounded-full bg-[#D9BB7C] transition-all duration-300"
-                    style={{ width: `${Math.max(4, cashPct)}%` }}
+                    style={{ width: `${Math.max(cashPct > 0 ? 3 : 0, cashPct)}%` }}
                     title={`Liquid Cash: ${cashPct.toFixed(1)}%`}
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
+                <div className="flex flex-wrap items-center justify-between text-xs font-rounded font-semibold gap-2" style={{ color: 'var(--text-sub)' }}>
                   <span>Invested in Stocks/Commodities: PKR {holdingsVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({holdingsPct.toFixed(0)}%)</span>
+                  {taxShieldedVal > 0 && (
+                    <span className="text-[#3B7A57]">Shielded Offshore: PKR {taxShieldedVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({shieldedPct.toFixed(0)}%)</span>
+                  )}
                   <span>Available Liquid Cash: PKR {teamCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({cashPct.toFixed(0)}%)</span>
                 </div>
               </div>
@@ -1279,6 +1292,61 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   </div>
                 )}
               </div>
+
+              {/* Offshore Tax Havens & Smuggled Capital Summary */}
+              {(isRound3 || taxShieldedVal > 0 || (team?.taxHistory && team.taxHistory.length > 0)) && (
+                <div className="surface-box rounded-[28px] p-6 space-y-4 border border-[var(--border-soft)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-display text-lg" style={{ color: 'var(--text-main)' }}>
+                      Offshore Tax Havens & Smuggled Capital
+                    </h3>
+                    <div className="flex items-center gap-4 text-xs font-mono font-bold">
+                      <span className="text-[#3B7A57]">Shielded: PKR {taxShieldedVal.toLocaleString()}</span>
+                      <span className="text-[#B83A3A]">Fines Seized: -PKR {taxDeductedVal.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {team?.taxHistory && team.taxHistory.length > 0 ? (
+                    <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                      {team.taxHistory.map((rec, i) => {
+                        const isBust = rec.status === 'CAUGHT' || rec.caughtByGovernment;
+                        return (
+                          <div
+                            key={rec.id || `hist-${i}`}
+                            className={`capsule-card rounded-2xl px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-rounded border ${
+                              isBust ? 'border-[#B83A3A]/40 bg-[#B83A3A]/10' : 'border-[#3B7A57]/30 bg-[#3B7A57]/5'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
+                                {rec.channelName || rec.city}{' '}
+                                <span className={isBust ? 'text-[#B83A3A]' : 'text-[#3B7A57]'}>
+                                  • {isBust ? 'Intercepted by Government' : 'Safely Sheltered'}
+                                </span>
+                              </div>
+                              <div className="font-display tabular-nums text-xs text-[var(--text-sub)] pt-0.5">
+                                Smuggled: PKR {Number(rec.inputAmount || 0).toLocaleString()} • Net Shielded: PKR {Number(rec.netProtected || 0).toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`font-display tabular-nums text-sm font-bold ${isBust ? 'text-[#B83A3A]' : 'text-[#3B7A57]'}`}>
+                                -PKR {Number(rec.taxDeducted || 0).toLocaleString()}
+                              </div>
+                              <span className="text-[11px] font-rounded text-[var(--text-sub)]">
+                                {isBust ? 'Penalty Seized' : `${rec.taxRatePercent || 15}% Haven Fee`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="capsule-card rounded-[24px] p-6 text-center text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
+                      No offshore transfers recorded yet. Smuggle capital via the Offshore Havens map in Round 3.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
