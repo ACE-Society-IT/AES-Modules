@@ -550,56 +550,16 @@ export default function MonopolyProjectorView() {
                 key="outcome-card"
                 initial={{ opacity: 0, scale: 0.95, y: 14 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1E050D] via-[#2A0814] to-[#140208] border-2 border-[#ECC37A] shadow-2xl space-y-4"
+                className="p-6 sm:p-10 rounded-2xl bg-gradient-to-r from-[#1E050D] via-[#2A0814] to-[#140208] border-2 border-[#ECC37A] shadow-2xl flex items-center justify-center text-center"
               >
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-[#ECC37A]/30 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#701020] text-[#F1CA7E] border border-[#F1CA7E]/40">
-                      Spin Outcome
-                    </span>
-                    <h2 className="text-xl sm:text-2xl font-black font-serif text-[#F8EEE1]">
-                      {activeOutcome.teamName} Landed on {landedProp?.name || activeOutcome.propertyName || 'Property'}
-                    </h2>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[11px] font-mono text-[#F1CA7E]/75 block uppercase">Settlement</span>
-                    <span className={`text-xl font-mono font-black ${
-                      activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'
-                    }`}>
-                      {activeOutcome.status === 'PAID_RENT'
-                        ? `- Rs ${activeOutcome.rentAmount} Lakh`
-                        : 'Rs 0 Lakh (Free)'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
-                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Landed Property</span>
-                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
-                      #{landedProp?.id || activeOutcome.propertyId} {landedProp?.name || activeOutcome.propertyName}
-                    </strong>
-                    <span className="text-[10px] text-[#F1CA7E]/60">{landedProp?.category || 'Karachi Real Estate'}</span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
-                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Paying Team</span>
-                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
-                      {activeOutcome.teamName}
-                    </strong>
-                    <span className="text-[10px] text-[#F1CA7E]/60">Debited rent</span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#0D0104] border border-[#ECC37A]/30">
-                    <span className="text-[#F1CA7E]/70 uppercase block text-[10px] font-bold">Estate Owner</span>
-                    <strong className="text-sm text-[#F8EEE1] font-serif block mt-0.5">
-                      {activeOutcome.ownerTeamName || 'Unclaimed Territory'}
-                    </strong>
-                    <span className="text-[10px] text-[#F1CA7E]/60">
-                      {activeOutcome.ownerTeamName ? 'Earned rental income' : 'Public territory'}
-                    </span>
-                  </div>
-                </div>
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-center leading-relaxed tracking-tight text-[#F8EEE1]">
+                  <span className="text-[#F1CA7E]">{activeOutcome.teamName}</span> landed on{' '}
+                  <span className="text-[#ECC37A]">{landedProp?.name || activeOutcome.propertyName || 'Property'}</span>{' '}
+                  and will pay rent of{' '}
+                  <span className={activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'}>
+                    Rs {activeOutcome.status === 'PAID_RENT' ? activeOutcome.rentAmount : 0} Lakh
+                  </span>
+                </h2>
               </motion.div>
             ) : (
               <div className="p-4 rounded-xl bg-[#140208] border border-[#ECC37A]/30 text-center">
