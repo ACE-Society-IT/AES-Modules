@@ -28,6 +28,7 @@ import {
   attachUtilityToProperty,
   buyUtilityTokenFromBank,
   executePropertySpecificationUpgrade,
+  upgradePropertyLevel,
   executeTeamWheelSpinAndPayRent,
   computeTeamSummary,
   updateCachedMonopolyStore,

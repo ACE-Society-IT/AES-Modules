@@ -568,6 +568,16 @@ export async function buyUtilityTokenFromBank(teamId, utilityId) {
 }
 
 /**
+ * Upgrade Property Level - alias supporting both object parameter and positional parameters
+ */
+export async function upgradePropertyLevel(paramsOrTeamId, propertyId) {
+  if (typeof paramsOrTeamId === 'object' && paramsOrTeamId !== null) {
+    return executePropertySpecificationUpgrade(paramsOrTeamId.teamId, paramsOrTeamId.propertyId || propertyId);
+  }
+  return executePropertySpecificationUpgrade(paramsOrTeamId, propertyId);
+}
+
+/**
  * Execute Official Specification Property Upgrade:
  * Verifies required utility tokens and deducts cash upgrade cost.
  */
