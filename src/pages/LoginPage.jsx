@@ -179,7 +179,7 @@ export default function LoginPage() {
               disabled={loading || isLoginsBlocked}
               className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer disabled:opacity-50"
             >
-              {isLoginsBlocked ? 'Team Access Suspended' : loading ? 'Connecting...' : 'Enter Trading Floor (PKR 100,000)'}
+              {isLoginsBlocked ? 'Team Access Suspended' : loading ? 'Signing In...' : 'Sign In'}
             </TactileButton>
           </form>
         </motion.div>
