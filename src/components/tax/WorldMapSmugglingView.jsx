@@ -44,7 +44,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
 
   const [selectedCityId, setSelectedCityId] = useState(() => taxHavens[0]?.id || 1);
   const [hoveredCityId, setHoveredCityId] = useState(null);
-  const [smuggleAmount, setSmuggleAmount] = useState(15000);
+  const [smuggleAmount, setSmuggleAmount] = useState('15000');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Map Zoom & Pan State
@@ -278,21 +278,33 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
   const vbY = center.y - currentH / 2;
   const pinScale = Math.max(0.65, 1 / Math.sqrt(zoom));
 
-  const currentAmount = Math.max(0, Math.min(availableCash, Number(smuggleAmount) || 0));
+  const formatAmount = (val) => {
+    const num = Number(val || 0);
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const parsedSmuggle = parseFloat(smuggleAmount);
+  const currentAmount = isNaN(parsedSmuggle)
+    ? 0
+    : Math.max(0, Math.min(availableCash, Number(parsedSmuggle.toFixed(2))));
   const estimatedTaxFee = selectedCity
     ? Number(((currentAmount * (selectedCity.taxRatePercent || 20)) / 100).toFixed(2))
     : 0;
-  const estimatedNetShielded = Math.max(0, currentAmount - estimatedTaxFee);
+  const estimatedNetShielded = Math.max(0, Number((currentAmount - estimatedTaxFee).toFixed(2)));
 
   const handleExecuteWire = async (e) => {
     e.preventDefault();
     if (!selectedCity || isSubmitting) return;
 
-    if (currentAmount <= 0) {
+    const sendAmount = Number(currentAmount.toFixed(2));
+    if (sendAmount <= 0) {
       alert('Please enter an amount greater than PKR 0.');
       return;
     }
-    if (currentAmount > availableCash) {
+    if (sendAmount > availableCash) {
       alert('Amount exceeds your available cash.');
       return;
     }
@@ -301,7 +313,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
     try {
       const res = await onAllocateTax({
         channelId: selectedCity.id,
-        amount: currentAmount
+        amount: sendAmount
       });
 
       if (res.caught) {
@@ -309,8 +321,8 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           city: selectedCity.city || selectedCity.name,
           country: selectedCity.country,
           airportCode: selectedCity.airportCode || 'OFF',
-          amount: currentAmount,
-          taxDeducted: res.taxRecord?.taxDeducted || currentAmount * 0.45,
+          amount: sendAmount,
+          taxDeducted: res.taxRecord?.taxDeducted || sendAmount * 0.45,
           message: res.message || 'The government intercepted this transfer.'
         });
       } else {
@@ -318,7 +330,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           city: selectedCity.city || selectedCity.name,
           country: selectedCity.country,
           airportCode: selectedCity.airportCode || 'OFF',
-          amount: currentAmount,
+          amount: sendAmount,
           taxDeducted: res.taxRecord?.taxDeducted || estimatedTaxFee,
           message: res.message || 'Funds were safely sheltered offshore.'
         });
@@ -374,7 +386,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               Liquid Cash
             </span>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[var(--text-main)]">
-              PKR {availableCash.toLocaleString()}
+              PKR {formatAmount(availableCash)}
             </div>
             <span className="text-xs font-rounded text-[#3B7A57] font-semibold">Ready to transfer</span>
           </div>
@@ -384,7 +396,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               Shielded Offshore
             </span>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[#3B7A57]">
-              PKR {Number(team?.taxShieldedTotal ?? team?.taxShielded ?? 0).toLocaleString()}
+              PKR {formatAmount(team?.taxShieldedTotal ?? team?.taxShielded ?? 0)}
             </div>
             <span className="text-xs font-rounded text-[var(--text-sub)]">Protected from domestic tax</span>
           </div>
@@ -394,7 +406,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               Fines Incurred
             </span>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[#B83A3A]">
-              -PKR {Number(team?.taxDeductedTotal ?? team?.taxDeducted ?? 0).toLocaleString()}
+              -PKR {formatAmount(team?.taxDeductedTotal ?? team?.taxDeducted ?? 0)}
             </div>
             <span className="text-xs font-rounded text-[var(--text-sub)]">Penalties from caught transfers</span>
           </div>
@@ -669,14 +681,14 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               </div>
 
               {/* Wire Form */}
-              <form onSubmit={handleExecuteWire} className="space-y-4">
+              <form onSubmit={handleExecuteWire} noValidate className="space-y-4">
                 <div className="capsule-card rounded-2xl p-4 space-y-3 border border-[var(--border-soft)]">
                   <div className="flex justify-between text-xs font-rounded">
                     <label className="font-bold text-[var(--text-main)]">
                       Transfer Amount
                     </label>
                     <span className="text-[var(--text-sub)]">
-                      Available: <strong className="font-display tabular-nums font-bold" style={{ color: 'var(--text-main)' }}>PKR {availableCash.toLocaleString()}</strong>
+                      Available: <strong className="font-display tabular-nums font-bold" style={{ color: 'var(--text-main)' }}>PKR {formatAmount(availableCash)}</strong>
                     </span>
                   </div>
 
@@ -685,11 +697,12 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                     <span className="font-display text-lg font-bold text-[var(--border-active)]">PKR</span>
                     <input
                       type="number"
-                      min="500"
+                      min="0.01"
                       max={availableCash}
-                      step="500"
+                      step="any"
+                      placeholder="0.00"
                       value={smuggleAmount}
-                      onChange={(e) => setSmuggleAmount(Number(e.target.value))}
+                      onChange={(e) => setSmuggleAmount(e.target.value)}
                       className="w-full bg-transparent font-display tabular-nums font-bold text-2xl focus:outline-none"
                       style={{ color: 'var(--text-main)' }}
                     />
@@ -699,11 +712,11 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                   <div className="pt-1">
                     <input
                       type="range"
-                      min="1000"
-                      max={Math.max(1000, availableCash)}
-                      step="1000"
+                      min="0"
+                      max={Math.max(1, availableCash)}
+                      step="any"
                       value={currentAmount}
-                      onChange={(e) => setSmuggleAmount(Number(e.target.value))}
+                      onChange={(e) => setSmuggleAmount(e.target.value)}
                       className="w-full h-2 bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg appearance-none cursor-pointer accent-[var(--border-active)]"
                     />
                   </div>
@@ -711,15 +724,15 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                   {/* Presets */}
                   <div className="grid grid-cols-4 gap-2 pt-1">
                     {[
-                      { label: '25%', val: Math.floor(availableCash * 0.25) },
-                      { label: '50%', val: Math.floor(availableCash * 0.50) },
-                      { label: '75%', val: Math.floor(availableCash * 0.75) },
+                      { label: '25%', val: Number((availableCash * 0.25).toFixed(2)) },
+                      { label: '50%', val: Number((availableCash * 0.50).toFixed(2)) },
+                      { label: '75%', val: Number((availableCash * 0.75).toFixed(2)) },
                       { label: 'MAX', val: availableCash }
                     ].map((preset) => (
                       <button
                         key={preset.label}
                         type="button"
-                        onClick={() => setSmuggleAmount(preset.val)}
+                        onClick={() => setSmuggleAmount(String(preset.val))}
                         className="rounded-full py-1 text-xs font-display tabular-nums font-bold capsule-card hover:bg-[var(--border-active)] hover:text-white cursor-pointer text-[var(--text-main)] border border-[var(--border-soft)]"
                       >
                         {preset.label}
@@ -733,19 +746,19 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                   <div className="flex justify-between">
                     <span className="text-[var(--text-sub)]">Gross transfer</span>
                     <span className="font-display tabular-nums font-bold" style={{ color: 'var(--text-main)' }}>
-                      PKR {currentAmount.toLocaleString()}
+                      PKR {formatAmount(currentAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[#C0392B]">
                     <span>Tax fee ({selectedCity.taxRatePercent}%)</span>
                     <span className="font-display tabular-nums font-bold">
-                      -PKR {estimatedTaxFee.toLocaleString()}
+                      -PKR {formatAmount(estimatedTaxFee)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm font-bold pt-2 border-t border-[var(--border-soft)] text-[#2E7D52]">
                     <span>Estimated net shielded</span>
                     <span className="font-display tabular-nums font-bold">
-                      PKR {estimatedNetShielded.toLocaleString()}
+                      PKR {formatAmount(estimatedNetShielded)}
                     </span>
                   </div>
                 </div>
@@ -780,7 +793,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                     ? 'Execute Locked • Trading Floor Closed'
                     : currentAmount <= 0
                     ? 'Execute Offshore Wire • Enter Amount'
-                    : `Execute Wire Transfer • PKR ${currentAmount.toLocaleString()} to ${selectedCity.city || selectedCity.name}`}
+                    : `Execute Wire Transfer • PKR ${formatAmount(currentAmount)} to ${selectedCity.city || selectedCity.name}`}
                 </TactileButton>
               </form>
             </div>
@@ -835,14 +848,14 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                         </span>
                       </div>
                       <div className="font-display tabular-nums text-xs text-[var(--text-sub)] pt-0.5">
-                        Amount: PKR {Number(rec.inputAmount || 0).toLocaleString()} • Crisis {rec.crisisNumber || 1}
+                        Amount: PKR {formatAmount(rec.inputAmount)} • Crisis {rec.crisisNumber || 1}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-right">
                     <div className={`font-display tabular-nums text-sm font-bold ${isBust ? 'text-[#B83A3A]' : 'text-[#3B7A57]'}`}>
-                      -PKR {Number(rec.taxDeducted || 0).toLocaleString()}
+                      -PKR {formatAmount(rec.taxDeducted)}
                     </div>
                     <span className="text-[11px] font-rounded text-[var(--text-sub)]">
                       {isBust ? 'Penalty Fine' : `${rec.taxRatePercent || 20}% Fee`}
@@ -895,7 +908,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                       fontWeight: 800
                     }}
                   >
-                    PKR {Number(caughtModal.amount || 0).toLocaleString()}
+                    PKR {formatAmount(caughtModal.amount)}
                   </span>{' '}
                   to <strong className="font-display font-bold" style={{ color: 'var(--text-main)' }}>{caughtModal.city}</strong> because it exceeded the secret limit.
                 </p>
@@ -904,7 +917,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               <div className="rounded-2xl capsule-inset p-4 space-y-1 text-xs font-rounded border border-[#B83A3A]/40" style={{ backgroundColor: 'var(--bg-inset)' }}>
                 <div style={{ color: 'var(--text-sub)' }}>Fine Deducted:</div>
                 <div className="text-3xl font-display font-bold tracking-tight" style={{ color: '#B83A3A' }}>
-                  -PKR {Number(caughtModal.taxDeducted || 0).toLocaleString()}
+                  -PKR {formatAmount(caughtModal.taxDeducted)}
                 </div>
               </div>
 
@@ -957,7 +970,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                       fontWeight: 800
                     }}
                   >
-                    PKR {Number(successModal.amount || 0).toLocaleString()}
+                    PKR {formatAmount(successModal.amount)}
                   </span>{' '}
                   arrived safely in <strong className="font-display font-bold" style={{ color: 'var(--text-main)' }}>{successModal.city}</strong> under the radar limit.
                 </p>
@@ -966,7 +979,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               <div className="rounded-2xl capsule-inset p-4 space-y-1 text-xs font-rounded border border-[#3B7A57]/30" style={{ backgroundColor: 'var(--bg-inset)' }}>
                 <div style={{ color: 'var(--text-sub)' }}>Tax Fee Deducted:</div>
                 <div className="text-3xl font-display font-bold tracking-tight" style={{ color: '#3B7A57' }}>
-                  -PKR {Number(successModal.taxDeducted || 0).toLocaleString()}
+                  -PKR {formatAmount(successModal.taxDeducted)}
                 </div>
               </div>
 
