@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import { fetchMonopolyStore, updateCachedMonopolyStore, supabase } from '../lib/monopolyService.js';
 import { KARACHI_PROPERTIES } from '../data/monopolyData.js';
 import { LandPlotIllustration } from './LandPlotSvg.jsx';
@@ -303,11 +304,23 @@ export default function MonopolyProjectorView() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="px-3.5 py-1.5 rounded-full bg-[#1C050B] border border-[#ECC37A]/50 text-xs font-mono font-bold text-[#F1CA7E]">
-            {activeOutcome?.spinNumber
-              ? `Spin #${activeOutcome.spinNumber}`
-              : `Total Spins: ${store?.wheelSpinsHistory?.length || store?.wheelSpinsCount || 0}`}
-          </div>
+          {isCountingDown ? (
+            <div className="px-4 py-1.5 rounded-full bg-[#1C050B] border-2 border-[#F59E0B] text-xs font-mono font-bold text-[#F59E0B] flex items-center gap-2 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-ping" />
+              <span>Starting in {countdown}s</span>
+            </div>
+          ) : isSpinning ? (
+            <div className="px-4 py-1.5 rounded-full bg-[#1C050B] border-2 border-[#F1CA7E] text-xs font-mono font-bold text-[#F1CA7E] flex items-center gap-2">
+              <div className="w-3.5 h-3.5 border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
+              <span>Wheels Spinning</span>
+            </div>
+          ) : (
+            <div className="px-3.5 py-1.5 rounded-full bg-[#1C050B] border border-[#ECC37A]/50 text-xs font-mono font-bold text-[#F1CA7E]">
+              {activeOutcome?.spinNumber
+                ? `Spin #${activeOutcome.spinNumber}`
+                : `Total Spins: ${store?.wheelSpinsHistory?.length || store?.wheelSpinsCount || 0}`}
+            </div>
+          )}
         </div>
       </header>
 
@@ -501,75 +514,6 @@ export default function MonopolyProjectorView() {
             </div>
           </div>
         </div>
-
-        {/* BOTTOM ARENA: SUSPENSE TIMER / SPINNER / CELEBRATORY RESULT POPUP */}
-        <div className="w-full max-w-4xl">
-          <AnimatePresence mode="wait">
-            {isCountingDown ? (
-              <motion.div
-                key="suspense-card"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                className="p-5 rounded-2xl bg-[#1C050B] border-2 border-[#ECC37A] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full border-2 border-[#F59E0B] bg-[#120207] flex items-center justify-center shrink-0">
-                    <span className="text-3xl font-black font-mono text-[#F59E0B]">
-                      {countdown}s
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#F1CA7E]/70 font-bold block">
-                      Live Wheel Spin Pending
-                    </span>
-                    <h2 className="font-serif text-2xl font-bold text-[#F8EEE1]">
-                      Dual Wheel Starting in {countdown} Seconds...
-                    </h2>
-                  </div>
-                </div>
-                <div className="text-xs font-mono text-[#F1CA7E] uppercase tracking-wider font-semibold">
-                  Get Ready!
-                </div>
-              </motion.div>
-            ) : isSpinning ? (
-              <motion.div
-                key="spinning-card"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                className="p-5 rounded-2xl bg-[#1C050B] border-2 border-[#ECC37A] shadow-2xl flex items-center justify-center gap-4"
-              >
-                <div className="w-7 h-7 border-2 border-[#F1CA7E] border-t-transparent rounded-full animate-spin" />
-                <span className="font-serif font-black text-lg text-[#F1CA7E] tracking-widest uppercase">
-                  Wheels Spinning... Selecting Property &amp; Paying Team
-                </span>
-              </motion.div>
-            ) : isRevealed && activeOutcome ? (
-              <motion.div
-                key="outcome-card"
-                initial={{ opacity: 0, scale: 0.95, y: 14 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="p-6 sm:p-10 rounded-2xl bg-gradient-to-r from-[#1E050D] via-[#2A0814] to-[#140208] border-2 border-[#ECC37A] shadow-2xl flex items-center justify-center text-center"
-              >
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-center leading-relaxed tracking-tight text-[#F8EEE1]">
-                  <span className="text-[#F1CA7E]">{activeOutcome.teamName}</span> landed on{' '}
-                  <span className="text-[#ECC37A]">{landedProp?.name || activeOutcome.propertyName || 'Property'}</span>{' '}
-                  and will pay rent of{' '}
-                  <span className={activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'}>
-                    Rs {activeOutcome.status === 'PAID_RENT' ? activeOutcome.rentAmount : 0} Lakh
-                  </span>
-                </h2>
-              </motion.div>
-            ) : (
-              <div className="p-4 rounded-xl bg-[#140208] border border-[#ECC37A]/30 text-center">
-                <span className="text-xs font-mono text-[#F1CA7E]/80 uppercase tracking-widest">
-                  Ready for Wheel Spin · Admin controls live spin from Master Admin
-                </span>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
       </main>
 
       {/* FOOTER */}
@@ -577,6 +521,58 @@ export default function MonopolyProjectorView() {
         <span>Alpha Entrepreneurship Summit 2026</span>
         <span>Market Monopoly Dual Arena</span>
       </footer>
+
+      {/* POPUP RESULT WINDOW IN THE CENTER OF THE WEBSITE (ONLY AFTER SPIN) */}
+      <AnimatePresence>
+        {isRevealed && activeOutcome && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setIsRevealed(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 16 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-4xl p-8 sm:p-14 rounded-3xl bg-gradient-to-b from-[#2A0814] via-[#1E050E] to-[#120207] border-4 border-[#ECC37A] shadow-[0_25px_90px_rgba(0,0,0,0.95)] text-center space-y-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setIsRevealed(false)}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-11 h-11 rounded-full bg-[#1C050B] hover:bg-[#701020] text-[#F8EEE1] border border-[#ECC37A]/50 flex items-center justify-center transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="py-4">
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black font-serif text-center leading-snug tracking-tight text-[#F8EEE1]">
+                  <span className="text-[#F1CA7E]">{activeOutcome.teamName}</span> landed on{' '}
+                  <span className="text-[#ECC37A]">{landedProp?.name || activeOutcome.propertyName || 'Property'}</span>{' '}
+                  and will pay rent of{' '}
+                  <span className={activeOutcome.status === 'PAID_RENT' ? 'text-[#EF4444]' : 'text-[#22C55E]'}>
+                    Rs {activeOutcome.status === 'PAID_RENT' ? activeOutcome.rentAmount : 0} Lakh
+                  </span>
+                </h2>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRevealed(false)}
+                  className="px-8 py-3.5 rounded-2xl bg-[#ECC37A] hover:bg-[#F1CA7E] text-[#140208] font-black text-sm uppercase tracking-wider transition-all cursor-pointer shadow-xl hover:scale-105 active:scale-95"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
