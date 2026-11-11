@@ -23,7 +23,8 @@ export function GameProvider({ children }) {
   const [team, setTeam] = useState(() => {
     try {
       const saved = sessionStorage.getItem('investomania_team');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved || !saved.trim() || saved === 'undefined' || saved === 'null') return null;
+      return JSON.parse(saved);
     } catch {
       return null;
     }
@@ -73,7 +74,7 @@ export function GameProvider({ children }) {
 
       // If team is signed in, sync fresh team row directly from investomania_teams
       const savedTeamStr = sessionStorage.getItem('investomania_team');
-      if (savedTeamStr) {
+      if (savedTeamStr && savedTeamStr.trim() && savedTeamStr !== 'undefined' && savedTeamStr !== 'null') {
         try {
           const currentT = JSON.parse(savedTeamStr);
           if (currentT?.id) {
@@ -138,7 +139,7 @@ export function GameProvider({ children }) {
           { event: '*', schema: 'public', table: 'investomania_teams' },
           (payload) => {
             const savedTeamStr = sessionStorage.getItem('investomania_team');
-            if (savedTeamStr && payload.new) {
+            if (savedTeamStr && savedTeamStr.trim() && savedTeamStr !== 'undefined' && savedTeamStr !== 'null' && payload.new) {
               try {
                 const currentT = JSON.parse(savedTeamStr);
                 if (currentT?.id && String(payload.new.id) === String(currentT.id)) {

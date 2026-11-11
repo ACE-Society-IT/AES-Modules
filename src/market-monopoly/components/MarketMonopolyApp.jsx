@@ -157,7 +157,8 @@ export default function MarketMonopolyApp() {
   const [dismissedRentKeys, setDismissedRentKeys] = useState(() => {
     try {
       const stored = localStorage.getItem('monopoly_dismissed_rent_keys');
-      return stored ? JSON.parse(stored) : {};
+      if (!stored || !stored.trim() || stored === 'undefined' || stored === 'null') return {};
+      return JSON.parse(stored);
     } catch {
       return {};
     }
