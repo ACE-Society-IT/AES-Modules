@@ -286,6 +286,21 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
     });
   };
 
+  const handleAmountChange = (raw) => {
+    if (raw === '' || raw === null || raw === undefined) {
+      setSmuggleAmount('');
+      return;
+    }
+    const str = String(raw);
+    const parts = str.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 2) {
+      setSmuggleAmount(`${parts[0]}.${parts[1].slice(0, 2)}`);
+      return;
+    }
+    setSmuggleAmount(str);
+  };
+
   const parsedSmuggle = parseFloat(smuggleAmount);
   const currentAmount = isNaN(parsedSmuggle)
     ? 0
@@ -697,12 +712,12 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                     <span className="font-display text-lg font-bold text-[var(--border-active)]">PKR</span>
                     <input
                       type="number"
-                      min="0.01"
+                      min="1"
                       max={availableCash}
-                      step="any"
-                      placeholder="0.00"
+                      step="0.01"
+                      placeholder="0"
                       value={smuggleAmount}
-                      onChange={(e) => setSmuggleAmount(e.target.value)}
+                      onChange={(e) => handleAmountChange(e.target.value)}
                       className="w-full bg-transparent font-display tabular-nums font-bold text-2xl focus:outline-none"
                       style={{ color: 'var(--text-main)' }}
                     />
@@ -713,10 +728,10 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                     <input
                       type="range"
                       min="0"
-                      max={Math.max(1, availableCash)}
-                      step="any"
-                      value={currentAmount}
-                      onChange={(e) => setSmuggleAmount(e.target.value)}
+                      max={Math.max(0, Math.floor(availableCash))}
+                      step="1"
+                      value={Math.round(currentAmount)}
+                      onChange={(e) => setSmuggleAmount(String(Math.round(Number(e.target.value))))}
                       className="w-full h-2 bg-[var(--bg-inset)] border border-[var(--border-soft)] rounded-lg appearance-none cursor-pointer accent-[var(--border-active)]"
                     />
                   </div>
@@ -724,10 +739,10 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                   {/* Presets */}
                   <div className="grid grid-cols-4 gap-2 pt-1">
                     {[
-                      { label: '25%', val: Number((availableCash * 0.25).toFixed(2)) },
-                      { label: '50%', val: Number((availableCash * 0.50).toFixed(2)) },
-                      { label: '75%', val: Number((availableCash * 0.75).toFixed(2)) },
-                      { label: 'MAX', val: availableCash }
+                      { label: '25%', val: Math.round(availableCash * 0.25) },
+                      { label: '50%', val: Math.round(availableCash * 0.50) },
+                      { label: '75%', val: Math.round(availableCash * 0.75) },
+                      { label: 'MAX', val: Number(Number(availableCash).toFixed(2)) }
                     ].map((preset) => (
                       <button
                         key={preset.label}

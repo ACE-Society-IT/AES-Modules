@@ -543,7 +543,7 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
                       </div>
                       <div className="flex justify-between text-sm font-bold pt-1 border-t border-[var(--border-soft)]">
                         <span>Total Order Cost</span>
-                        <span className="text-[#D9BB7C] font-mono">PKR {totalOrderValue.toLocaleString()}</span>
+                        <span className="text-[#D9BB7C] font-mono">PKR {totalOrderValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
                       </div>
                     </div>
 

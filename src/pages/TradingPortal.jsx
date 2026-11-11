@@ -527,7 +527,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                       Total Net Worth
                     </span>
                     <span className="text-xs sm:text-sm font-bold font-mono text-[var(--text-main)] tabular-nums">
-                      PKR {Number(totalNetWorth).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      PKR {Number(totalNetWorth).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
@@ -626,7 +626,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   </div>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-[var(--text-main)] block truncate">
-                      PKR {Number(totalNetWorth).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      PKR {Number(totalNetWorth).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1 text-xs font-rounded font-semibold">
                       <span className={`font-mono font-bold ${allTimePnl >= 0 ? 'text-[#2E7D52]' : 'text-[#C0392B]'}`}>
@@ -647,7 +647,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   </div>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-[var(--text-main)] block truncate">
-                      PKR {Number(teamCash).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      PKR {Number(teamCash).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1 text-xs font-rounded font-semibold text-[var(--text-sub)]">
                       <span className="font-mono">{cashPct.toFixed(1)}%</span> of portfolio
@@ -665,7 +665,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   </div>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-[var(--text-main)] block truncate">
-                      PKR {Number(holdingsVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      PKR {Number(holdingsVal).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1 text-xs font-rounded font-semibold text-[var(--text-sub)]">
                       <span className="font-mono">{activePositions}</span> {activePositions === 1 ? 'Active Position' : 'Active Positions'}
@@ -1221,7 +1221,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>Net Equity: </span>
-                    <strong className="text-lg font-display" style={{ color: 'var(--text-main)' }}>PKR {totalNetWorth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    <strong className="text-lg font-display" style={{ color: 'var(--text-main)' }}>PKR {totalNetWorth.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</strong>
                   </div>
                 </div>
 
@@ -1246,11 +1246,11 @@ export default function TradingPortal({ activeTab = 'market' }) {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between text-xs font-rounded font-semibold gap-2" style={{ color: 'var(--text-sub)' }}>
-                  <span>Invested in Stocks/Commodities: PKR {holdingsVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({holdingsPct.toFixed(0)}%)</span>
+                  <span>Invested in Stocks/Commodities: PKR {holdingsVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ({holdingsPct.toFixed(0)}%)</span>
                   {taxShieldedVal > 0 && (
-                    <span className="text-[#3B7A57]">Shielded Offshore: PKR {taxShieldedVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({shieldedPct.toFixed(0)}%)</span>
+                    <span className="text-[#3B7A57]">Shielded Offshore: PKR {taxShieldedVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ({shieldedPct.toFixed(0)}%)</span>
                   )}
-                  <span>Available Liquid Cash: PKR {teamCash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({cashPct.toFixed(0)}%)</span>
+                  <span>Available Liquid Cash: PKR {teamCash.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ({cashPct.toFixed(0)}%)</span>
                 </div>
               </div>
 

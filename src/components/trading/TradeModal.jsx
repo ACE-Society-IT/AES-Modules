@@ -76,7 +76,7 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
     if (tradeSide === 'BUY' && totalCost > cash) {
       setFeedback({
         type: 'error',
-        text: `Insufficient cash. Order requires PKR ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, you have PKR ${cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`
+        text: `Insufficient cash. Order requires PKR ${totalCost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}, you have PKR ${cash.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}.`
       });
       return;
     }
@@ -307,13 +307,13 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
                 <div className="flex justify-between">
                   <span className="text-[var(--text-sub)]">Total Order Value</span>
                   <span className="font-mono tabular-nums font-bold text-sm text-[var(--text-main)]">
-                    PKR {totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    PKR {totalCost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex justify-between text-[11px] text-[var(--text-sub)]">
                   <span>Estimated Cash After Order</span>
                   <span className="font-mono tabular-nums font-semibold">
-                    PKR {(tradeSide === 'BUY' ? Math.max(0, cash - totalCost) : cash + totalCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    PKR {(tradeSide === 'BUY' ? Math.max(0, cash - totalCost) : cash + totalCost).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
