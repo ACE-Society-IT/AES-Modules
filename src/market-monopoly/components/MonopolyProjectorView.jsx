@@ -196,11 +196,11 @@ export default function MonopolyProjectorView() {
     const teamSliceCenter = (safeTeamIndex + 0.5) * teamSliceAngle;
     const teamDesiredMod = (360 - teamSliceCenter + 360) % 360;
 
-    // If result was already revealed on server (e.g. reload or historical spin), show immediately without spinning
+    // If result was already revealed on server (e.g. reload or historical spin), position wheels but keep modal hidden
     if (res.revealed) {
       setIsCountingDown(false);
       setIsSpinning(false);
-      setIsRevealed(true);
+      setIsRevealed(false);
       setCountdown(null);
 
       propRotationRef.current = propDesiredMod;
@@ -315,11 +315,16 @@ export default function MonopolyProjectorView() {
               <span>Wheels Spinning</span>
             </div>
           ) : (
-            <div className="px-3.5 py-1.5 rounded-full bg-[#1C050B] border border-[#ECC37A]/50 text-xs font-mono font-bold text-[#F1CA7E]">
+            <button
+              type="button"
+              onClick={() => activeOutcome && setIsRevealed(true)}
+              className="px-3.5 py-1.5 rounded-full bg-[#1C050B] border border-[#ECC37A]/50 text-xs font-mono font-bold text-[#F1CA7E] hover:border-[#ECC37A] transition-colors cursor-pointer"
+              title={activeOutcome ? 'Click to show last spin outcome modal' : 'Total spins'}
+            >
               {activeOutcome?.spinNumber
                 ? `Spin #${activeOutcome.spinNumber}`
                 : `Total Spins: ${store?.wheelSpinsHistory?.length || store?.wheelSpinsCount || 0}`}
-            </div>
+            </button>
           )}
         </div>
       </header>
