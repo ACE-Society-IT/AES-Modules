@@ -2,9 +2,17 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import aesLogo from '../assets/aes-logo.png';
 import investomaniaLogo from '../assets/InvestomaniaLogo.png';
+import { useGame } from '../context/GameContext.jsx';
 
 export default function ModuleSelectorPage() {
   const navigate = useNavigate();
+  const { gameState } = useGame() || {};
+
+  const moduleAccess = {
+    investomania: gameState?.moduleAccess?.investomania ?? gameState?.loginsEnabled ?? true,
+    defendTheEmpire: gameState?.moduleAccess?.defendTheEmpire ?? true,
+    marketMonopoly: gameState?.moduleAccess?.marketMonopoly ?? true
+  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#5a0d1b', color: '#f8eee1', fontFamily: 'Outfit, system-ui, -apple-system, sans-serif', padding: '28px 24px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxSizing: 'border-box' }}>
@@ -87,9 +95,17 @@ export default function ModuleSelectorPage() {
                   <img src={investomaniaLogo} alt="Investomania Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
 
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
-                  01 · FINANCIAL ARENA
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
+                    01 · FINANCIAL ARENA
+                  </span>
+                  {!moduleAccess.investomania && (
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.04em', background: 'rgba(220, 38, 38, 0.25)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.6)', padding: '3px 10px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
+                      LOGINS LOCKED
+                    </span>
+                  )}
+                </div>
                 <h2 style={{ color: '#f1ca7e', fontSize: '28px', marginTop: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
                   Investomania
                 </h2>
@@ -120,9 +136,17 @@ export default function ModuleSelectorPage() {
                   </svg>
                 </div>
 
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
-                  02 · STRATEGIC WARFARE
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
+                    02 · STRATEGIC WARFARE
+                  </span>
+                  {!moduleAccess.defendTheEmpire && (
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.04em', background: 'rgba(220, 38, 38, 0.25)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.6)', padding: '3px 10px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
+                      LOGINS LOCKED
+                    </span>
+                  )}
+                </div>
                 <h2 style={{ color: '#f1ca7e', fontSize: '28px', marginTop: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
                   Defend the Empire
                 </h2>
@@ -154,9 +178,17 @@ export default function ModuleSelectorPage() {
                   </svg>
                 </div>
 
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
-                  03 · COMMERCIAL MONOPOLY
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', background: '#89192c', color: '#f1ca7e', border: '1px solid rgba(241, 202, 126, 0.4)', padding: '4px 12px', borderRadius: '9999px' }}>
+                    03 · COMMERCIAL MONOPOLY
+                  </span>
+                  {!moduleAccess.marketMonopoly && (
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.04em', background: 'rgba(220, 38, 38, 0.25)', color: '#fca5a5', border: '1px solid rgba(220, 38, 38, 0.6)', padding: '3px 10px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
+                      LOGINS LOCKED
+                    </span>
+                  )}
+                </div>
                 <h2 style={{ color: '#f1ca7e', fontSize: '28px', marginTop: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
                   Market Monopoly
                 </h2>

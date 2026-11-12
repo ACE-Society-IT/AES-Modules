@@ -34,6 +34,7 @@ import {
   updateCachedMonopolyStore,
   supabase
 } from '../lib/monopolyService.js';
+import { useGame } from '../../context/GameContext.jsx';
 import { UtilityIcon, LandPlotIllustration, PropertyCategoryBackdrop } from './LandPlotSvg.jsx';
 import SpinWheelModal from './SpinWheelModal.jsx';
 import MonopolyPodiumLeaderboard from './MonopolyPodiumLeaderboard.jsx';
@@ -103,6 +104,33 @@ export default function MarketMonopolyApp() {
   const [loginName, setLoginName] = useState('');
   const [loginPasscode, setLoginPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  const { gameState } = useGame() || {};
+  const isMonopolyBlocked =
+    (gameState?.moduleAccess && gameState.moduleAccess.marketMonopoly === false) ||
+    (store?.loginsEnabled === false);
+
+  // Real-time Auto-Logout if Administrator locks Market Monopoly logins
+  useEffect(() => {
+    if (isMonopolyBlocked) {
+      const activeId =
+        activeTeamId ||
+        sessionStorage.getItem('investomania_monopoly_team_id') ||
+        localStorage.getItem('investomania_monopoly_team_id');
+      if (activeId) {
+        console.warn('[Monopoly] Market Monopoly logins blocked by Admin. Logging out session.');
+        setActiveTeamId('');
+        setActiveTeamName('');
+        try {
+          sessionStorage.removeItem('investomania_monopoly_team_id');
+          sessionStorage.removeItem('investomania_monopoly_team_name');
+          localStorage.removeItem('investomania_monopoly_team_id');
+          localStorage.removeItem('investomania_monopoly_team_name');
+        } catch {}
+        setLoginError('Market Monopoly access has been locked by the Administrator. All active sessions have been signed out.');
+      }
+    }
+  }, [isMonopolyBlocked, activeTeamId]);
 
   // Sync tab with URL: /market-monopoly/land, /market-monopoly/buy-resources, /market-monopoly/bank, etc.
   const validTabs = useMemo(() => ['land', 'buy-resources', 'bank', 'standings', 'guide', 'catalogue'], []);
@@ -410,6 +438,12 @@ export default function MarketMonopolyApp() {
   const handleSignIn = async (e) => {
     e.preventDefault();
     setLoginError('');
+
+    if (isMonopolyBlocked) {
+      setLoginError('Market Monopoly access has been locked by the Administrator. Sign-ins are currently disabled.');
+      return;
+    }
+
     try {
       const { team, store: latestStore } = await authenticateMonopolyTeam({
         identifier: loginName,
@@ -654,6 +688,12 @@ export default function MarketMonopolyApp() {
               </h1>
             </div>
 
+            {isMonopolyBlocked && (
+              <div className="rounded-2xl bg-[#DC2626]/15 border border-[#DC2626]/40 px-4 py-2.5 text-xs font-rounded font-bold text-[#DC2626] text-center">
+                Logins Locked: The Administrator has temporarily closed team sign-ins for Market Monopoly.
+              </div>
+            )}
+
             {loginError && (
               <div className="rounded-2xl bg-[#B83A3A]/15 border border-[#B83A3A]/40 px-4 py-2.5 text-xs font-rounded font-bold text-[#B83A3A] text-center">
                 {loginError}
@@ -668,10 +708,11 @@ export default function MarketMonopolyApp() {
                 <input
                   type="text"
                   required
+                  disabled={isMonopolyBlocked}
                   value={loginName}
                   onChange={(e) => setLoginName(e.target.value)}
                   placeholder="Enter Team Name"
-                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
+                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
                   style={{ color: 'var(--text-main)' }}
                 />
               </div>
@@ -683,17 +724,19 @@ export default function MarketMonopolyApp() {
                 <input
                   type="password"
                   required
+                  disabled={isMonopolyBlocked}
                   value={loginPasscode}
                   onChange={(e) => setLoginPasscode(e.target.value)}
                   placeholder="Enter Passcode"
-                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
+                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
                   style={{ color: 'var(--text-main)' }}
                 />
               </div>
 
               <TactileButton
                 type="submit"
-                className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer"
+                disabled={isMonopolyBlocked}
+                className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Sign In
               </TactileButton>

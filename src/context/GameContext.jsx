@@ -241,8 +241,35 @@ export function GameProvider({ children }) {
     }
   }, [gameState?.teams, team?.id]);
 
+  // Real-time Auto-Logout when Administrator locks Investomania logins
+  useEffect(() => {
+    if (!gameState || !team) return;
+    const isInvestomaniaBlocked =
+      (gameState.moduleAccess && gameState.moduleAccess.investomania === false) ||
+      (gameState.loginsEnabled === false);
+
+    if (isInvestomaniaBlocked) {
+      console.warn('[GameContext] Investomania logins blocked by Admin. Logging out active desk session.');
+      sessionStorage.removeItem('investomania_team');
+      try { localStorage.removeItem('investomania_team'); } catch {}
+      setTeam(null);
+      sessionStorage.setItem(
+        'investomania_logout_reason',
+        'Trading desk access has been locked by the Administrator. All active sessions have been signed out.'
+      );
+    }
+  }, [gameState?.moduleAccess?.investomania, gameState?.loginsEnabled, team]);
+
   // Contestant Desk Sign-In
   const loginTeam = async (teamName, passcode) => {
+    const isInvestomaniaBlocked =
+      (gameState?.moduleAccess && gameState.moduleAccess.investomania === false) ||
+      (gameState?.loginsEnabled === false);
+
+    if (isInvestomaniaBlocked) {
+      throw new Error('Investomania access has been locked by the Administrator. Sign-ins are currently disabled.');
+    }
+
     const data = await authTeamDirect(teamName, passcode);
     setTeam(data.team);
     if (data.gameState) setGameState(data.gameState);

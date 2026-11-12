@@ -10,9 +10,12 @@ import LiveCrisisSimulationView from "./crisis/LiveCrisisSimulationView";
 import LeaderboardView from "./leaderBoard/LeaderboardView";
 import EmpireFooter from "./EmpireFooter";
 import { Shield, Lock, Users, AlertCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { useGame } from "../../context/GameContext.jsx";
 
 export default function EmpirePortalShell() {
   const navigate = useNavigate();
+  const { gameState } = useGame() || {};
+  const isDteBlocked = gameState?.moduleAccess?.defendTheEmpire === false;
   // Primary View Tab: "background" | "simulation" | "leaderboard"
   const [activeTab, setActiveTab] = useState("background");
 
@@ -133,6 +136,20 @@ export default function EmpirePortalShell() {
     }
   }, [teams, selectedTeamId]);
 
+  // Real-time Auto-Logout if Administrator locks Defend the Empire logins
+  useEffect(() => {
+    if (isDteBlocked) {
+      const activeId = localStorage.getItem("dte_team_id");
+      if (currentTeam || activeId) {
+        console.warn("[DTE] Defend the Empire access blocked by Admin. Logging out session.");
+        localStorage.removeItem("dte_team_id");
+        setCurrentTeam(null);
+        setAuthError("War Room access has been locked by the Administrator. All active sessions have been signed out.");
+        setAuthModalOpen(true);
+      }
+    }
+  }, [isDteBlocked, currentTeam]);
+
   // Active crisis calculation based on database status
   const crisesList = crises.length > 0 ? crises : CRISES;
 
@@ -228,6 +245,11 @@ export default function EmpirePortalShell() {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     setAuthError("");
+
+    if (isDteBlocked) {
+      setAuthError("Defend the Empire access has been locked by the Administrator. Sign-ins are currently disabled.");
+      return;
+    }
 
     const targetTeam = teams.find((t) => t.id === selectedTeamId);
     if (!targetTeam) {
@@ -437,9 +459,10 @@ export default function EmpirePortalShell() {
                 </label>
                 <div className="relative">
                   <select
+                    disabled={isDteBlocked}
                     value={selectedTeamId}
                     onChange={(e) => setSelectedTeamId(e.target.value)}
-                    className="w-full appearance-none rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] focus:outline-none focus:border-[#f1ca7e] transition"
+                    className="w-full appearance-none rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] focus:outline-none focus:border-[#f1ca7e] transition disabled:opacity-50"
                   >
                     {teams.length === 0 ? (
                       <option value="">Connecting to registry...</option>
@@ -462,14 +485,22 @@ export default function EmpirePortalShell() {
                 <div className="relative">
                   <input
                     type="password"
+                    disabled={isDteBlocked}
                     placeholder="Enter passcode"
                     value={inputPasscode}
                     onChange={(e) => setInputPasscode(e.target.value)}
-                    className="w-full rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] placeholder-[#e8dcc6]/40 focus:outline-none focus:border-[#f1ca7e] transition"
+                    className="w-full rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] placeholder-[#e8dcc6]/40 focus:outline-none focus:border-[#f1ca7e] transition disabled:opacity-50"
                   />
                   <Lock className="w-4 h-4 text-[#f1ca7e] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
+
+              {isDteBlocked && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs">
+                  <Lock className="w-4 h-4 shrink-0" />
+                  <span>Logins Locked: The Administrator has temporarily closed team sign-ins for Defend the Empire.</span>
+                </div>
+              )}
 
               {authError && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs">
@@ -480,7 +511,8 @@ export default function EmpirePortalShell() {
 
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#f1ca7e] text-[#5a0d1b] font-black uppercase tracking-wider text-sm hover:scale-[1.02] active:scale-[0.98] transition shadow-lg shadow-black/30 mt-2"
+                disabled={isDteBlocked}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#f1ca7e] text-[#5a0d1b] font-black uppercase tracking-wider text-sm hover:scale-[1.02] active:scale-[0.98] transition shadow-lg shadow-black/30 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>Authenticate & Enter War Room</span>
                 <ArrowRight className="w-4 h-4" />

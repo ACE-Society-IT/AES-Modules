@@ -397,6 +397,10 @@ export async function authenticateMonopolyTeam({ identifier, passcode }) {
   // 1. Fetch latest authoritative store from Supabase so any newly created team is present
   const latestStore = await fetchMonopolyStore();
 
+  if (latestStore && latestStore.loginsEnabled === false) {
+    throw new Error('Market Monopoly access has been locked by the Administrator. Sign-ins are currently disabled.');
+  }
+
   // 2. Call Supabase Postgres RPC `monopoly_team_auth`
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('monopoly_team_auth', {
     p_identifier: cleanId,

@@ -11,8 +11,21 @@ export default function LoginPage() {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [logoutNotice, setLogoutNotice] = useState(() => {
+    try {
+      const reason = sessionStorage.getItem('investomania_logout_reason');
+      if (reason) {
+        sessionStorage.removeItem('investomania_logout_reason');
+        return reason;
+      }
+    } catch {}
+    return '';
+  });
 
-  const isLoginsBlocked = gameState && gameState.loginsEnabled === false;
+  const isLoginsBlocked = gameState && (
+    gameState.loginsEnabled === false ||
+    gameState?.moduleAccess?.investomania === false
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -129,9 +142,15 @@ export default function LoginPage() {
             </span>
           </div>
 
+          {logoutNotice && (
+            <div className="rounded-2xl bg-[#DC2626]/15 border border-[#DC2626]/40 px-4 py-2.5 text-xs font-rounded font-bold text-[#DC2626] text-center">
+              {logoutNotice}
+            </div>
+          )}
+
           {isLoginsBlocked && (
             <div className="rounded-2xl bg-[#C0392B]/15 border border-[#C0392B]/40 px-4 py-2.5 text-xs font-rounded font-bold text-[#C0392B] text-center">
-              Logins Locked: The Game Master has temporarily closed team sign-ins.
+              Logins Locked: The Administrator has temporarily closed team sign-ins for Investomania.
             </div>
           )}
 
