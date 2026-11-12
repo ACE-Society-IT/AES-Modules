@@ -75,6 +75,27 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
   const selectedCity = taxHavens.find((h) => h.id === selectedCityId) || taxHavens[0] || null;
   const availableCash = Number(team?.cash || 0);
 
+  const selectedCityStory = useMemo(() => {
+    if (!selectedCity) return '';
+    const code = (selectedCity.airportCode || '').toUpperCase();
+    const id = Number(selectedCity.id);
+    const name = (selectedCity.city || selectedCity.name || '').toLowerCase();
+
+    if (code === 'LAS' || id === 1 || name.includes('vegas')) {
+      return 'Your friend John is a casino owner and will help you launder your earnings into casino winnings so you achieve a lower tax rate, for which he takes a cut of 5% (Moderate risk of getting caught as only 20% is being taxed).';
+    }
+    if (code === 'MEX' || id === 2 || name.includes('mexico')) {
+      return 'You approach mafia boss El Guapo who will launder your earnings through his cartel conduits for a 10% cut (High risk of getting caught as only 5% is being taxed).';
+    }
+    if (code === 'NBO' || id === 3 || name.includes('nairobi') || name.includes('africa') || name.includes('kenya')) {
+      return 'Your other friend Omari owns an NGO / Trust foundation in Kenya and is willing to circulate your earnings through donations by buying from your fake business as he takes a cut of 5% and will be taxed 15% (Moderate risk).';
+    }
+    if (code === 'PAK' || id === 4 || name.includes('pakistan')) {
+      return 'You bring the money back and declare your earnings in Pakistan and pay a tax of 50% (Low risk).';
+    }
+    return selectedCity.description || '';
+  }, [selectedCity]);
+
   useEffect(() => {
     if (taxHavens.length > 0 && !taxHavens.some((h) => h.id === selectedCityId)) {
       setSelectedCityId(taxHavens[0].id);
@@ -728,27 +749,38 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           {selectedCity ? (
             <div className="space-y-4">
               {/* Destination Header with Landmark Watermark */}
-              <div className="haven-destination-landmark relative overflow-hidden rounded-2xl p-4 border border-[var(--border-soft)] flex items-start justify-between gap-3 capsule-card">
+              <div className="haven-destination-landmark relative overflow-hidden rounded-2xl p-4 border border-[var(--border-soft)] flex flex-col gap-2.5 capsule-card">
                 {/* Landmark illustration watermark */}
                 <div className="absolute right-1 -bottom-2 pointer-events-none opacity-40 dark:opacity-25 text-[var(--border-active)] transition-transform duration-300">
                   <CityLandmarkSvg code={selectedCity.airportCode} className="w-28 h-22" />
                 </div>
 
-                <div className="relative z-10">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--border-active)]">
-                    Selected Destination ({selectedCity.airportCode})
-                  </span>
-                  <h3 className="font-display text-xl font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
-                    {selectedCity.city || selectedCity.name}
-                  </h3>
-                  <span className="text-xs font-rounded text-[var(--text-sub)]">
-                    {selectedCity.country}
+                <div className="flex items-start justify-between gap-3 relative z-10">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--border-active)]">
+                      Selected Destination ({selectedCity.airportCode})
+                    </span>
+                    <h3 className="font-display text-xl font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
+                      {selectedCity.city || selectedCity.name}
+                    </h3>
+                    <span className="text-xs font-rounded text-[var(--text-sub)]">
+                      {selectedCity.country}
+                    </span>
+                  </div>
+
+                  <span className="relative z-10 rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-3 py-1 text-xs font-rounded font-bold shrink-0">
+                    {selectedCity.airportCode}
                   </span>
                 </div>
 
-                <span className="relative z-10 rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-3 py-1 text-xs font-rounded font-bold shrink-0">
-                  {selectedCity.airportCode}
-                </span>
+                {/* Backstory / Route Intel in Small Text */}
+                {(selectedCityStory || selectedCity.description) && (
+                  <div className="relative z-10 pt-2 border-t border-[var(--border-soft)]/60">
+                    <p className="text-[11px] leading-relaxed font-rounded text-[var(--text-sub)]">
+                      {selectedCityStory || selectedCity.description}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Fiduciary Summary */}

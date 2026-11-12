@@ -65,13 +65,12 @@ const StockCard = React.memo(function StockCard({
         </div>
 
         <span
-          className={`rounded-full px-2.5 py-0.5 text-[11px] font-rounded font-bold flex items-center gap-1 ${
-            stock.isHalted
+          className={`rounded-full px-2.5 py-0.5 text-[11px] font-rounded font-bold flex items-center gap-1 ${stock.isHalted
               ? 'bg-[#B83A3A] text-white'
               : isUp
-              ? 'bg-[#3B7A57]/15 text-[#2D6344]'
-              : 'bg-[#B83A3A]/15 text-[#B83A3A]'
-          }`}
+                ? 'bg-[#3B7A57]/15 text-[#2D6344]'
+                : 'bg-[#B83A3A]/15 text-[#B83A3A]'
+            }`}
         >
           {stock.isHalted ? (
             <span>HALTED</span>
@@ -299,23 +298,21 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
                   key={cat.id}
                   type="button"
                   onClick={() => setCategoryFilter(cat.id)}
-                  className={`rounded-full px-4 py-2 text-xs font-rounded font-bold shrink-0 flex items-center gap-2 cursor-pointer transition-all border ${
-                    isSelected
+                  className={`rounded-full px-4 py-2 text-xs font-rounded font-bold shrink-0 flex items-center gap-2 cursor-pointer transition-all border ${isSelected
                       ? 'btn-primary border-transparent'
                       : 'capsule-card hover:bg-[var(--row-hover)] text-[var(--text-main)] border border-[var(--border-soft)]'
-                  }`}
+                    }`}
                 >
                   <span className="tracking-wide">{cat.label}</span>
                   <span className="opacity-80 text-[10px] font-mono font-bold">({cat.count})</span>
                   {cat.hasArrow && (
                     <span
-                      className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
-                        isSelected
+                      className={`inline-flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${isSelected
                           ? 'bg-black/25 text-white'
                           : isUp
-                          ? 'bg-[#2E7D52]/20 text-[#2E7D52]'
-                          : 'bg-[#C0392B]/20 text-[#C0392B]'
-                      }`}
+                            ? 'bg-[#2E7D52]/20 text-[#2E7D52]'
+                            : 'bg-[#C0392B]/20 text-[#C0392B]'
+                        }`}
                     >
                       {isUp ? '↑' : '↓'} {isUp ? '+' : ''}{Number(cat.avgChange || 0).toFixed(1)}%
                     </span>
@@ -375,205 +372,202 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               className="w-full max-w-lg surface-box rounded-[32px] border border-[var(--border-soft)] shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden"
             >
-                {/* Fixed Modal Header */}
-                <div className="flex items-center justify-between p-5 pb-4 border-b border-[var(--border-soft)] shrink-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-[#881B30] text-white flex items-center justify-center font-rounded font-bold text-sm shadow-sm shrink-0">
-                      {selectedStock.symbol.slice(0, 4)}
+              {/* Fixed Modal Header */}
+              <div className="flex items-center justify-between p-5 pb-4 border-b border-[var(--border-soft)] shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-[#881B30] text-white flex items-center justify-center font-rounded font-bold text-sm shadow-sm shrink-0">
+                    {selectedStock.symbol.slice(0, 4)}
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg sm:text-xl font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
+                      {selectedStock.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-2.5 py-0.5 text-xs font-rounded font-bold">
+                        {selectedStock.symbol}
+                      </span>
+                      <span className="text-xs font-rounded font-semibold text-[var(--text-sub)]">
+                        {selectedStock.category} • {normalizeCategorySector(selectedStock.sector)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedStock(null)}
+                  className="w-8 h-8 rounded-full capsule-card flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#b81434] hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <IconClose className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Scrollable Body - Scrollbar completely inside the UI padding away from rounded corners */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 modal-scrollbar pr-3 mr-1">
+                {/* Feedback Alert */}
+                {tradeFeedback && (
+                  <div
+                    className={`rounded-2xl p-3 text-xs font-rounded font-semibold text-center border ${tradeFeedback.type === 'success'
+                        ? 'bg-[#3B7A57]/15 border-[#3B7A57]/40 text-[#2D6344]'
+                        : 'bg-[#B83A3A]/15 border-[#B83A3A]/40 text-[#B83A3A]'
+                      }`}
+                  >
+                    {tradeFeedback.text}
+                  </div>
+                )}
+
+                {/* Stock Description & Fundamentals */}
+                <div className="rounded-2xl capsule-card p-4 space-y-2 text-xs font-rounded">
+                  <span className="font-bold block" style={{ color: 'var(--text-main)' }}>
+                    Instrument Overview & Profile
+                  </span>
+                  <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
+                    {selectedStock.description ||
+                      `${selectedStock.name} (${selectedStock.symbol}) is an active security on the Investomania trading floor in the ${selectedStock.sector} sector.`}
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border-soft)] text-center">
+                    <div>
+                      <span className="opacity-75 block text-[10px]">Base Price</span>
+                      <strong className="text-xs font-bold font-mono">PKR {Number(selectedStock.basePrice).toFixed(2)}</strong>
                     </div>
                     <div>
-                      <h3 className="font-display text-lg sm:text-xl font-bold leading-tight" style={{ color: 'var(--text-main)' }}>
-                        {selectedStock.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="rounded-full bg-[var(--bg-inset)] text-[var(--border-active)] border border-[var(--border-soft)] px-2.5 py-0.5 text-xs font-rounded font-bold">
-                          {selectedStock.symbol}
-                        </span>
-                        <span className="text-xs font-rounded font-semibold text-[var(--text-sub)]">
-                          {selectedStock.category} • {normalizeCategorySector(selectedStock.sector)}
-                        </span>
-                      </div>
+                      <span className="opacity-75 block text-[10px]">Previous Price</span>
+                      <strong className="text-xs font-bold font-mono">PKR {Number(selectedStock.previousPrice || selectedStock.basePrice).toFixed(2)}</strong>
+                    </div>
+                    <div>
+                      <span className="opacity-75 block text-[10px]">Units Owned</span>
+                      <strong className="text-xs font-bold text-[var(--border-active)]">{heldQty} units</strong>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => setSelectedStock(null)}
-                    className="w-8 h-8 rounded-full capsule-card flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-[#b81434] hover:text-white transition-colors"
-                    aria-label="Close"
-                  >
-                    <IconClose className="w-4 h-4" />
-                  </button>
                 </div>
 
-                {/* Scrollable Body - Scrollbar completely inside the UI padding away from rounded corners */}
-                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 modal-scrollbar pr-3 mr-1">
-                  {/* Feedback Alert */}
-                  {tradeFeedback && (
-                    <div
-                      className={`rounded-2xl p-3 text-xs font-rounded font-semibold text-center border ${
-                        tradeFeedback.type === 'success'
-                          ? 'bg-[#3B7A57]/15 border-[#3B7A57]/40 text-[#2D6344]'
-                          : 'bg-[#B83A3A]/15 border-[#B83A3A]/40 text-[#B83A3A]'
-                      }`}
+                {/* Dynamic Trajectory Mini Graph */}
+                <div className="rounded-2xl capsule-inset p-3.5 space-y-1.5 min-w-0">
+                  <EasyStockModalChart stock={selectedStock} />
+                </div>
+
+                {/* Buy / Sell Execution Ticket Form */}
+                <form onSubmit={handleExecuteTrade} className="space-y-4">
+                  {/* BUY / SELL Switch */}
+                  <div className="capsule-inset p-1.5 rounded-full grid grid-cols-2 gap-1">
+                    <TactileButton
+                      type="button"
+                      onClick={() => setTradeSide('BUY')}
+                      className={`rounded-full py-2 text-xs font-rounded font-bold ${tradeSide === 'BUY' ? 'bg-[#3B7A57] text-white shadow-xs' : 'opacity-70'
+                        }`}
                     >
-                      {tradeFeedback.text}
-                    </div>
-                  )}
-
-                  {/* Stock Description & Fundamentals */}
-                  <div className="rounded-2xl capsule-card p-4 space-y-2 text-xs font-rounded">
-                    <span className="font-bold block" style={{ color: 'var(--text-main)' }}>
-                      Instrument Overview & Profile
-                    </span>
-                    <p className="leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-                      {selectedStock.description ||
-                        `${selectedStock.name} (${selectedStock.symbol}) is an active security on the Investomania trading floor in the ${selectedStock.sector} sector.`}
-                    </p>
-
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border-soft)] text-center">
-                      <div>
-                        <span className="opacity-75 block text-[10px]">Base Price</span>
-                        <strong className="text-xs font-bold font-mono">PKR {Number(selectedStock.basePrice).toFixed(2)}</strong>
-                      </div>
-                      <div>
-                        <span className="opacity-75 block text-[10px]">Previous Price</span>
-                        <strong className="text-xs font-bold font-mono">PKR {Number(selectedStock.previousPrice || selectedStock.basePrice).toFixed(2)}</strong>
-                      </div>
-                      <div>
-                        <span className="opacity-75 block text-[10px]">Units Owned</span>
-                        <strong className="text-xs font-bold text-[var(--border-active)]">{heldQty} units</strong>
-                      </div>
-                    </div>
+                      BUY {selectedStock.symbol}
+                    </TactileButton>
+                    <TactileButton
+                      type="button"
+                      onClick={() => setTradeSide('SELL')}
+                      className={`rounded-full py-2 text-xs font-rounded font-bold ${tradeSide === 'SELL' ? 'bg-[#B83A3A] text-white shadow-xs' : 'opacity-70'
+                        }`}
+                    >
+                      SELL {selectedStock.symbol}
+                    </TactileButton>
                   </div>
 
-                  {/* Dynamic Trajectory Mini Graph */}
-                  <div className="rounded-2xl capsule-inset p-3.5 space-y-1.5 min-w-0">
-                    <EasyStockModalChart stock={selectedStock} />
-                  </div>
-
-                  {/* Buy / Sell Execution Ticket Form */}
-                  <form onSubmit={handleExecuteTrade} className="space-y-4">
-                    {/* BUY / SELL Switch */}
-                    <div className="capsule-inset p-1.5 rounded-full grid grid-cols-2 gap-1">
-                      <TactileButton
-                        type="button"
-                        onClick={() => setTradeSide('BUY')}
-                        className={`rounded-full py-2 text-xs font-rounded font-bold ${
-                          tradeSide === 'BUY' ? 'bg-[#3B7A57] text-white shadow-xs' : 'opacity-70'
-                        }`}
-                      >
-                        BUY {selectedStock.symbol}
-                      </TactileButton>
-                      <TactileButton
-                        type="button"
-                        onClick={() => setTradeSide('SELL')}
-                        className={`rounded-full py-2 text-xs font-rounded font-bold ${
-                          tradeSide === 'SELL' ? 'bg-[#B83A3A] text-white shadow-xs' : 'opacity-70'
-                        }`}
-                      >
-                        SELL {selectedStock.symbol}
-                      </TactileButton>
-                    </div>
-
-                    {/* Quantity Input */}
-                    <div className="capsule-card rounded-2xl p-4 space-y-2.5">
-                      <div className="flex justify-between text-xs font-rounded">
-                        <label className="font-bold" style={{ color: 'var(--text-main)' }}>
-                          Quantity of Units to {tradeSide}
-                        </label>
-                        <span style={{ color: 'var(--text-sub)' }}>
-                          {tradeSide === 'BUY' ? (
-                            <>Available: <strong className="font-mono" style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong></>
-                          ) : (
-                            <>Holdings: <strong className="font-mono text-[var(--border-active)] font-bold">{heldQty} units</strong></>
-                          )}
-                        </span>
-                      </div>
-
-                      <input
-                        type="number"
-                        min="1"
-                        max={tradeSide === 'BUY' ? maxAffordable : heldQty || 1}
-                        step="1"
-                        value={tradeQty}
-                        onChange={(e) => setTradeQty(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full capsule-inset rounded-xl p-2.5 font-mono font-bold text-xl text-center focus:outline-none"
-                        style={{ color: 'var(--text-main)' }}
-                      />
-
-                      {/* Preset Chips + BUY MAX / SELL ALL buttons in 5-col grid */}
-                      <div className="grid grid-cols-5 gap-1.5 pt-1">
-                        {[10, 25, 50, 100].map((preset) => (
-                          <button
-                            type="button"
-                            key={preset}
-                            onClick={() => setTradeQty(preset)}
-                            className="rounded-full py-1.5 text-xs font-mono font-bold capsule-card hover:bg-[var(--border-active)] hover:text-white cursor-pointer transition-colors text-center"
-                          >
-                            {preset}u
-                          </button>
-                        ))}
+                  {/* Quantity Input */}
+                  <div className="capsule-card rounded-2xl p-4 space-y-2.5">
+                    <div className="flex justify-between text-xs font-rounded">
+                      <label className="font-bold" style={{ color: 'var(--text-main)' }}>
+                        Quantity of Units to {tradeSide}
+                      </label>
+                      <span style={{ color: 'var(--text-sub)' }}>
                         {tradeSide === 'BUY' ? (
-                          <button
-                            type="button"
-                            onClick={() => setTradeQty(Math.max(1, maxAffordable))}
-                            className="rounded-full py-1.5 px-1 text-xs font-rounded font-bold bg-[#2E7D52] hover:bg-[#246240] text-white shadow-xs cursor-pointer transition-colors text-center truncate"
-                            title={`Buy Maximum (${maxAffordable} units)`}
-                          >
-                            MAX ({maxAffordable})
-                          </button>
+                          <>Available: <strong className="font-mono" style={{ color: 'var(--text-main)' }}>PKR {Number(team?.cash || 0).toLocaleString()}</strong></>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => setTradeQty(Math.max(1, heldQty))}
-                            className="rounded-full py-1.5 px-1 text-xs font-rounded font-bold bg-[#C0392B] hover:bg-[#962d22] text-white shadow-xs cursor-pointer transition-colors text-center truncate"
-                            title={`Sell All Holdings (${heldQty} units)`}
-                          >
-                            ALL ({heldQty})
-                          </button>
+                          <>Holdings: <strong className="font-mono text-[var(--border-active)] font-bold">{heldQty} units</strong></>
                         )}
-                      </div>
+                      </span>
                     </div>
 
-                    {/* Order Summary */}
-                    <div className="rounded-2xl capsule-inset p-3.5 space-y-1 text-xs font-rounded">
-                      <div className="flex justify-between">
-                        <span style={{ color: 'var(--text-sub)' }}>Unit Execution Price</span>
-                        <span className="font-bold font-mono">PKR {Number(selectedStock.price).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm font-bold pt-1 border-t border-[var(--border-soft)]">
-                        <span>Total Order Cost</span>
-                        <span className="text-[#D9BB7C] font-mono">PKR {totalOrderValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
-                      </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max={tradeSide === 'BUY' ? maxAffordable : heldQty || 1}
+                      step="1"
+                      value={tradeQty}
+                      onChange={(e) => setTradeQty(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full capsule-inset rounded-xl p-2.5 font-mono font-bold text-xl text-center focus:outline-none"
+                      style={{ color: 'var(--text-main)' }}
+                    />
+
+                    {/* Preset Chips + BUY MAX / SELL ALL buttons in 5-col grid */}
+                    <div className="grid grid-cols-5 gap-1.5 pt-1">
+                      {[10, 25, 50, 100].map((preset) => (
+                        <button
+                          type="button"
+                          key={preset}
+                          onClick={() => setTradeQty(preset)}
+                          className="rounded-full py-1.5 text-xs font-mono font-bold capsule-card hover:bg-[var(--border-active)] hover:text-white cursor-pointer transition-colors text-center"
+                        >
+                          {preset}u
+                        </button>
+                      ))}
+                      {tradeSide === 'BUY' ? (
+                        <button
+                          type="button"
+                          onClick={() => setTradeQty(Math.max(1, maxAffordable))}
+                          className="rounded-full py-1.5 px-1 text-xs font-rounded font-bold bg-[#2E7D52] hover:bg-[#246240] text-white shadow-xs cursor-pointer transition-colors text-center truncate"
+                          title={`Buy Maximum (${maxAffordable} units)`}
+                        >
+                          MAX ({maxAffordable})
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setTradeQty(Math.max(1, heldQty))}
+                          className="rounded-full py-1.5 px-1 text-xs font-rounded font-bold bg-[#C0392B] hover:bg-[#962d22] text-white shadow-xs cursor-pointer transition-colors text-center truncate"
+                          title={`Sell All Holdings (${heldQty} units)`}
+                        >
+                          ALL ({heldQty})
+                        </button>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Submit Action */}
-                    <div className="flex items-center gap-3">
-                      <TactileButton
-                        type="button"
-                        onClick={() => setSelectedStock(null)}
-                        className="w-1/3 rounded-full py-3 capsule-card text-xs font-rounded font-bold"
-                      >
-                        Cancel
-                      </TactileButton>
+                  {/* Order Summary */}
+                  <div className="rounded-2xl capsule-inset p-3.5 space-y-1 text-xs font-rounded">
+                    <div className="flex justify-between">
+                      <span style={{ color: 'var(--text-sub)' }}>Unit Execution Price</span>
+                      <span className="font-bold font-mono">PKR {Number(selectedStock.price).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-bold pt-1 border-t border-[var(--border-soft)]">
+                      <span>Total Order Cost</span>
+                      <span className="text-[#D9BB7C] font-mono">PKR {totalOrderValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
 
-                      <TactileButton
-                        type="submit"
-                        disabled={!isTradeExecutionAllowed || isExecuting}
-                        className="w-2/3 rounded-full py-3 btn-primary font-display font-semibold text-sm shadow-md"
-                      >
-                        {isExecuting
-                          ? 'Executing Order...'
-                          : !isTradingOpen
+                  {/* Submit Action */}
+                  <div className="flex items-center gap-3">
+                    <TactileButton
+                      type="button"
+                      onClick={() => setSelectedStock(null)}
+                      className="w-1/3 rounded-full py-3 capsule-card text-xs font-rounded font-bold"
+                    >
+                      Cancel
+                    </TactileButton>
+
+                    <TactileButton
+                      type="submit"
+                      disabled={!isTradeExecutionAllowed || isExecuting}
+                      className="w-2/3 rounded-full py-3 btn-primary font-display font-semibold text-sm shadow-md"
+                    >
+                      {isExecuting
+                        ? 'Executing Order...'
+                        : !isTradingOpen
                           ? 'Floor Closed (Decrypting Crisis)'
                           : `Confirm ${tradeSide} ${tradeQty} ${selectedStock.symbol}`}
-                      </TactileButton>
-                    </div>
-                  </form>
-                </div>
-              </motion.div>
+                    </TactileButton>
+                  </div>
+                </form>
+              </div>
             </motion.div>
-          )}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
