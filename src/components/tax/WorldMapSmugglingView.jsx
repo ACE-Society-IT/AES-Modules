@@ -126,9 +126,9 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
       airportCode: 'PAK',
       pinX: originPin.x,
       pinY: originPin.y,
-      taxRatePercent: 0,
+      taxRatePercent: 50,
       safeLimit: 0,
-      penaltyRatePercent: 50,
+      penaltyRatePercent: 0,
       description: 'Domestic commercial conduit routing capital locally through Pakistani interbank channels.'
     };
   }, [havenPins, originPin]);
@@ -601,7 +601,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                       fillOpacity="0.96"
                     />
                     <text x="0" y="0.5" textAnchor="middle" fill="var(--text-main)" fontSize="1.15" fontWeight="bold">
-                      {isPakistanSelected || isPakistanHovered ? 'PAK • 0%' : 'PAKISTAN'}
+                      {isPakistanSelected || isPakistanHovered ? `${pakistanHaven.airportCode || 'PAK'} • ${pakistanHaven.taxRatePercent !== undefined ? pakistanHaven.taxRatePercent : 50}%` : 'PAKISTAN'}
                     </text>
                   </g>
                 </g>
