@@ -60,10 +60,6 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
       setFeedback({ type: 'error', text: `Trading on ${asset.symbol} is halted by Exchange Circuit Breaker.` });
       return;
     }
-    if (isRound3) {
-      setFeedback({ type: 'error', text: 'Trading floor is closed in Round 3. All trades are halted; smuggle your money through Offshore Havens.' });
-      return;
-    }
     if (!isTradingOpen) {
       setFeedback({ type: 'error', text: 'Trading floor is currently closed or in decrypt phase.' });
       return;
@@ -321,9 +317,9 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
               {/* Submit Button */}
               <TactileButton
                 type="submit"
-                disabled={!isTradingOpen || isSubmitting || isRound3}
+                disabled={!isTradingOpen || isSubmitting}
                 className={`w-full rounded-full py-3.5 font-display font-semibold text-sm shadow-md flex items-center justify-center gap-2 ${
-                  isRound3
+                  !isTradingOpen
                     ? 'bg-neutral-700 opacity-60 cursor-not-allowed text-[#FAF7F5]'
                     : tradeSide === 'BUY'
                     ? 'bg-[#3B7A57] hover:bg-[#2D6344] text-[#FAF7F5]'
@@ -332,8 +328,6 @@ export default function TradeModal({ isOpen, onClose, asset, team, onPlaceTrade,
               >
                 {isSubmitting
                   ? 'Routing Order...'
-                  : isRound3
-                  ? 'Trading Floor Closed in Round 3'
                   : !isTradingOpen
                   ? 'Trading Floor Closed'
                   : `Confirm ${tradeSide} ${tradeQty} ${asset.symbol}`}

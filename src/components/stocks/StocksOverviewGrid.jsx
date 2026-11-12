@@ -130,7 +130,7 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
   const assets = gameState?.assets || [];
   const isTradingOpen = gameState?.phase === 'TRADING' && !gameState?.isPaused;
   const isRound3 = Number(gameState?.currentRound) === 3;
-  const isTradeExecutionAllowed = isTradingOpen && !isRound3;
+  const isTradeExecutionAllowed = isTradingOpen;
 
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -564,8 +564,6 @@ export default function StocksOverviewGrid({ gameState, team, onPlaceTrade }) {
                       >
                         {isExecuting
                           ? 'Executing Order...'
-                          : isRound3
-                          ? 'Trading Closed in Round 3 (Smuggle Funds)'
                           : !isTradingOpen
                           ? 'Floor Closed (Decrypting Crisis)'
                           : `Confirm ${tradeSide} ${tradeQty} ${selectedStock.symbol}`}
