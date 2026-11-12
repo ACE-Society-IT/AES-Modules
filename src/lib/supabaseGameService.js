@@ -90,12 +90,41 @@ export async function fetchGameStateDirect(forceFresh = false) {
 
 /**
  * Desk sign-in directly via Supabase Security Definer RPC
+ * Supports 'Team 25', 'team25', 'team 25', or '25'
  */
 export async function authTeamDirect(teamName, passcode) {
-  const { data, error } = await supabase.rpc('investomania_team_auth', {
-    p_team_name: teamName,
-    p_passcode: passcode
+  const cleanInput = (teamName || '').trim();
+  const cleanPass = (passcode || '').trim();
+
+  // 1. Direct authentication attempt
+  let { data, error } = await supabase.rpc('investomania_team_auth', {
+    p_team_name: cleanInput,
+    p_passcode: cleanPass
   });
+
+  // 2. Intelligent normalization fallback (e.g. 'team25' -> 'Team 25' or '25' -> 'Team 25')
+  if ((!data?.ok || error) && /^team\s*\d+$/i.test(cleanInput)) {
+    const num = cleanInput.replace(/^team\s*/i, '');
+    const normalizedName = `Team ${num}`;
+    const retry = await supabase.rpc('investomania_team_auth', {
+      p_team_name: normalizedName,
+      p_passcode: cleanPass
+    });
+    if (retry.data?.ok) {
+      data = retry.data;
+      error = retry.error;
+    }
+  } else if ((!data?.ok || error) && /^\d+$/.test(cleanInput)) {
+    const normalizedName = `Team ${cleanInput}`;
+    const retry = await supabase.rpc('investomania_team_auth', {
+      p_team_name: normalizedName,
+      p_passcode: cleanPass
+    });
+    if (retry.data?.ok) {
+      data = retry.data;
+      error = retry.error;
+    }
+  }
 
   if (error) throw formatDbError(error, 'Desk authentication failed');
   if (!data?.ok) throw new Error(data?.error || 'Desk sign-in failed');
