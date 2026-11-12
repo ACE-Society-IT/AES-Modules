@@ -199,6 +199,57 @@ export function BviLandmark({ className = 'w-12 h-10' }) {
   );
 }
 
+export function LasVegasLandmark({ className = 'w-12 h-10' }) {
+  return (
+    <svg viewBox="0 0 100 80" fill="currentColor" className={className}>
+      {/* Casino Diamond Sign / Welcome Marquee */}
+      <polygon points="50,10 80,35 50,60 20,35" opacity="0.9" />
+      <polygon points="50,15 74,35 50,55 26,35" fill="#FAF7F5" opacity="0.25" />
+      <rect x="48" y="60" width="4" height="16" rx="1" opacity="0.85" />
+      {/* Dice & Cards silhouette */}
+      <rect x="34" y="27" width="12" height="12" rx="2" fill="#FAF7F5" opacity="0.9" />
+      <circle cx="40" cy="33" r="1.5" fill="#0C0A09" />
+      <rect x="52" y="27" width="12" height="12" rx="2" fill="#FAF7F5" opacity="0.9" />
+      <circle cx="55" cy="30" r="1.2" fill="#0C0A09" />
+      <circle cx="61" cy="36" r="1.2" fill="#0C0A09" />
+    </svg>
+  );
+}
+
+export function MexicoLandmark({ className = 'w-12 h-10' }) {
+  return (
+    <svg viewBox="0 0 100 80" fill="currentColor" className={className}>
+      {/* Mesoamerican Stepped Temple / Chichen Itza Pyramid */}
+      <polygon points="50,22 42,32 58,32" opacity="0.95" />
+      <rect x="45" y="32" width="10" height="8" opacity="0.9" />
+      <polygon points="38,40 62,40 68,52 32,52" opacity="0.85" />
+      <polygon points="30,52 70,52 78,64 22,64" opacity="0.8" />
+      <polygon points="20,64 80,64 90,74 10,74" opacity="0.95" />
+      {/* Central Staircase */}
+      <polygon points="46,32 54,32 58,74 42,74" opacity="0.9" />
+      <line x1="42" y1="74" x2="58" y2="74" stroke="#FAF7F5" strokeWidth="1" opacity="0.5" />
+    </svg>
+  );
+}
+
+export function NairobiLandmark({ className = 'w-12 h-10' }) {
+  return (
+    <svg viewBox="0 0 100 80" fill="currentColor" className={className}>
+      {/* African Acacia Umbrella Tree Silhouette */}
+      <path d="M48,74 C47,56 46,42 42,32 C41,30 43,28 45,30 C47,38 49,52 50,74 Z" opacity="0.95" />
+      <path d="M50,74 C50,55 53,44 58,34 C59,32 61,33 60,35 C56,44 53,56 52,74 Z" opacity="0.9" />
+      {/* Canopy fronds */}
+      <ellipse cx="44" cy="24" rx="22" ry="7" opacity="0.85" />
+      <ellipse cx="60" cy="22" rx="24" ry="8" opacity="0.9" />
+      <ellipse cx="50" cy="18" rx="26" ry="6" opacity="0.95" />
+      {/* Sun on Horizon */}
+      <circle cx="24" cy="30" r="9" opacity="0.4" />
+      {/* Ground plane */}
+      <rect x="10" y="73" width="80" height="3" rx="1.5" opacity="0.8" />
+    </svg>
+  );
+}
+
 export function PakistanLandmark({ className = 'w-12 h-10' }) {
   return (
     <svg viewBox="0 0 100 80" fill="currentColor" className={className}>
@@ -224,6 +275,15 @@ export default function CityLandmarkSvg({ code = '', className = 'w-12 h-10' }) 
 
   if (c === 'PAK' || c.includes('PAKISTAN') || c.includes('KARACHI')) {
     return <PakistanLandmark className={svgClass} />;
+  }
+  if (c === 'LAS' || c.includes('VEGAS')) {
+    return <LasVegasLandmark className={svgClass} />;
+  }
+  if (c === 'MEX' || c.includes('MEXICO')) {
+    return <MexicoLandmark className={svgClass} />;
+  }
+  if (c === 'NBO' || c.includes('NAIROBI') || c.includes('KENYA') || c.includes('AFRICA')) {
+    return <NairobiLandmark className={svgClass} />;
   }
   if (c === 'CYM' || c.includes('CAYMAN') || c.includes('GEORGE')) {
     return <CaymanLandmark className={svgClass} />;

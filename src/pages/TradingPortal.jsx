@@ -395,7 +395,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
               {[
                 { id: 'market', label: 'Trading Floor', badge: assets.length },
                 { id: 'stocks', label: 'All Stocks', badge: gameState.allStocks?.length || assets.length },
-                { id: 'tax', label: isRound3 ? 'Offshore Tax' : 'Offshore Havens', badge: 10 },
+                { id: 'tax', label: isRound3 ? 'Offshore Tax' : 'Offshore Havens', badge: gameState.taxChannels?.length || 14 },
                 { id: 'crisis', label: 'Crisis News', badge: allReleasedCrises.length },
                 { id: 'portfolio', label: 'My Portfolio', badge: activePositions },
                 { id: 'leaderboard', label: 'Rankings', badge: gameState.leaderboard?.length || 0 },
@@ -1565,7 +1565,7 @@ export default function TradingPortal({ activeTab = 'market' }) {
                 {[
                   { id: 'market', label: 'Trading Floor', desc: 'Real-time order books & live execution', badge: assets.length },
                   { id: 'stocks', label: 'All Stocks', desc: 'PSX equities, FX pairs & sector overview', badge: gameState.allStocks?.length || assets.length },
-                  { id: 'tax', label: isRound3 ? 'Offshore Tax' : 'Offshore Havens (R3)', desc: '10 World tax haven cities & smuggling routes', badge: 10 },
+                  { id: 'tax', label: isRound3 ? 'Offshore Tax' : 'Offshore Havens (R3)', desc: 'World tax haven channels & smuggling routes', badge: gameState.taxChannels?.length || 14 },
                   { id: 'crisis', label: 'Crisis News', desc: 'Market shocks, intelligence & breaking news', badge: allReleasedCrises.length },
                   { id: 'portfolio', label: 'My Portfolio', desc: 'Active asset holdings & profit trajectory', badge: activePositions },
                   { id: 'leaderboard', label: 'Rankings', desc: 'Global floor valuation standings', badge: gameState.leaderboard?.length || 0 },

@@ -23,6 +23,10 @@ const HAVEN_MAP_COORDINATES = {
   pakistan: { x: 83.0, y: 26.85, code: 'PAK' },
 
   // Americas & Caribbean (Western Caribbean Sea, Panama Isthmus, Eastern Leeward Archipelago)
+  'las vegas': { x: 20.0, y: 22.0, code: 'LAS' },
+  vegas: { x: 20.0, y: 22.0, code: 'LAS' },
+  'mexico city': { x: 23.5, y: 31.0, code: 'MEX' },
+  mexico: { x: 23.5, y: 31.0, code: 'MEX' },
   'george town': { x: 30.5, y: 29.5, code: 'CYM' },
   cayman: { x: 30.5, y: 29.5, code: 'CYM' },
   'cayman islands': { x: 30.5, y: 29.5, code: 'CYM' },
@@ -31,6 +35,11 @@ const HAVEN_MAP_COORDINATES = {
   'road town': { x: 36.5, y: 29.5, code: 'BVI' },
   bvi: { x: 36.5, y: 29.5, code: 'BVI' },
   'british virgin islands': { x: 36.5, y: 29.5, code: 'BVI' },
+
+  // Africa
+  nairobi: { x: 70.0, y: 38.0, code: 'NBO' },
+  kenya: { x: 70.0, y: 38.0, code: 'NBO' },
+  africa: { x: 70.0, y: 38.0, code: 'NBO' },
 
   // Cyberspace Tumbler (Deep North Atlantic Ocean, clear of all landmasses)
   cyberspace: { x: 48.0, y: 10.0, code: 'WEB' }
@@ -89,6 +98,9 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
         code = coords.code;
       } else {
         if (cityKey.includes('pakistan') || cityKey.includes('karachi')) { coords = HAVEN_MAP_COORDINATES.pakistan; code = 'PAK'; }
+        else if (cityKey.includes('vegas')) { coords = HAVEN_MAP_COORDINATES['las vegas']; code = 'LAS'; }
+        else if (cityKey.includes('mexico')) { coords = HAVEN_MAP_COORDINATES['mexico city']; code = 'MEX'; }
+        else if (cityKey.includes('nairobi') || cityKey.includes('kenya') || cityKey.includes('africa')) { coords = HAVEN_MAP_COORDINATES.nairobi; code = 'NBO'; }
         else if (cityKey.includes('dubai')) { coords = HAVEN_MAP_COORDINATES.dubai; code = 'DXB'; }
         else if (cityKey.includes('zurich') || cityKey.includes('swiss')) { coords = HAVEN_MAP_COORDINATES.zurich; code = 'ZRH'; }
         else if (cityKey.includes('geneva')) { coords = HAVEN_MAP_COORDINATES.geneva; code = 'GVA'; }
@@ -118,18 +130,18 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
   }, [taxHavens]);
 
   const pakistanHaven = useMemo(() => {
-    return havenPins.find((h) => (h.city || '').toLowerCase() === 'pakistan' || h.id === 11) || {
-      id: 11,
-      name: 'Pakistan Domestic Transfer',
+    return havenPins.find((h) => (h.city || '').toLowerCase() === 'pakistan' || h.id === 4 || h.id === 11) || {
+      id: 4,
+      name: 'Pakistan Domestic Legal Declaration',
       city: 'Pakistan',
       country: 'Pakistan',
       airportCode: 'PAK',
       pinX: originPin.x,
       pinY: originPin.y,
       taxRatePercent: 50,
-      safeLimit: 0,
+      safeLimit: 9999999,
       penaltyRatePercent: 0,
-      description: 'Domestic commercial conduit routing capital locally through Pakistani interbank channels.'
+      description: 'Bring your capital back and declare earnings in Pakistan through official interbank channels. 50% statutory tax fee, low/zero interception risk.'
     };
   }, [havenPins, originPin]);
 
@@ -608,7 +620,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               </g>
 
               {/* Haven Navigation Pins */}
-              {havenPins.filter((h) => (h.city || '').toLowerCase() !== 'pakistan' && h.id !== 11).map((haven) => {
+              {havenPins.filter((h) => (h.city || '').toLowerCase() !== 'pakistan' && h.id !== 4 && h.id !== 11).map((haven) => {
                 const isSelected = selectedCity?.id === haven.id;
                 const isHovered = hoveredCityId === haven.id;
 
