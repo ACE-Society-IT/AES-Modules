@@ -16,10 +16,11 @@ const HAVEN_MAP_COORDINATES = {
   geneva: { x: 60.0, y: 17.8, code: 'GVA' },
   monaco: { x: 62.8, y: 19.8, code: 'MCO' },
 
-  // Middle East & Asia (Karachi on Arabian Sea coast of Pakistan, Dubai on UAE Arabian Peninsula coast)
+  // Middle East & Asia (Pakistan on Arabian Sea coast, Dubai on UAE Arabian Peninsula coast)
   dubai: { x: 78.0, y: 29.2, code: 'DXB' },
   singapore: { x: 95.5, y: 35.5, code: 'SIN' },
-  karachi: { x: 83.0, y: 26.85, code: 'KHI' },
+  karachi: { x: 83.0, y: 26.85, code: 'PAK' },
+  pakistan: { x: 83.0, y: 26.85, code: 'PAK' },
 
   // Americas & Caribbean (Western Caribbean Sea, Panama Isthmus, Eastern Leeward Archipelago)
   'george town': { x: 30.5, y: 29.5, code: 'CYM' },
@@ -76,7 +77,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
     const map = new DottedMap({ height: 60, grid: 'diagonal' });
     const points = map.getPoints();
 
-    // Karachi Desk Origin (Coastal Pakistan Arabian Sea)
+    // Pakistan Desk Origin (Base: Coastal Pakistan Arabian Sea)
     const origin = { x: 83.0, y: 26.85 };
 
     const pins = taxHavens.map((h) => {
@@ -87,7 +88,8 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
       if (coords) {
         code = coords.code;
       } else {
-        if (cityKey.includes('dubai')) { coords = HAVEN_MAP_COORDINATES.dubai; code = 'DXB'; }
+        if (cityKey.includes('pakistan') || cityKey.includes('karachi')) { coords = HAVEN_MAP_COORDINATES.pakistan; code = 'PAK'; }
+        else if (cityKey.includes('dubai')) { coords = HAVEN_MAP_COORDINATES.dubai; code = 'DXB'; }
         else if (cityKey.includes('zurich') || cityKey.includes('swiss')) { coords = HAVEN_MAP_COORDINATES.zurich; code = 'ZRH'; }
         else if (cityKey.includes('geneva')) { coords = HAVEN_MAP_COORDINATES.geneva; code = 'GVA'; }
         else if (cityKey.includes('panama')) { coords = HAVEN_MAP_COORDINATES['panama city']; code = 'PTY'; }
@@ -114,6 +116,25 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
       originPin: origin
     };
   }, [taxHavens]);
+
+  const pakistanHaven = useMemo(() => {
+    return havenPins.find((h) => (h.city || '').toLowerCase() === 'pakistan' || h.id === 11) || {
+      id: 11,
+      name: 'Pakistan Domestic Transfer',
+      city: 'Pakistan',
+      country: 'Pakistan',
+      airportCode: 'PAK',
+      pinX: originPin.x,
+      pinY: originPin.y,
+      taxRatePercent: 0,
+      safeLimit: 0,
+      penaltyRatePercent: 50,
+      description: 'Domestic commercial conduit routing capital locally through Pakistani interbank channels.'
+    };
+  }, [havenPins, originPin]);
+
+  const isPakistanSelected = selectedCity?.id === pakistanHaven?.id || (selectedCity?.city || '').toLowerCase() === 'pakistan';
+  const isPakistanHovered = hoveredCityId === pakistanHaven?.id;
 
   // ViewBox bounds clamping helper
   const clampCenter = useCallback((cx, cy, z) => {
@@ -436,7 +457,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
             <span className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#D9BB7C]" />
               <span className="tracking-wider uppercase font-mono text-[11px]" style={{ color: 'var(--text-main)' }}>
-                World Map • 10 Haven Locations
+                World Map • {havenPins.length} Jurisdictions
               </span>
             </span>
 
@@ -508,7 +529,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
               </g>
 
               {/* Flight Wire Arcs */}
-              {havenPins.map((haven) => {
+              {havenPins.filter((h) => (h.city || '').toLowerCase() !== 'pakistan' && h.id !== 11).map((haven) => {
                 const isSelected = selectedCity?.id === haven.id;
                 const isHovered = hoveredCityId === haven.id;
                 const midX = (originPin.x + haven.pinX) / 2;
@@ -527,28 +548,67 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                 );
               })}
 
-              {/* Desk Origin Marker */}
-              <g transform={`translate(${originPin.x}, ${originPin.y})`}>
+              {/* Domestic Pakistan Target Pulse Indicator */}
+              {isPakistanSelected && (
+                <circle
+                  cx={originPin.x}
+                  cy={originPin.y}
+                  r="3.2"
+                  fill="none"
+                  stroke="#D9BB7C"
+                  strokeWidth="0.32"
+                  strokeDasharray="0.8,0.8"
+                  opacity="0.85"
+                />
+              )}
+
+              {/* Pakistan Desk Origin & Smuggling Pin */}
+              <g
+                transform={`translate(${originPin.x}, ${originPin.y})`}
+                className="cursor-pointer"
+                onClick={(e) => {
+                  if (dragStart?.hasMoved) return;
+                  e.stopPropagation();
+                  handleSelectJurisdiction(pakistanHaven);
+                }}
+                onMouseEnter={() => setHoveredCityId(pakistanHaven.id)}
+                onMouseLeave={() => setHoveredCityId(null)}
+              >
                 <g transform={`scale(${pinScale})`}>
                   <path
                     d="M 0,0 C -0.3,-0.6 -1.3,-1.7 -1.3,-2.8 A 1.3,1.3 0 1,1 1.3,-2.8 C 1.3,-1.7 0.3,-0.6 0,0 Z"
-                    fill="#3B7A57"
-                    stroke="#FAF7F5"
+                    fill={isPakistanSelected ? '#D9BB7C' : isPakistanHovered ? '#2E7D52' : '#3B7A57'}
+                    stroke={isPakistanSelected ? '#1A080C' : '#FAF7F5'}
                     strokeWidth="0.22"
                   />
-                  <circle cx="0" cy="-2.8" r="0.45" fill="#FAF7F5" />
+                  <circle cx="0" cy="-2.8" r="0.45" fill={isPakistanSelected ? '#1A080C' : '#FAF7F5'} />
                   <g transform="translate(0, -4.0)" className="pointer-events-none">
-                    <path d="M-0.6 -0.1 L0 0.5 L0.6 -0.1 Z" fill="var(--bg-card)" stroke="#3B7A57" strokeWidth="0.2" />
-                    <rect x="-7.0" y="-1.7" width="14" height="3.4" rx="1.7" fill="var(--bg-card)" stroke="#3B7A57" strokeWidth="0.28" />
+                    <path
+                      d="M-0.6 -0.1 L0 0.5 L0.6 -0.1 Z"
+                      fill="var(--bg-card)"
+                      stroke={isPakistanSelected ? 'var(--border-active)' : '#3B7A57'}
+                      strokeWidth="0.2"
+                    />
+                    <rect
+                      x="-6.5"
+                      y="-1.7"
+                      width="13"
+                      height="3.4"
+                      rx="1.7"
+                      fill="var(--bg-card)"
+                      stroke={isPakistanSelected ? 'var(--border-active)' : '#3B7A57'}
+                      strokeWidth="0.28"
+                      fillOpacity="0.96"
+                    />
                     <text x="0" y="0.5" textAnchor="middle" fill="var(--text-main)" fontSize="1.15" fontWeight="bold">
-                      KARACHI (BASE)
+                      {isPakistanSelected || isPakistanHovered ? 'PAK • 0%' : 'PAKISTAN'}
                     </text>
                   </g>
                 </g>
               </g>
 
               {/* Haven Navigation Pins */}
-              {havenPins.map((haven) => {
+              {havenPins.filter((h) => (h.city || '').toLowerCase() !== 'pakistan' && h.id !== 11).map((haven) => {
                 const isSelected = selectedCity?.id === haven.id;
                 const isHovered = hoveredCityId === haven.id;
 
@@ -609,7 +669,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           </div>
 
           {/* Selection Haven Buttons - Columns & Rows Grid (Zero horizontal scroll) */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-2">
             {havenPins.map((h) => {
               const active = selectedCity?.id === h.id;
               return (
@@ -910,27 +970,52 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                   Transfer Intercepted
                 </span>
                 <h3 className="font-display text-2xl font-bold leading-tight tracking-tight" style={{ color: 'var(--text-main)' }}>
-                  You got caught by the government!
+                  {caughtModal.airportCode === 'PAK' || (caughtModal.city || '').toLowerCase() === 'pakistan'
+                    ? 'Domestic Smuggling Intercepted!'
+                    : 'You got caught by the government!'}
                 </h3>
                 <p className="text-xs font-rounded leading-relaxed" style={{ color: 'var(--text-sub)' }}>
-                  Financial authorities intercepted your transfer of{' '}
-                  <span
-                    className="font-display font-bold text-sm tracking-tight px-2 py-0.5 rounded-md inline-block mx-1 shadow-xs"
-                    style={{
-                      color: '#B83A3A',
-                      backgroundColor: 'rgba(184, 58, 58, 0.14)',
-                      border: '1.5px solid rgba(184, 58, 58, 0.35)',
-                      fontWeight: 800
-                    }}
-                  >
-                    PKR {formatAmount(caughtModal.amount)}
-                  </span>{' '}
-                  to <strong className="font-display font-bold" style={{ color: 'var(--text-main)' }}>{caughtModal.city}</strong> because it exceeded the secret limit.
+                  {caughtModal.airportCode === 'PAK' || (caughtModal.city || '').toLowerCase() === 'pakistan' ? (
+                    <>
+                      Federal Tax Authorities detected domestic money smuggling in{' '}
+                      <strong className="font-display font-bold" style={{ color: 'var(--text-main)' }}>Pakistan</strong>!
+                      A 50% regulatory penalty has been seized from your transfer of{' '}
+                      <span
+                        className="font-display font-bold text-sm tracking-tight px-2 py-0.5 rounded-md inline-block mx-1 shadow-xs"
+                        style={{
+                          color: '#B83A3A',
+                          backgroundColor: 'rgba(184, 58, 58, 0.14)',
+                          border: '1.5px solid rgba(184, 58, 58, 0.35)',
+                          fontWeight: 800
+                        }}
+                      >
+                        PKR {formatAmount(caughtModal.amount)}
+                      </span>.
+                    </>
+                  ) : (
+                    <>
+                      Financial authorities intercepted your transfer of{' '}
+                      <span
+                        className="font-display font-bold text-sm tracking-tight px-2 py-0.5 rounded-md inline-block mx-1 shadow-xs"
+                        style={{
+                          color: '#B83A3A',
+                          backgroundColor: 'rgba(184, 58, 58, 0.14)',
+                          border: '1.5px solid rgba(184, 58, 58, 0.35)',
+                          fontWeight: 800
+                        }}
+                      >
+                        PKR {formatAmount(caughtModal.amount)}
+                      </span>{' '}
+                      to <strong className="font-display font-bold" style={{ color: 'var(--text-main)' }}>{caughtModal.city}</strong> because it exceeded the secret limit.
+                    </>
+                  )}
                 </p>
               </div>
 
               <div className="rounded-2xl capsule-inset p-4 space-y-1 text-xs font-rounded border border-[#B83A3A]/40" style={{ backgroundColor: 'var(--bg-inset)' }}>
-                <div style={{ color: 'var(--text-sub)' }}>Fine Deducted:</div>
+                <div style={{ color: 'var(--text-sub)' }}>
+                  {caughtModal.airportCode === 'PAK' || (caughtModal.city || '').toLowerCase() === 'pakistan' ? '50% Fine Deducted:' : 'Fine Deducted:'}
+                </div>
                 <div className="text-3xl font-display font-bold tracking-tight" style={{ color: '#B83A3A' }}>
                   -PKR {formatAmount(caughtModal.taxDeducted)}
                 </div>

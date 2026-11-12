@@ -199,11 +199,32 @@ export function BviLandmark({ className = 'w-12 h-10' }) {
   );
 }
 
+export function PakistanLandmark({ className = 'w-12 h-10' }) {
+  return (
+    <svg viewBox="0 0 100 80" fill="currentColor" className={className}>
+      {/* Minar-e-Pakistan and Faisal Mosque architectural silhouette */}
+      <polygon points="50,20 26,58 74,58" opacity="0.9" />
+      <polygon points="50,20 42,58 58,58" opacity="0.95" />
+      <rect x="20" y="16" width="3" height="48" rx="1" opacity="0.85" />
+      <polygon points="21.5,9 19,16 24,16" opacity="0.85" />
+      <rect x="77" y="16" width="3" height="48" rx="1" opacity="0.85" />
+      <polygon points="78.5,9 76,16 81,16" opacity="0.85" />
+      <rect x="33" y="24" width="2" height="40" rx="0.5" opacity="0.75" />
+      <rect x="65" y="24" width="2" height="40" rx="0.5" opacity="0.75" />
+      <rect x="14" y="64" width="72" height="6" rx="2" opacity="0.9" />
+      <path d="M50,13 C48,13 46,15 46,17 C46,19 48,21 50,21 C49,20 48,18 48,17 C48,16 49,14 50,13 Z" opacity="0.95" />
+    </svg>
+  );
+}
+
 // Master Lookup by Airport Code or City Substring
 export default function CityLandmarkSvg({ code = '', className = 'w-12 h-10' }) {
   const c = String(code).toUpperCase();
   const svgClass = `city-landmark-svg ${className}`.trim();
 
+  if (c === 'PAK' || c.includes('PAKISTAN') || c.includes('KARACHI')) {
+    return <PakistanLandmark className={svgClass} />;
+  }
   if (c === 'CYM' || c.includes('CAYMAN') || c.includes('GEORGE')) {
     return <CaymanLandmark className={svgClass} />;
   }
