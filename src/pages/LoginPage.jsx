@@ -168,11 +168,10 @@ export default function LoginPage() {
               <input
                 type="text"
                 required
-                disabled={isLoginsBlocked}
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="e.g. Team Alpha"
-                className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
+                className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
                 style={{ color: 'var(--text-main)' }}
               />
             </div>
@@ -184,21 +183,20 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                disabled={isLoginsBlocked}
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
                 placeholder="e.g. team123"
-                className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
+                className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
                 style={{ color: 'var(--text-main)' }}
               />
             </div>
 
             <TactileButton
               type="submit"
-              disabled={loading || isLoginsBlocked}
+              disabled={loading}
               className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer disabled:opacity-50"
             >
-              {isLoginsBlocked ? 'Team Access Suspended' : loading ? 'Signing In...' : 'Sign In'}
+              {loading ? 'Signing In...' : 'Sign In'}
             </TactileButton>
           </form>
         </motion.div>

@@ -140,6 +140,9 @@ export default function EmpirePortalShell() {
   useEffect(() => {
     if (isDteBlocked) {
       const activeId = localStorage.getItem("dte_team_id");
+      if (currentTeam?.id === 'admin' || currentTeam?.isAdmin || currentTeam?.is_admin || activeId === 'admin') {
+        return;
+      }
       if (currentTeam || activeId) {
         console.warn("[DTE] Defend the Empire access blocked by Admin. Logging out session.");
         localStorage.removeItem("dte_team_id");
@@ -246,14 +249,14 @@ export default function EmpirePortalShell() {
     e.preventDefault();
     setAuthError("");
 
-    if (isDteBlocked) {
-      setAuthError("Defend the Empire access has been locked by the Administrator. Sign-ins are currently disabled.");
-      return;
-    }
-
     const targetTeam = teams.find((t) => t.id === selectedTeamId);
     if (!targetTeam) {
       setAuthError("Please select a delegation from the list.");
+      return;
+    }
+
+    if (isDteBlocked && targetTeam.id !== 'admin' && !targetTeam.isAdmin && !targetTeam.is_admin) {
+      setAuthError("Defend the Empire access has been locked by the Administrator. Sign-ins are currently disabled.");
       return;
     }
 
@@ -459,10 +462,9 @@ export default function EmpirePortalShell() {
                 </label>
                 <div className="relative">
                   <select
-                    disabled={isDteBlocked}
                     value={selectedTeamId}
                     onChange={(e) => setSelectedTeamId(e.target.value)}
-                    className="w-full appearance-none rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] focus:outline-none focus:border-[#f1ca7e] transition disabled:opacity-50"
+                    className="w-full appearance-none rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] focus:outline-none focus:border-[#f1ca7e] transition"
                   >
                     {teams.length === 0 ? (
                       <option value="">Connecting to registry...</option>
@@ -485,11 +487,10 @@ export default function EmpirePortalShell() {
                 <div className="relative">
                   <input
                     type="password"
-                    disabled={isDteBlocked}
                     placeholder="Enter passcode"
                     value={inputPasscode}
                     onChange={(e) => setInputPasscode(e.target.value)}
-                    className="w-full rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] placeholder-[#e8dcc6]/40 focus:outline-none focus:border-[#f1ca7e] transition disabled:opacity-50"
+                    className="w-full rounded-xl bg-[#5a0d1b] border border-[#89192c] px-4 py-3 text-sm text-[#f8eee1] placeholder-[#e8dcc6]/40 focus:outline-none focus:border-[#f1ca7e] transition"
                   />
                   <Lock className="w-4 h-4 text-[#f1ca7e] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -511,8 +512,7 @@ export default function EmpirePortalShell() {
 
               <button
                 type="submit"
-                disabled={isDteBlocked}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#f1ca7e] text-[#5a0d1b] font-black uppercase tracking-wider text-sm hover:scale-[1.02] active:scale-[0.98] transition shadow-lg shadow-black/30 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#f1ca7e] text-[#5a0d1b] font-black uppercase tracking-wider text-sm hover:scale-[1.02] active:scale-[0.98] transition shadow-lg shadow-black/30 mt-2 cursor-pointer"
               >
                 <span>Authenticate & Enter War Room</span>
                 <ArrowRight className="w-4 h-4" />

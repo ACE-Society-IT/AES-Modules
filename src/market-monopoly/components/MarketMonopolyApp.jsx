@@ -117,6 +117,7 @@ export default function MarketMonopolyApp() {
         activeTeamId ||
         sessionStorage.getItem('investomania_monopoly_team_id') ||
         localStorage.getItem('investomania_monopoly_team_id');
+      if (activeId === 'admin') return; // Admin is exempt
       if (activeId) {
         console.warn('[Monopoly] Market Monopoly logins blocked by Admin. Logging out session.');
         setActiveTeamId('');
@@ -439,11 +440,6 @@ export default function MarketMonopolyApp() {
     e.preventDefault();
     setLoginError('');
 
-    if (isMonopolyBlocked) {
-      setLoginError('Market Monopoly access has been locked by the Administrator. Sign-ins are currently disabled.');
-      return;
-    }
-
     try {
       const { team, store: latestStore } = await authenticateMonopolyTeam({
         identifier: loginName,
@@ -708,11 +704,10 @@ export default function MarketMonopolyApp() {
                 <input
                   type="text"
                   required
-                  disabled={isMonopolyBlocked}
                   value={loginName}
                   onChange={(e) => setLoginName(e.target.value)}
                   placeholder="Enter Team Name"
-                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
+                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
                   style={{ color: 'var(--text-main)' }}
                 />
               </div>
@@ -724,19 +719,17 @@ export default function MarketMonopolyApp() {
                 <input
                   type="password"
                   required
-                  disabled={isMonopolyBlocked}
                   value={loginPasscode}
                   onChange={(e) => setLoginPasscode(e.target.value)}
                   placeholder="Enter Passcode"
-                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none disabled:opacity-50"
+                  className="w-full capsule-card rounded-full px-5 py-3 text-sm font-rounded font-semibold focus:outline-none"
                   style={{ color: 'var(--text-main)' }}
                 />
               </div>
 
               <TactileButton
                 type="submit"
-                disabled={isMonopolyBlocked}
-                className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-full py-3.5 font-display font-bold text-sm shadow-lg btn-primary cursor-pointer"
               >
                 Sign In
               </TactileButton>

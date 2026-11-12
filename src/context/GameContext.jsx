@@ -244,6 +244,8 @@ export function GameProvider({ children }) {
   // Real-time Auto-Logout when Administrator locks Investomania logins
   useEffect(() => {
     if (!gameState || !team) return;
+    if (team.isAdmin || team.id === 'admin') return;
+
     const isInvestomaniaBlocked =
       (gameState.moduleAccess && gameState.moduleAccess.investomania === false) ||
       (gameState.loginsEnabled === false);
@@ -262,14 +264,6 @@ export function GameProvider({ children }) {
 
   // Contestant Desk Sign-In
   const loginTeam = async (teamName, passcode) => {
-    const isInvestomaniaBlocked =
-      (gameState?.moduleAccess && gameState.moduleAccess.investomania === false) ||
-      (gameState?.loginsEnabled === false);
-
-    if (isInvestomaniaBlocked) {
-      throw new Error('Investomania access has been locked by the Administrator. Sign-ins are currently disabled.');
-    }
-
     const data = await authTeamDirect(teamName, passcode);
     setTeam(data.team);
     if (data.gameState) setGameState(data.gameState);
