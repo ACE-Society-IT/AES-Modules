@@ -99,6 +99,21 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
     return selectedCity.description || '';
   }, [selectedCity]);
 
+  // Track cumulative amount already sheltered in the currently selected channel
+  const channelCumulativeTransferred = useMemo(() => {
+    if (!selectedCity || !Array.isArray(team?.taxHistory)) return 0;
+    const targetId = Number(selectedCity.id);
+    const targetCity = (selectedCity.city || selectedCity.name || '').toLowerCase().trim();
+    return team.taxHistory.reduce((sum, rec) => {
+      const match = Number(rec.channelId) === targetId || 
+        (rec.city && String(rec.city).toLowerCase().trim() === targetCity);
+      if (match && (rec.status === 'SUCCESS' || !rec.caughtByGovernment)) {
+        return sum + Number(rec.inputAmount || 0);
+      }
+      return sum;
+    }, 0);
+  }, [selectedCity, team?.taxHistory]);
+
   useEffect(() => {
     if (taxHavens.length > 0 && !taxHavens.some((h) => h.id === selectedCityId)) {
       setSelectedCityId(taxHavens[0].id);
@@ -395,7 +410,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           airportCode: selectedCity.airportCode || 'OFF',
           amount: sendAmount,
           taxDeducted: res.taxRecord?.taxDeducted || sendAmount * 0.45,
-          message: res.message || 'The government intercepted this transfer.'
+          message: res.taxRecord?.message || res.message || 'The government intercepted this transfer.'
         });
       } else {
         setSuccessModal({
@@ -404,7 +419,7 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
           airportCode: selectedCity.airportCode || 'OFF',
           amount: sendAmount,
           taxDeducted: res.taxRecord?.taxDeducted || estimatedTaxFee,
-          message: res.message || 'Funds were safely sheltered offshore.'
+          message: res.taxRecord?.message || res.message || 'Funds were safely sheltered offshore.'
         });
       }
     } catch (err) {
@@ -803,12 +818,20 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
                     {selectedCity.taxRatePercent}%
                   </span>
                 </div>
+                {channelCumulativeTransferred > 0 && (
+                  <div className="flex justify-between items-center pt-2 border-t border-[var(--border-soft)]">
+                    <span className="text-[var(--text-sub)]">Cumulative Sheltered Here</span>
+                    <span className="font-mono tabular-nums font-bold text-sm text-[#3B7A57]">
+                      PKR {formatAmount(channelCumulativeTransferred)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Warning Notice */}
               <div className="rounded-xl bg-[#C0392B]/10 border border-[#C0392B]/30 px-3.5 py-2.5 text-xs font-rounded text-[#C0392B] flex items-center gap-2">
                 <IconAlert className="w-4 h-4 text-[#C0392B] shrink-0" />
-                <span>The government can trace you if you over-smuggle.</span>
+                <span>Anti-Structuring Trace: The government tracks cumulative volume. Multiple small wires to the same haven are aggregated and intercepted if the total exceeds secret limits!</span>
               </div>
 
               {/* Wire Form */}
