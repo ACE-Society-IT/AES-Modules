@@ -28,7 +28,8 @@ export default function LeaderboardView() {
         const { data, error } = await supabase
           .from("dte_leaderboard")
           .select("*")
-          .order("rank", { ascending: true });
+          .order("current_valuation", { ascending: false })
+          .order("net_delta", { ascending: false });
 
         if (error) {
           console.warn("Could not fetch live leaderboard from Supabase:", error.message);
@@ -36,17 +37,22 @@ export default function LeaderboardView() {
         }
 
         if (data && data.length > 0 && isMounted) {
-          const mapped = data.map((t, idx) => ({
-            rank: t.rank || idx + 1,
-            teamId: t.team_id || `team-${idx + 1}`,
-            teamName: t.team_name,
-            schoolOrOrg: t.playstyle || "Sovereign Delegation",
-            valuation: Number(t.current_valuation) || 10000,
-            netDelta: Number(t.net_delta) || 0,
-            crisesResolved: t.crises_resolved || 0,
-            strategyTag: t.playstyle || "Balanced Hedger",
-            lastOptionLocked: t.last_option_locked,
-          }));
+          const mapped = data
+            .map((t, idx) => ({
+              teamId: t.team_id || `team-${idx + 1}`,
+              teamName: t.team_name,
+              schoolOrOrg: t.playstyle || "Sovereign Delegation",
+              valuation: Number(t.current_valuation) || 10000,
+              netDelta: Number(t.net_delta) || 0,
+              crisesResolved: t.crises_resolved || 0,
+              strategyTag: t.playstyle || "Balanced Hedger",
+              lastOptionLocked: t.last_option_locked,
+            }))
+            .sort((a, b) => b.valuation - a.valuation || b.netDelta - a.netDelta)
+            .map((t, idx) => ({
+              ...t,
+              rank: idx + 1,
+            }));
           setTeams(mapped);
         }
       } catch (err) {
