@@ -1,5 +1,5 @@
 // 20 participating teams with simulated crisis progress and current company valuation.
-// Base valuation: $100,000M ($100B).
+// Base valuation: $10,000M ($10B).
 // Deltas accumulate across simulated crises based on tactical choices.
 
 export const LEADERBOARD_TEAMS = [
@@ -9,7 +9,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Aethelgard Syndicate",
     schoolOrOrg: "Apex Strategic Institute",
     crisesResolved: 8,
-    valuation: 100650, // +$650M ($100.65B)
+    valuation: 10650, // +$650M ($10.65B)
     netDelta: 650,
     strategyTag: "Aggressive Expansion",
     change24h: "+2 ranks",
@@ -21,7 +21,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Vanguard Sovereign",
     schoolOrOrg: "Helios Business College",
     crisesResolved: 8,
-    valuation: 100550, // +$550M ($100.55B)
+    valuation: 10550, // +$550M ($10.55B)
     netDelta: 550,
     strategyTag: "Defensive Fortress",
     change24h: "+4 ranks",
@@ -33,7 +33,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Ironclad Capital",
     schoolOrOrg: "Valence Global Academy",
     crisesResolved: 8,
-    valuation: 100500, // +$500M ($100.50B)
+    valuation: 10500, // +$500M ($10.50B)
     netDelta: 500,
     strategyTag: "Diplomatic Arbitrage",
     change24h: "-1 rank",
@@ -45,7 +45,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Meridian Conglomerate",
     schoolOrOrg: "Sovereign Union Delegates",
     crisesResolved: 8,
-    valuation: 100400,
+    valuation: 10400,
     netDelta: 400,
     strategyTag: "Tactical Agility",
     change24h: "+1 rank",
@@ -56,7 +56,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Solaris Consortium",
     schoolOrOrg: "Geneva Finance Chamber",
     crisesResolved: 8,
-    valuation: 100350,
+    valuation: 10350,
     netDelta: 350,
     strategyTag: "Market Squeeze",
     change24h: "+3 ranks",
@@ -67,7 +67,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Blackwatch Dynamics",
     schoolOrOrg: "Aegis Cybernetics Division",
     crisesResolved: 7,
-    valuation: 100300,
+    valuation: 10300,
     netDelta: 300,
     strategyTag: "Cyber Counter-Strike",
     change24h: "-2 ranks",
@@ -78,7 +78,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Aurelia Prime Command",
     schoolOrOrg: "Citadel High Council",
     crisesResolved: 7,
-    valuation: 100250,
+    valuation: 10250,
     netDelta: 250,
     strategyTag: "Covenant Shield",
     change24h: "Steady",
@@ -89,7 +89,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Olympus Trading Guild",
     schoolOrOrg: "Delphi Strategic Council",
     crisesResolved: 7,
-    valuation: 100200,
+    valuation: 10200,
     netDelta: 200,
     strategyTag: "Asset Hedging",
     change24h: "+2 ranks",
@@ -100,7 +100,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Titan Maritime Bureau",
     schoolOrOrg: "Alexandria Admiralty",
     crisesResolved: 7,
-    valuation: 100150,
+    valuation: 10150,
     netDelta: 150,
     strategyTag: "Convoy Escort",
     change24h: "-3 ranks",
@@ -111,7 +111,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Hyperion Reserve",
     schoolOrOrg: "Zurich Bullion Board",
     crisesResolved: 7,
-    valuation: 100100,
+    valuation: 10100,
     netDelta: 100,
     strategyTag: "Gold Sovereign Note",
     change24h: "Steady",
@@ -122,7 +122,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Phoenix Logistics",
     schoolOrOrg: "Nordic Trade Federation",
     crisesResolved: 6,
-    valuation: 100050,
+    valuation: 10050,
     netDelta: 50,
     strategyTag: "Reroute Strategy",
     change24h: "+1 rank",
@@ -133,7 +133,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Valence Energy Pact",
     schoolOrOrg: "Alpine Smelters Guild",
     crisesResolved: 6,
-    valuation: 100000, // Baseline $100B
+    valuation: 10000, // Baseline $10B
     netDelta: 0,
     strategyTag: "Neutral Balance",
     change24h: "-2 ranks",
@@ -144,7 +144,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Crestview Holdings",
     schoolOrOrg: "Metropolitan Chamber",
     crisesResolved: 6,
-    valuation: 99950, // -$50M
+    valuation: 9950, // -$50M
     netDelta: -50,
     strategyTag: "Spot Power Drain",
     change24h: "-1 rank",
@@ -155,7 +155,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Leviathan Fleet Ops",
     schoolOrOrg: "Red Sea Escort Authority",
     crisesResolved: 6,
-    valuation: 99900,
+    valuation: 9900,
     netDelta: -100,
     strategyTag: "Cargo Delay Penalty",
     change24h: "Steady",
@@ -166,7 +166,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Sovereign Shielders",
     schoolOrOrg: "Imperial Diplomatic Guild",
     crisesResolved: 5,
-    valuation: 99850,
+    valuation: 9850,
     netDelta: -150,
     strategyTag: "Ransom Exposure",
     change24h: "-2 ranks",
@@ -177,7 +177,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Centurion Ventures",
     schoolOrOrg: "Transcontinental Alliance",
     crisesResolved: 5,
-    valuation: 99800,
+    valuation: 9800,
     netDelta: -200,
     strategyTag: "Smelter Shutdown",
     change24h: "+1 rank",
@@ -188,7 +188,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Argonaut Maritime",
     schoolOrOrg: "Mediterranean Dispatch",
     crisesResolved: 5,
-    valuation: 99750,
+    valuation: 9750,
     netDelta: -250,
     strategyTag: "Injunction Stalemate",
     change24h: "-3 ranks",
@@ -199,7 +199,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Borealis Rare-Earth",
     schoolOrOrg: "Sub-Zero Mining Core",
     crisesResolved: 5,
-    valuation: 99700,
+    valuation: 9700,
     netDelta: -300,
     strategyTag: "Supply Chain Shock",
     change24h: "-1 rank",
@@ -210,7 +210,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Goliath Foundry Labs",
     schoolOrOrg: "Valais Industrial Group",
     crisesResolved: 4,
-    valuation: 99650,
+    valuation: 9650,
     netDelta: -350,
     strategyTag: "Turbine Grid Failure",
     change24h: "-1 rank",
@@ -221,7 +221,7 @@ export const LEADERBOARD_TEAMS = [
     teamName: "Apex Sovereign Trust",
     schoolOrOrg: "Vienna Capital Council",
     crisesResolved: 4,
-    valuation: 99550,
+    valuation: 9550,
     netDelta: -450,
     strategyTag: "Subordinated Debt Trap",
     change24h: "-2 ranks",

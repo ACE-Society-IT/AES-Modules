@@ -1,9 +1,9 @@
 // Round 2 — Live Crisis Simulation data.
-// All money values are in $ MILLIONS. Starting valuation: $100 Billion.
+// All money values are in $ MILLIONS. Starting valuation: $10 Billion.
 
 export const SIM_CONFIG = {
   companyName: "Aurelia Sovereign Holdings",
-  startingValuation: 100000, // $100B in millions — identical for every team
+  startingValuation: 10000, // $10B in millions — identical for every team
   crisisIntervalSeconds: 6 * 60, // a new crisis every 6 minutes
   totalCrises: 10,
   totalSeconds: 60 * 60, // 60-minute round

@@ -16,7 +16,7 @@ import { SIM_CONFIG, formatValuation } from "../data/crisisData";
 export default function EmpireHeader({
   activeTab = "background",
   setActiveTab = () => {},
-  balance = 100000,
+  balance = 10000,
   currentWaveIndex = 0,
   totalWaves = 10,
   isSimulationComplete = false,

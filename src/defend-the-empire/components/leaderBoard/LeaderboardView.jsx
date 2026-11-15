@@ -41,7 +41,7 @@ export default function LeaderboardView() {
             teamId: t.team_id || `team-${idx + 1}`,
             teamName: t.team_name,
             schoolOrOrg: t.playstyle || "Sovereign Delegation",
-            valuation: Number(t.current_valuation) || 100000,
+            valuation: Number(t.current_valuation) || 10000,
             netDelta: Number(t.net_delta) || 0,
             crisesResolved: t.crises_resolved || 0,
             strategyTag: t.playstyle || "Balanced Hedger",
@@ -79,7 +79,7 @@ export default function LeaderboardView() {
     teamId: "standby",
     teamName: "Standby Delegation",
     schoolOrOrg: "Sovereign Command",
-    valuation: 100000,
+    valuation: 10000,
     netDelta: 0,
   };
 

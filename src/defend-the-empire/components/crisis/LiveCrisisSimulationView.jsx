@@ -654,7 +654,7 @@ function CrisisCard({
 
 function StartCard({ onStart }) {
   const introPoints = [
-    { Icon: Coins, text: "Every team starts at $100B" },
+    { Icon: Coins, text: "Every team starts at $10B" },
     { Icon: Timer, text: "10 crises · one every 6 minutes" },
     { Icon: Target, text: "Pick 1 of 4 solutions. Each moves the valuation." },
   ];
