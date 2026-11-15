@@ -74,6 +74,9 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
 
   const selectedCity = taxHavens.find((h) => h.id === selectedCityId) || taxHavens[0] || null;
   const availableCash = Number(team?.cash || 0);
+  const r1Profit = Number(team?.round1Profit || 0);
+  const r2Profit = Number(team?.round2Profit || 0);
+  const totalProfit = r1Profit + r2Profit;
 
   const selectedCityStory = useMemo(() => {
     if (!selectedCity) return '';
@@ -451,9 +454,18 @@ export default function WorldMapSmugglingView({ gameState, team, onAllocateTax }
         {/* 3 Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
           <div className="capsule-card rounded-2xl p-4 space-y-1">
-            <span className="text-[11px] font-mono font-bold tracking-wide block uppercase text-[var(--text-sub)]">
-              Liquid Cash
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono font-bold tracking-wide block uppercase text-[var(--text-sub)]">
+                Liquid Cash
+              </span>
+              {totalProfit !== 0 && (
+                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                  totalProfit >= 0 ? 'bg-[#3B7A57]/15 text-[#3B7A57]' : 'bg-[#B83A3A]/15 text-[#B83A3A]'
+                }`}>
+                  R1+R2: {totalProfit >= 0 ? '+' : ''}PKR {formatAmount(totalProfit)}
+                </span>
+              )}
+            </div>
             <div className="font-display tabular-nums text-xl sm:text-2xl font-bold text-[var(--text-main)]">
               PKR {formatAmount(availableCash)}
             </div>
