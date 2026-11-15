@@ -229,14 +229,7 @@ export default function MarketMonopolyApp() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'monopoly_state', filter: 'id=eq.1' },
-        (payload) => {
-          if (payload?.new?.state_json) {
-            const updated = updateCachedMonopolyStore(payload.new.state_json);
-            if (updated) {
-              setStore(updated);
-              return;
-            }
-          }
+        () => {
           refreshStore(true);
         }
       )
@@ -250,6 +243,13 @@ export default function MarketMonopolyApp() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'monopoly_properties' },
+        () => {
+          refreshStore(true);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'monopoly_utilities' },
         () => {
           refreshStore(true);
         }
@@ -288,7 +288,7 @@ export default function MarketMonopolyApp() {
   const allTeamSummaries = useMemo(() => {
     if (!store) return [];
     return (store.teams || [])
-      .map((t) => computeTeamSummary(t, store.properties))
+      .map((t) => computeTeamSummary(t, store.properties, store.utilities))
       .sort((a, b) => b.netWorth - a.netWorth);
   }, [store]);
 
@@ -433,8 +433,11 @@ export default function MarketMonopolyApp() {
   }, [store, contextMenu]);
 
   const guideSampleProp = useMemo(() => {
-    return KARACHI_PROPERTIES.find((p) => Number(p.id) === Number(guideSamplePropId)) || KARACHI_PROPERTIES[0];
-  }, [guideSamplePropId]);
+    const propsList = Array.isArray(store?.properties) && store.properties.length > 0
+      ? store.properties
+      : KARACHI_PROPERTIES;
+    return propsList.find((p) => Number(p.id) === Number(guideSamplePropId)) || propsList[0];
+  }, [store?.properties, guideSamplePropId]);
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -1158,9 +1161,6 @@ export default function MarketMonopolyApp() {
                                 {lvl < 3 ? (() => {
                                   const nextLvl = lvl + 1;
                                   const reqs = (prop.upgradeRequirements && prop.upgradeRequirements[String(nextLvl)]) || [];
-                                  const costs = prop.upgradeCosts || [10, 15, 20];
-                                  const cashCost = costs[nextLvl - 1] || 10;
-                                  const hasCash = Number(currentTeam.cash || 0) >= cashCost;
                                   const targetVal = prop.targetValues?.[nextLvl] || prop.level3Target;
 
                                   const attachedToProp = (prop.attachedUtilities || []).map(Number);
@@ -1185,7 +1185,7 @@ export default function MarketMonopolyApp() {
                                       isFullyInstalled: installed >= countNeeded
                                     };
                                   });
-                                  const canUpgradeCard = allTokensInstalled || (hasCash && allTokensReady);
+                                  const canUpgradeCard = allTokensInstalled || allTokensReady;
 
                                   return (
                                     <div className="p-2.5 rounded-xl border border-[var(--border-soft)] capsule-card space-y-2">
@@ -1199,9 +1199,9 @@ export default function MarketMonopolyApp() {
                                           </span>
                                         </div>
                                         <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                          allTokensInstalled || hasCash ? 'bg-[#2E7D52]/15 text-[#2E7D52]' : 'bg-[#C0392B]/15 text-[#C0392B]'
+                                          canUpgradeCard ? 'bg-[#2E7D52]/15 text-[#2E7D52]' : 'bg-[#C0392B]/15 text-[#C0392B]'
                                         }`}>
-                                          {allTokensInstalled ? 'Ready to Upgrade' : `Rs ${cashCost}L ${hasCash ? '[Ready]' : `[Need Rs ${cashCost - Number(currentTeam.cash || 0)}L]`}`}
+                                          {canUpgradeCard ? 'Ready to Upgrade' : 'Tokens Needed'}
                                         </span>
                                       </div>
 
@@ -1245,14 +1245,12 @@ export default function MarketMonopolyApp() {
                                           >
                                             {allTokensInstalled
                                               ? `Complete Level ${nextLvl} Upgrade`
-                                              : `Upgrade to Level ${nextLvl} (Cost: Rs ${cashCost}L)`}
+                                              : `Upgrade to Level ${nextLvl}`}
                                           </button>
                                         ) : (
                                           <div className="flex items-center justify-between gap-1.5 text-[10px] font-rounded">
                                             <span className="text-[#C0392B] font-bold truncate">
-                                              {!hasCash && allTokensReady
-                                                ? `Need Rs ${cashCost - Number(currentTeam.cash || 0)}L cash`
-                                                : 'Missing tokens to upgrade'}
+                                              Missing tokens to upgrade
                                             </span>
                                             <button
                                               type="button"
@@ -1674,6 +1672,7 @@ export default function MarketMonopolyApp() {
                   tx.type === 'RESOURCE_BID_WIN' ||
                   tx.type === 'RESOURCE_REVOKED' ||
                   tx.type === 'RESOURCE_LEVEL_UP' ||
+                  tx.type === 'UTILITY_PURCHASED' ||
                   tx.category === 'RESOURCE'
               );
 
@@ -1851,9 +1850,18 @@ export default function MarketMonopolyApp() {
                         </div>
                       ) : (
                         <div className="space-y-2.5 max-h-[380px] overflow-y-auto modal-scrollbar pr-1">
-                          {teamOwnedResources.map((res) => (
+                          {teamOwnedResources.map((res, resIdx) => {
+                            const matchedUtil = activeUtilities.find(
+                              (u) => Number(u.id) === Number(res.utilityId)
+                            );
+                            const deductedAmount = Number(
+                              res.bidPrice ?? res.cost ?? res.price ?? matchedUtil?.cost ?? 0
+                            );
+                            const displayName =
+                              res.name || res.utilityName || matchedUtil?.name || `Utility #${res.utilityId}`;
+                            return (
                             <div
-                              key={res.instanceId}
+                              key={res.instanceId || res.id || `res_${res.utilityId}_${resIdx}`}
                               className="p-4 rounded-2xl capsule-card border border-[var(--border-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                             >
                               <div className="flex items-start gap-3">
@@ -1869,7 +1877,7 @@ export default function MarketMonopolyApp() {
                                 <div className="space-y-0.5">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-[10px] font-mono font-bold uppercase" style={{ color: 'var(--text-sub)' }}>
-                                      Resource #{res.utilityId} · {res.category}
+                                      Resource #{res.utilityId} · {res.category || matchedUtil?.category || 'General'}
                                     </span>
                                     <span
                                       className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border transition-colors"
@@ -1893,7 +1901,7 @@ export default function MarketMonopolyApp() {
                                     </span>
                                   </div>
                                   <h5 className="font-display text-base font-bold" style={{ color: 'var(--text-main)' }}>
-                                    You received {res.name}
+                                    You received {displayName}
                                   </h5>
                                   <p className="text-xs font-rounded" style={{ color: 'var(--text-sub)' }}>
                                     Boosts property level by +1 Level (up to Max Level 3)
@@ -1903,14 +1911,15 @@ export default function MarketMonopolyApp() {
 
                               <div className="text-left sm:text-right shrink-0 font-mono">
                                 <span className="text-xs font-bold text-[#C0392B] block">
-                                  -Rs {res.bidPrice}L Deducted
+                                  -Rs {deductedAmount}L Deducted
                                 </span>
                                 <span className="text-[11px] text-[#2E7D52] font-bold block">
                                   +1 Property Level
                                 </span>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -1960,10 +1969,20 @@ export default function MarketMonopolyApp() {
                             tx.type === 'RESOURCE_BID_WIN' ||
                             tx.type === 'RESOURCE_REVOKED' ||
                             tx.type === 'RESOURCE_LEVEL_UP' ||
+                            tx.type === 'UTILITY_PURCHASED' ||
                             tx.category === 'RESOURCE';
                           const isRentTx = tx.type === 'WHEEL_RENT';
                           const isRefund =
                             tx.type === 'SALE_REVOKED' || tx.type === 'RESOURCE_REVOKED';
+                          const txAmount = Number(
+                            tx.amount ??
+                              tx.cost ??
+                              tx.price ??
+                              (tx.utilityId
+                                ? activeUtilities.find((u) => Number(u.id) === Number(tx.utilityId))?.cost
+                                : 0) ??
+                              0
+                          );
 
                           let badgeLabel = 'SYSTEM';
                           let badgeStyle = { backgroundColor: 'var(--bg-inset)', color: 'var(--text-main)', borderColor: 'var(--border-soft)' };
@@ -2041,13 +2060,13 @@ export default function MarketMonopolyApp() {
                                 )}
                               </div>
 
-                              {Number(tx.amount) > 0 && (
+                              {txAmount > 0 && (
                                 <div className="text-left sm:text-right shrink-0 font-mono">
                                   <span
                                     className={`text-sm sm:text-base font-bold block ${isRefund ? 'text-[#2E7D52]' : 'text-[#C0392B]'
                                       }`}
                                   >
-                                    {isRefund ? `+Rs ${tx.amount}L Refunded` : `-Rs ${tx.amount}L Deducted`}
+                                    {isRefund ? `+Rs ${txAmount}L Refunded` : `-Rs ${txAmount}L Deducted`}
                                   </span>
                                   {tx.cashAfter !== undefined && (
                                     <span className="text-[11px] block" style={{ color: 'var(--text-sub)' }}>
@@ -2497,7 +2516,7 @@ export default function MarketMonopolyApp() {
                                 #{guideSampleProp.id} {guideSampleProp.name} ({guideSampleProp.category})
                               </div>
                               <span className="text-xs font-mono" style={{ color: 'var(--text-sub)' }}>
-                                Opening: Rs {guideSampleProp.openingValue}L · L3 Target: <strong className="text-[#2E7D52]">Rs {guideSampleProp.level3Target}L</strong> · Total Upgrade Cost: Rs {(guideSampleProp.upgradeCosts?.[0] || 0) + (guideSampleProp.upgradeCosts?.[1] || 0) + (guideSampleProp.upgradeCosts?.[2] || 0)}L
+                                Opening: Rs {guideSampleProp.openingValue}L · L3 Target: <strong className="text-[#2E7D52]">Rs {guideSampleProp.level3Target}L</strong>
                               </span>
                             </div>
                             <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-[#701020] text-[#F1CA7E]">
@@ -2507,7 +2526,6 @@ export default function MarketMonopolyApp() {
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {[1, 2, 3].map((lvlNum) => {
-                              const cost = guideSampleProp.upgradeCosts?.[lvlNum - 1] || 0;
                               const targetVal = guideSampleProp.targetValues?.[lvlNum] || 0;
                               const rentVal = guideSampleProp.rentValues?.[lvlNum] || 0;
                               const reqList = (guideSampleProp.upgradeRequirements && guideSampleProp.upgradeRequirements[String(lvlNum)]) || [];
@@ -2516,7 +2534,6 @@ export default function MarketMonopolyApp() {
                                 <div key={lvlNum} className="p-3.5 rounded-xl capsule-inset space-y-2 text-xs font-rounded border border-[var(--border-soft)]">
                                   <div className="flex items-center justify-between font-bold border-b border-[var(--border-soft)] pb-1.5">
                                     <span style={{ color: 'var(--text-main)' }}>Level {lvlNum} Upgrade</span>
-                                    <span className="font-mono text-[#2E7D52]">Cost: Rs {cost}L</span>
                                   </div>
                                   <div className="space-y-1 font-mono text-[11px]">
                                     <div className="flex justify-between">
@@ -3038,25 +3055,21 @@ export default function MarketMonopolyApp() {
                             </div>
 
                             {/* How Much it Takes to Upgrade Level (Document Upgrade Recipe Breakdown) */}
-                            {Array.isArray(prop.upgradeCosts) && prop.upgradeCosts.length >= 3 && (
+                            {prop.upgradeRequirements && (
                               <div className="p-2.5 rounded-xl capsule-card border border-[var(--border-soft)] space-y-2">
                                 <div className="flex items-center justify-between text-[10.5px] font-rounded font-bold border-b border-[var(--border-soft)] pb-1.5">
                                   <div>
                                     <span className="text-[9px] font-mono uppercase text-[#2E7D52] block font-bold">
-                                      Level Upgrade Pricing & Requirements
+                                      Level Upgrade Requirements
                                     </span>
                                     <span style={{ color: 'var(--text-main)' }}>
-                                      How Much to Upgrade Each Level:
+                                      Required Utilities for Each Level:
                                     </span>
                                   </div>
-                                  <span className="font-mono text-[#2E7D52] font-bold text-[10px] px-2 py-0.5 rounded-md capsule-inset">
-                                    Total L1-L3: Rs {prop.upgradeCosts[0] + prop.upgradeCosts[1] + prop.upgradeCosts[2]}L
-                                  </span>
                                 </div>
 
                                 <div className="space-y-1.5">
                                   {[1, 2, 3].map((lvlNum) => {
-                                    const cost = prop.upgradeCosts[lvlNum - 1];
                                     const targetVal = prop.targetValues?.[lvlNum] || 0;
                                     const reqList = (prop.upgradeRequirements && prop.upgradeRequirements[String(lvlNum)]) || [];
 
@@ -3065,9 +3078,6 @@ export default function MarketMonopolyApp() {
                                         <div className="flex items-center justify-between font-bold">
                                           <span className="font-rounded" style={{ color: 'var(--text-main)' }}>
                                             Level {lvlNum} (Target: Rs {targetVal}L)
-                                          </span>
-                                          <span className="font-mono text-[#2E7D52]">
-                                            Cost: Rs {cost}L
                                           </span>
                                         </div>
                                         {reqList.length > 0 && (
@@ -3524,17 +3534,13 @@ export default function MarketMonopolyApp() {
                         Official Upgrade Specification
                       </span>
                       <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
-                        3-Level Upgrade Costs & Required Tokens
+                        3-Level Upgrade Targets & Required Tokens
                       </h5>
                     </div>
-                    <span className="font-mono text-[10px] font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: '#2E7D52' }}>
-                      Total L1–L3: Rs {(inspectedProperty.upgradeCosts?.[0] || 0) + (inspectedProperty.upgradeCosts?.[1] || 0) + (inspectedProperty.upgradeCosts?.[2] || 0)}L
-                    </span>
                   </div>
 
                   <div className="space-y-2">
                     {[1, 2, 3].map((lvlNum) => {
-                      const cost = inspectedProperty.upgradeCosts?.[lvlNum - 1] || 0;
                       const targetVal = inspectedProperty.targetValues?.[lvlNum] || 0;
                       const reqList = (inspectedProperty.upgradeRequirements && inspectedProperty.upgradeRequirements[String(lvlNum)]) || [];
                       const isReached = actualLevel >= lvlNum;
@@ -3568,9 +3574,6 @@ export default function MarketMonopolyApp() {
                                 <span className="text-[10px] text-[#8D5B3A] font-mono">[Next Target]</span>
                               )}
                             </div>
-                            <span className="font-mono text-[#2E7D52] font-bold">
-                              Upgrade Cost: Rs {cost}L
-                            </span>
                           </div>
 
                           <div className="space-y-1">
@@ -3600,9 +3603,6 @@ export default function MarketMonopolyApp() {
                 {isOwnedByMe && actualLevel < 3 && (() => {
                   const nextLvl = actualLevel + 1;
                   const reqs = (inspectedProperty.upgradeRequirements && inspectedProperty.upgradeRequirements[nextLvl]) || [];
-                  const costs = inspectedProperty.upgradeCosts || [10, 15, 20];
-                  const cashCost = costs[nextLvl - 1] || 10;
-                  const hasCash = Number(currentTeam.cash || 0) >= cashCost;
 
                   // Check token readiness: count both tokens already installed on this property AND tokens in unassigned inventory
                   const attachedToThisPlot = (inspectedProperty.attachedUtilities || []).map(Number);
@@ -3627,7 +3627,7 @@ export default function MarketMonopolyApp() {
                     };
                   });
 
-                  const canUpgrade = allTokensInstalled || (hasCash && allTokensReady);
+                  const canUpgrade = allTokensInstalled || allTokensReady;
 
                   return (
                     <div className="p-4 rounded-2xl capsule-card border-2 border-[var(--border-card)] space-y-3">
@@ -3637,11 +3637,11 @@ export default function MarketMonopolyApp() {
                             Upgrade Execution Console
                           </span>
                           <h5 className="font-display text-sm font-bold" style={{ color: 'var(--text-main)' }}>
-                            Upgrade to Level {nextLvl} {allTokensInstalled ? '(Ready)' : `(Cost: Rs ${cashCost}L)`}
+                            Upgrade to Level {nextLvl} {canUpgrade ? '(Ready)' : ''}
                           </h5>
                         </div>
-                        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: allTokensInstalled || hasCash ? '#2E7D52' : '#C0392B' }}>
-                          {allTokensInstalled ? 'Ready to Upgrade' : `Cash: Rs ${cashCost}L ${hasCash ? '[Ready]' : '[Need Cash]'}`}
+                        <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-full capsule-inset" style={{ color: canUpgrade ? '#2E7D52' : '#C0392B' }}>
+                          {canUpgrade ? 'Ready to Upgrade' : 'Tokens Needed'}
                         </span>
                       </div>
 
@@ -3680,9 +3680,7 @@ export default function MarketMonopolyApp() {
                           {allTokensInstalled ? (
                             <span className="text-[#2E7D52] font-bold">[Ready] All required utilities installed! Click below to complete upgrade.</span>
                           ) : canUpgrade ? (
-                            <span className="text-[#2E7D52] font-bold">[Ready] Tokens verified & cash available!</span>
-                          ) : !hasCash ? (
-                            <span className="text-[#C0392B] font-bold">[Alert] Short on Cash: Need Rs ${cashCost - currentTeam.cash}L more.</span>
+                            <span className="text-[#2E7D52] font-bold">[Ready] Required utility tokens verified!</span>
                           ) : (
                             <span className="text-[#C0392B] font-bold">[Alert] Missing tokens: Buy required utility tokens in the Store tab.</span>
                           )}
@@ -3862,31 +3860,13 @@ export default function MarketMonopolyApp() {
                           <strong className="text-[11px] font-rounded uppercase tracking-wider block" style={{ color: 'var(--text-main)' }}>
                             Deed Indicative Utility Values (Rs Lakh)
                           </strong>
-                          <span className="text-[10px] font-mono text-[#2E7D52] font-bold">17 Assets Reference</span>
+                          <span className="text-[10px] font-mono text-[#2E7D52] font-bold">{activeUtilities.length} Assets Reference</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-mono">
-                          {[
-                            { name: 'Electricity', val: 12 },
-                            { name: 'Water Supply', val: 7 },
-                            { name: 'Natural Gas', val: 7 },
-                            { name: 'Internet / Wi-Fi', val: 5 },
-                            { name: 'Sewerage System', val: 6 },
-                            { name: 'Parking (CPS)', val: 4 },
-                            { name: 'Garbage Collection', val: 2 },
-                            { name: 'Mobile Network', val: 2 },
-                            { name: 'Solar Panels', val: 5 },
-                            { name: 'CCTV Security', val: 5 },
-                            { name: 'Public Transport', val: 3 },
-                            { name: 'Road Maintenance', val: 5 },
-                            { name: 'Burglar Alarm', val: 1 },
-                            { name: 'Water Filter', val: 3 },
-                            { name: 'Surge Protection', val: 2 },
-                            { name: 'Trading Desk', val: 13 },
-                            { name: 'Warehouse Hub', val: 8 },
-                          ].map((u, i) => (
-                            <div key={i} className="flex items-center justify-between p-1.5 rounded-lg capsule-inset">
+                          {activeUtilities.map((u) => (
+                            <div key={u.id} className="flex items-center justify-between p-1.5 rounded-lg capsule-inset">
                               <span className="truncate" style={{ color: 'var(--text-sub)' }}>{u.name}</span>
-                              <strong className="text-[#2E7D52] ml-1 shrink-0">{u.val}L</strong>
+                              <strong className="text-[#2E7D52] ml-1 shrink-0">{u.cost}L</strong>
                             </div>
                           ))}
                         </div>

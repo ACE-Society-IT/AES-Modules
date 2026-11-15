@@ -2484,21 +2484,15 @@ export const DEFAULT_MONOPOLY_TEAMS = [];
 export function computePropertyValuation(prop) {
   if (!prop) return 0;
   const open = Number(prop.openingValue || 0);
+  const target = Number(prop.level3Target || open * 1.6);
   const lvl = Math.min(3, Math.max(0, Number(prop.upgradeLevel || 0)));
 
-  let baseAtLevel = open;
-  if (Array.isArray(prop.targetValues) && prop.targetValues.length > lvl && Number(prop.targetValues[lvl]) > 0) {
-    baseAtLevel = Number(prop.targetValues[lvl]);
-  } else {
-    const target = Number(prop.level3Target || open * 1.6);
-    const diff = target - open;
-    if (lvl === 1) baseAtLevel = Math.round(open + diff * 0.33);
-    if (lvl === 2) baseAtLevel = Math.round(open + diff * 0.67);
-    if (lvl >= 3) baseAtLevel = target;
-  }
-
-  // Value strictly depends on upgrade level, not on raw attached token costs
-  return baseAtLevel;
+  if (lvl <= 0) return open;
+  if (lvl >= 3) return target;
+  const diff = target - open;
+  if (lvl === 1) return Math.round(open + diff / 3);
+  if (lvl === 2) return Math.round(open + (diff * 2) / 3);
+  return open;
 }
 
 // Compute property upgrade level based on attached utilities meeting recipe requirements

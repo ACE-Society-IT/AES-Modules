@@ -66,17 +66,40 @@ export function hydrateMonopolyState(rawState) {
       })
     : KARACHI_UTILITIES.map((u) => ({ ...u }));
 
-  const teams = (Array.isArray(rawState.teams) ? rawState.teams : []).map((t) => ({
-    ...t,
-    username: (t.username || t.name || '').toLowerCase().replace(/\s+/g, '_'),
-    cash: Number(t.cash ?? t.startingBudget ?? STARTING_BUDGET_LAKH),
-    startingBudget: Number(t.startingBudget ?? t.starting_budget ?? STARTING_BUDGET_LAKH),
-    ownedResources: Array.isArray(t.ownedResources)
+  const teams = (Array.isArray(rawState.teams) ? rawState.teams : []).map((t) => {
+    const rawRes = Array.isArray(t.ownedResources)
       ? t.ownedResources
       : Array.isArray(t.owned_resources)
       ? t.owned_resources
-      : []
-  }));
+      : [];
+    const normalizedRes = rawRes.map((r, idx) => {
+      const uId = Number(r.utilityId ?? r.utility_id ?? r.id);
+      const baseUtil =
+        utilities.find((u) => Number(u.id) === uId) ||
+        KARACHI_UTILITIES.find((u) => Number(u.id) === uId) ||
+        {};
+      const resolvedCost = Number(r.bidPrice ?? r.cost ?? r.price ?? baseUtil.cost ?? 0);
+      const resolvedName = r.name || r.utilityName || r.utility_name || baseUtil.name || `Utility #${uId}`;
+      return {
+        ...r,
+        id: r.id || r.instanceId || `res_${t.id}_${uId}_${idx}`,
+        instanceId: r.instanceId || r.id || `res_${t.id}_${uId}_${idx}`,
+        utilityId: uId,
+        name: resolvedName,
+        utilityName: r.utilityName || resolvedName,
+        category: r.category || baseUtil.category || 'General',
+        cost: resolvedCost,
+        bidPrice: resolvedCost
+      };
+    });
+    return {
+      ...t,
+      username: (t.username || t.name || '').toLowerCase().replace(/\s+/g, '_'),
+      cash: Number(t.cash ?? t.startingBudget ?? STARTING_BUDGET_LAKH),
+      startingBudget: Number(t.startingBudget ?? t.starting_budget ?? STARTING_BUDGET_LAKH),
+      ownedResources: normalizedRes
+    };
+  });
 
   const mergedProps = KARACHI_PROPERTIES.map((baseProp) => {
     const savedProp = (rawState.properties || []).find(
@@ -99,27 +122,33 @@ export function hydrateMonopolyState(rawState) {
       savedProp?.level3Target !== undefined && Number(savedProp.level3Target) > 0
         ? Number(savedProp.level3Target)
         : Number(baseProp.level3Target);
-    const valueIncreasePerLevel =
-      savedProp?.valueIncreasePerLevel !== undefined && Number(savedProp.valueIncreasePerLevel) >= 0
-        ? Number(savedProp.valueIncreasePerLevel)
-        : Math.round((level3Target - openingValue) / 3);
+    const diff = level3Target - openingValue;
+    const targetValues = [
+      openingValue,
+      Math.round(openingValue + diff / 3),
+      Math.round(openingValue + (diff * 2) / 3),
+      level3Target
+    ];
+    const valueIncreasePerLevel = Math.round(diff / 3);
     const rentValues =
-      Array.isArray(savedProp?.rentValues) && savedProp.rentValues.length === 4
+      Array.isArray(savedProp?.rentValues) && savedProp.rentValues.length > 0
         ? savedProp.rentValues.map(Number)
         : baseProp.rentValues.map(Number);
     const rentIncreasePerLevel =
       savedProp?.rentIncreasePerLevel !== undefined && Number(savedProp.rentIncreasePerLevel) >= 0
         ? Number(savedProp.rentIncreasePerLevel)
-        : Math.round((rentValues[3] - rentValues[0]) / 3);
-    const upgradeCosts =
-      Array.isArray(savedProp?.upgradeCosts) && savedProp.upgradeCosts.length === 3
-        ? savedProp.upgradeCosts.map(Number)
-        : baseProp.upgradeCosts.map(Number);
+        : Math.round(((rentValues[3] ?? rentValues[0]) - rentValues[0]) / 3);
+    const upgradeCosts = [0, 0, 0];
 
     return {
       ...baseProp,
+      ...(savedProp || {}),
+      id: Number(savedProp?.id ?? baseProp.id),
+      name: savedProp?.name || baseProp.name,
+      category: savedProp?.category || baseProp.category,
       openingValue,
       level3Target,
+      targetValues,
       valueIncreasePerLevel,
       rentValues,
       rentIncreasePerLevel,
@@ -205,7 +234,7 @@ export async function fetchMonopolyStore(forceFresh = false) {
   const [stateRes, teamsRes, propsRes, utilsRes] = await Promise.all([
     supabase.from('monopoly_state').select('state_json').eq('id', 1).maybeSingle(),
     supabase.from('monopoly_teams').select('id, name, username, cash, starting_budget, owned_resources').order('updated_at', { ascending: true }),
-    supabase.from('monopoly_properties').select('id, owner_team_id, purchase_price, upgrade_level, attached_utilities, opening_value, level3_target, rent_values').order('id', { ascending: true }),
+    supabase.from('monopoly_properties').select('*').order('id', { ascending: true }),
     supabase.from('monopoly_utilities').select('*').order('id', { ascending: true })
   ]);
 
@@ -264,13 +293,34 @@ export async function fetchMonopolyStore(forceFresh = false) {
           const ownerName = ownerId ? teamNameMap.get(String(ownerId)) || p.ownerTeamName || null : null;
           return {
             ...p,
+            name: dbRow.name || p.name,
+            category: dbRow.category || p.category,
             ownerTeamId: ownerId,
             ownerTeamName: ownerName,
             purchasePrice: Number(dbRow.purchase_price ?? p.purchasePrice ?? 0),
             upgradeLevel: Math.min(3, Math.max(0, Number(dbRow.upgrade_level ?? p.upgradeLevel ?? 0))),
             attachedUtilities: Array.isArray(dbRow.attached_utilities) ? dbRow.attached_utilities : (p.attachedUtilities || []),
             openingValue: Number(dbRow.opening_value ?? p.openingValue ?? 100),
-            level3Target: Number(dbRow.level3_target ?? p.level3Target ?? 160)
+            level3Target: Number(dbRow.level3_target ?? p.level3Target ?? 160),
+            rentValues: Array.isArray(dbRow.rent_values) && dbRow.rent_values.length > 0 ? dbRow.rent_values.map(Number) : p.rentValues
+          };
+        });
+      } else {
+        raw.properties = propsRes.data.map((dbRow) => {
+          const ownerId = dbRow.owner_team_id || null;
+          const ownerName = ownerId ? teamNameMap.get(String(ownerId)) || null : null;
+          return {
+            id: Number(dbRow.id),
+            name: dbRow.name,
+            category: dbRow.category,
+            ownerTeamId: ownerId,
+            ownerTeamName: ownerName,
+            purchasePrice: Number(dbRow.purchase_price ?? 0),
+            upgradeLevel: Math.min(3, Math.max(0, Number(dbRow.upgrade_level ?? 0))),
+            attachedUtilities: Array.isArray(dbRow.attached_utilities) ? dbRow.attached_utilities : [],
+            openingValue: Number(dbRow.opening_value ?? 100),
+            level3Target: Number(dbRow.level3_target ?? 160),
+            rentValues: Array.isArray(dbRow.rent_values) ? dbRow.rent_values.map(Number) : undefined
           };
         });
       }
@@ -321,7 +371,7 @@ export async function persistMonopolyStore(nextStore) {
       valueIncreasePerLevel: Number(p.valueIncreasePerLevel || 0),
       rentIncreasePerLevel: Number(p.rentIncreasePerLevel || 0),
       rentValues: Array.isArray(p.rentValues) ? p.rentValues.map(Number) : [15, 25, 38, 55],
-      upgradeCosts: Array.isArray(p.upgradeCosts) ? p.upgradeCosts.map(Number) : [10, 15, 20],
+      upgradeCosts: [0, 0, 0],
       ownerTeamId: p.ownerTeamId || null,
       ownerTeamName: p.ownerTeamName || null,
       purchasePrice: Number(p.purchasePrice || 0),
@@ -353,7 +403,7 @@ export async function persistMonopolyStore(nextStore) {
       category: p.category,
       opening_value: Number(p.openingValue || 0),
       level3_target: Number(p.level3Target || 0),
-      upgrade_costs: p.upgradeCosts || [10, 15, 20],
+      upgrade_costs: [0, 0, 0],
       rent_values: p.rentValues || [15, 25, 38, 55],
       recommended_utilities: p.recommendedUtilities || [],
       owner_team_id: p.ownerTeamId || null,
@@ -432,7 +482,7 @@ export async function attachUtilityToProperty({ store, teamId, propertyId, utili
   const latest = await fetchMonopolyStore();
   const prop = latest.properties.find((p) => Number(p.id) === Number(propertyId));
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
-  const util = KARACHI_UTILITIES.find((u) => Number(u.id) === Number(utilityId));
+  const util = (latest.utilities || KARACHI_UTILITIES).find((u) => Number(u.id) === Number(utilityId));
 
   if (!prop || !team || !util) {
     throw new Error('Property, team, or resource not found.');
@@ -538,7 +588,7 @@ export async function buyUtilityTokenFromBank(teamId, utilityId) {
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
   if (!team) throw new Error("Team not found.");
 
-  const util = KARACHI_UTILITIES.find((u) => Number(u.id) === Number(utilityId));
+  const util = (latest.utilities || KARACHI_UTILITIES).find((u) => Number(u.id) === Number(utilityId));
   if (!util) throw new Error("Utility token not found.");
 
   const cost = Number(util.cost || 0);
@@ -547,12 +597,16 @@ export async function buyUtilityTokenFromBank(teamId, utilityId) {
   }
 
   const nextCash = Number(team.cash) - cost;
+  const resId = `res_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const newResource = {
-    id: `res_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    id: resId,
+    instanceId: resId,
     utilityId: util.id,
+    name: util.name,
     utilityName: util.name,
     category: util.category,
-    cost: util.cost,
+    cost: cost,
+    bidPrice: cost,
     attachedToPropertyId: null,
     attachedToPropertyName: null,
     acquiredAt: new Date().toISOString()
@@ -613,30 +667,7 @@ export async function upgradePropertyLevel(paramsOrTeamId, propertyId) {
  * Verifies required utility tokens and deducts cash upgrade cost.
  */
 export async function executePropertySpecificationUpgrade(teamId, propertyId) {
-  // 1. Try server-side Supabase verification first via monopoly_execute_recipe_upgrade RPC
-  if (supabase) {
-    try {
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc('monopoly_execute_recipe_upgrade', {
-        p_team_id: String(teamId),
-        p_property_id: Number(propertyId)
-      });
-      if (!rpcErr && rpcRes) {
-        if (!rpcRes.ok) {
-          throw new Error(rpcRes.error || 'Upgrade rejected by server.');
-        }
-        // Successfully verified and applied on Supabase server!
-        return await fetchMonopolyStore(true);
-      }
-    } catch (rpcCallErr) {
-      // If error was thrown from server validation, rethrow it directly
-      if (rpcCallErr.message && !rpcCallErr.message.includes('failed to fetch') && !rpcCallErr.message.includes('NetworkError')) {
-        throw rpcCallErr;
-      }
-    }
-  }
-
-  // 2. Client-side verification and fallback
-  const latest = await fetchMonopolyStore();
+  const latest = await fetchMonopolyStore(true);
   const team = latest.teams.find((t) => String(t.id) === String(teamId));
   if (!team) throw new Error("Team not found.");
 
@@ -652,13 +683,6 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
   }
 
   const targetLevel = currentLevel + 1;
-  const upgradeCosts = Array.isArray(prop.upgradeCosts) ? prop.upgradeCosts : [10, 15, 20];
-  const cashCost = Number(upgradeCosts[targetLevel - 1] || 10);
-
-  if (Number(team.cash || 0) < cashCost) {
-    throw new Error(`Insufficient cash. Level ${targetLevel} upgrade requires Rs ${cashCost}L, but you have Rs ${team.cash}L.`);
-  }
-
   const recipeList = (prop.upgradeRequirements && prop.upgradeRequirements[targetLevel]) || [];
   
   // Available resources of this team
@@ -697,10 +721,9 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
       : r
   );
 
-  const nextCash = Number(team.cash) - cashCost;
   const nextTeams = latest.teams.map((t) =>
     String(t.id) === String(team.id)
-      ? { ...t, cash: nextCash, ownedResources: nextOwnedResources }
+      ? { ...t, ownedResources: nextOwnedResources }
       : t
   );
 
@@ -734,8 +757,8 @@ export async function executePropertySpecificationUpgrade(teamId, propertyId) {
     teamName: team.name,
     propertyId: prop.id,
     propertyName: prop.name,
-    amount: cashCost,
-    note: `${team.name} upgraded ${prop.name} to Level ${targetLevel} (Paid Rs ${cashCost}L, applied ${tokensToConsumeIds.length} tokens). Target Value: Rs ${targetVal}L`,
+    amount: 0,
+    note: `${team.name} upgraded ${prop.name} to Level ${targetLevel} (Applied ${tokensToConsumeIds.length} tokens). Target Value: Rs ${targetVal}L`,
     createdAt: new Date().toISOString()
   };
 
@@ -885,7 +908,7 @@ export async function executeTeamWheelSpinAndPayRent({ store, teamId, propertyId
 /**
  * Compute full portfolio metrics for a Team (matches by both team ID and team Name)
  */
-export function computeTeamSummary(team, properties = []) {
+export function computeTeamSummary(team, properties = [], utilities = KARACHI_UTILITIES) {
   if (!team) {
     return {
       cash: 0,
@@ -912,10 +935,17 @@ export function computeTeamSummary(team, properties = []) {
   const propVal = owned.reduce((sum, p) => sum + computePropertyValuation(p), 0);
   const propSpent = owned.reduce((sum, p) => sum + Number(p.purchasePrice || p.openingValue || 0), 0);
   const ownedResList = Array.isArray(team?.ownedResources) ? team.ownedResources : [];
-  const resSpent = ownedResList.reduce((sum, r) => sum + Number(r.bidPrice || 0), 0);
+  const utilList = Array.isArray(utilities) && utilities.length > 0 ? utilities : KARACHI_UTILITIES;
+  const getResourcePrice = (r) => {
+    const direct = Number(r?.bidPrice ?? r?.cost ?? r?.price);
+    if (!Number.isNaN(direct) && direct > 0) return direct;
+    const baseUtil = utilList.find((u) => Number(u.id) === Number(r?.utilityId ?? r?.utility_id));
+    return Number(baseUtil?.cost || 0);
+  };
+  const resSpent = ownedResList.reduce((sum, r) => sum + getResourcePrice(r), 0);
   const unattachedResVal = ownedResList
     .filter((r) => !r.attachedToPropertyId)
-    .reduce((sum, r) => sum + Number(r.bidPrice || 0), 0);
+    .reduce((sum, r) => sum + getResourcePrice(r), 0);
   const totalRentPotential = owned.reduce((sum, p) => sum + computePropertyRent(p), 0);
   const cash = Number(team?.cash || 0);
   const startingBudget = Number(team?.startingBudget ?? STARTING_BUDGET_LAKH);

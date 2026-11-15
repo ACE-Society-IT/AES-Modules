@@ -136,20 +136,16 @@ export default function MonopolyProjectorView() {
 
     const channel = supabase
       .channel('monopoly_projector_channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_state' }, (payload) => {
-        if (payload?.new?.state_json) {
-          const updated = updateCachedMonopolyStore(payload.new.state_json);
-          if (updated) {
-            setStore(updated);
-            return;
-          }
-        }
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_state' }, () => {
         loadData();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_properties' }, () => {
         loadData();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_teams' }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'monopoly_utilities' }, () => {
         loadData();
       })
       .subscribe();
