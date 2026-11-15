@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 // Minimalist Crown SVG (Zero emoji)
@@ -54,9 +54,20 @@ export function PodiumLeaderboardView({
     );
   }
 
-  const actualList = Array.isArray(leaderboard)
-    ? leaderboard
-    : (leaderboard && typeof leaderboard === 'object' ? Object.values(leaderboard) : []);
+  const actualList = useMemo(() => {
+    const raw = Array.isArray(leaderboard)
+      ? [...leaderboard]
+      : (leaderboard && typeof leaderboard === 'object' ? Object.values(leaderboard) : []);
+
+    return raw.sort((a, b) => {
+      const bTax = Number(b.taxShieldedTotal ?? b.taxShielded ?? b.tax_shielded ?? 0);
+      const aTax = Number(a.taxShieldedTotal ?? a.taxShielded ?? a.tax_shielded ?? 0);
+      if (bTax !== aTax) return bTax - aTax;
+      const bVal = Number(b.netWorth ?? b.totalPortfolioValue ?? b.portfolioValue ?? 0);
+      const aVal = Number(a.netWorth ?? a.totalPortfolioValue ?? a.portfolioValue ?? 0);
+      return bVal - aVal;
+    });
+  }, [leaderboard]);
 
   const top1 = actualList[0] || null;
   const top2 = actualList[1] || null;
@@ -94,7 +105,7 @@ export function PodiumLeaderboardView({
               </span>
             </div>
             <p className="text-xs sm:text-sm font-rounded text-[#C4B8BC] mt-1">
-              Top tournament portfolios ranked by realtime audited net equity.
+              Top tournament portfolios ranked by total tax shielded wealth.
             </p>
           </div>
 
@@ -160,12 +171,15 @@ export function PodiumLeaderboardView({
                   <span className="font-display font-bold text-2xl sm:text-3xl text-white drop-shadow-sm">
                     2nd
                   </span>
-                  <div className="w-full py-2 px-2.5 rounded-xl bg-black/40 backdrop-blur-sm text-center border border-white/15">
-                    <span className="block text-[10px] sm:text-xs font-rounded font-bold text-white/75">
-                      Net Equity
+                  <div className="w-full py-2 px-2 rounded-xl bg-black/40 backdrop-blur-sm text-center border border-white/15">
+                    <span className="block text-[10px] sm:text-xs font-rounded font-bold text-[#F1CA7E]">
+                      Tax Shielded
                     </span>
                     <span className="font-mono font-bold text-xs sm:text-sm text-white block truncate">
-                      PKR {Number(top2.totalPortfolioValue || 100000).toLocaleString()}
+                      PKR {Number(top2.taxShieldedTotal ?? top2.taxShielded ?? top2.tax_shielded ?? 0).toLocaleString()}
+                    </span>
+                    <span className="block text-[9.5px] font-mono text-white/60 mt-0.5 truncate">
+                      Net: PKR {Number(top2.totalPortfolioValue || top2.netWorth || 100000).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -211,12 +225,15 @@ export function PodiumLeaderboardView({
                   <span className="font-display font-extrabold text-3xl sm:text-4xl text-[#FAF7F5] drop-shadow-md">
                     1st
                   </span>
-                  <div className="w-full py-2.5 px-3 rounded-xl bg-black/45 backdrop-blur-md text-center border border-[#FFD700]/30">
+                  <div className="w-full py-2.5 px-2 rounded-xl bg-black/45 backdrop-blur-md text-center border border-[#FFD700]/30">
                     <span className="block text-[11px] sm:text-xs font-rounded font-bold text-[#E5B582]">
-                      Champion Net Equity
+                      Champion Tax Shielded
                     </span>
-                    <span className="font-mono font-extrabold text-sm sm:text-base text-white block truncate">
-                      PKR {Number(top1.totalPortfolioValue || 100000).toLocaleString()}
+                    <span className="font-mono font-extrabold text-sm sm:text-base text-[#F1CA7E] block truncate">
+                      PKR {Number(top1.taxShieldedTotal ?? top1.taxShielded ?? top1.tax_shielded ?? 0).toLocaleString()}
+                    </span>
+                    <span className="block text-[10px] font-mono text-white/70 mt-0.5 truncate">
+                      Net: PKR {Number(top1.totalPortfolioValue || top1.netWorth || 100000).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -262,12 +279,15 @@ export function PodiumLeaderboardView({
                   <span className="font-display font-bold text-2xl sm:text-3xl text-white drop-shadow-sm">
                     3rd
                   </span>
-                  <div className="w-full py-2 px-2.5 rounded-xl bg-black/40 backdrop-blur-sm text-center border border-white/15">
-                    <span className="block text-[10px] sm:text-xs font-rounded font-bold text-white/75">
-                      Net Equity
+                  <div className="w-full py-2 px-2 rounded-xl bg-black/40 backdrop-blur-sm text-center border border-white/15">
+                    <span className="block text-[10px] sm:text-xs font-rounded font-bold text-[#F1CA7E]">
+                      Tax Shielded
                     </span>
                     <span className="font-mono font-bold text-xs sm:text-sm text-white block truncate">
-                      PKR {Number(top3.totalPortfolioValue || 100000).toLocaleString()}
+                      PKR {Number(top3.taxShieldedTotal ?? top3.taxShielded ?? top3.tax_shielded ?? 0).toLocaleString()}
+                    </span>
+                    <span className="block text-[9.5px] font-mono text-white/60 mt-0.5 truncate">
+                      Net: PKR {Number(top3.totalPortfolioValue || top3.netWorth || 100000).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -285,7 +305,7 @@ export function PodiumLeaderboardView({
           <div className="relative z-10 mt-4 mx-auto max-w-xl text-center py-2.5 px-5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs sm:text-sm font-rounded text-white">
             <span>Your desk <strong>{currentTeam.name}</strong> is currently ranked </span>
             <span className="font-bold text-[#FFD700]">#{currentTeamIndex + 1}</span>
-            <span> out of <strong>{actualList.length} teams</strong> • PKR {Number(currentTeam.totalPortfolioValue || currentTeam.cash || 100000).toLocaleString()}</span>
+            <span> out of <strong>{actualList.length} teams</strong> • Shielded: PKR {Number(currentTeam.taxShieldedTotal ?? currentTeam.taxShielded ?? currentTeam.tax_shielded ?? 0).toLocaleString()} (Net: PKR {Number(currentTeam.totalPortfolioValue || currentTeam.cash || 100000).toLocaleString()})</span>
           </div>
         )}
       </div>
@@ -300,7 +320,7 @@ export function PodiumLeaderboardView({
               Tournament Standings Ledger
             </h3>
             <p className="text-xs font-rounded font-semibold" style={{ color: 'var(--text-sub)' }}>
-              All {actualList.length} verified contestant teams ranked by net total portfolio equity.
+              All {actualList.length} verified contestant teams ranked by total tax shielded wealth.
             </p>
           </div>
 
@@ -401,13 +421,16 @@ export function PodiumLeaderboardView({
                         </span>
                       </div>
 
-                      {/* Net Total Equity Value */}
-                      <div className="text-right min-w-[130px]">
-                        <span className="text-[10px] uppercase font-rounded font-bold text-[var(--text-sub)] block">
-                          Total Equity
+                      {/* Tax Shielded & Net Total Equity Value */}
+                      <div className="text-right min-w-[140px]">
+                        <span className="text-[10px] uppercase font-rounded font-bold text-[#F1CA7E] block">
+                          Tax Shielded
                         </span>
-                        <span className="font-mono font-bold text-base sm:text-lg text-[var(--text-main)] block">
-                          PKR {Number(t.totalPortfolioValue || 100000).toLocaleString()}
+                        <span className="font-mono font-bold text-base sm:text-lg text-[#F1CA7E] block">
+                          PKR {Number(t.taxShieldedTotal ?? t.taxShielded ?? t.tax_shielded ?? 0).toLocaleString()}
+                        </span>
+                        <span className="text-[10px] font-mono text-[var(--text-sub)] block">
+                          Net: PKR {Number(t.totalPortfolioValue || t.netWorth || 100000).toLocaleString()}
                         </span>
                       </div>
                     </div>
