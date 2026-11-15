@@ -158,7 +158,7 @@ export default function MonopolyProjectorView() {
       if (document.visibilityState === 'visible') {
         loadData();
       }
-    }, 4000);
+    }, 15000);
 
     return () => {
       supabase.removeChannel(channel);

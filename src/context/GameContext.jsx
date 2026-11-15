@@ -72,42 +72,45 @@ export function GameProvider({ children }) {
         setGameState(sanitizeParticipantGameState(directState));
       }
 
-      // If team is signed in, sync fresh team row directly from investomania_teams
-      const savedTeamStr = sessionStorage.getItem('investomania_team');
-      if (savedTeamStr && savedTeamStr.trim() && savedTeamStr !== 'undefined' && savedTeamStr !== 'null') {
-        try {
-          const currentT = JSON.parse(savedTeamStr);
-          if (currentT?.id) {
-            const { data: dbTeam } = await supabase
-              .from('investomania_teams')
-              .select('*')
-              .eq('id', currentT.id)
-              .single();
-            if (dbTeam) {
-              setTeam((prev) => {
-                const merged = {
-                  ...prev,
-                  id: dbTeam.id,
-                  name: dbTeam.name,
-                  cash: Number(dbTeam.cash ?? 0),
-                  holdings: dbTeam.holdings || {},
-                  isBanned: !!dbTeam.is_banned,
-                  round1Profit: Number(dbTeam.round1_profit || 0),
-                  round2Profit: Number(dbTeam.round2_profit || 0),
-                  initialBudget: Number(dbTeam.initial_budget || 100000),
-                  initialRoundBudget: Number(dbTeam.initial_budget || 100000),
-                  taxDeducted: Number(dbTeam.tax_deducted || 0),
-                  taxDeductedTotal: Number(dbTeam.tax_deducted || 0),
-                  taxShielded: Number(dbTeam.tax_shielded || 0),
-                  taxShieldedTotal: Number(dbTeam.tax_shielded || 0),
-                  taxHistory: Array.isArray(dbTeam.tax_history) ? dbTeam.tax_history : []
-                };
-                sessionStorage.setItem('investomania_team', JSON.stringify(merged));
-                return merged;
-              });
+      // If team is signed in and forceFresh, sync fresh team row directly from investomania_teams
+      // (Continuous updates are delivered via postgres_changes subscription below with zero polling egress)
+      if (forceFresh) {
+        const savedTeamStr = sessionStorage.getItem('investomania_team');
+        if (savedTeamStr && savedTeamStr.trim() && savedTeamStr !== 'undefined' && savedTeamStr !== 'null') {
+          try {
+            const currentT = JSON.parse(savedTeamStr);
+            if (currentT?.id) {
+              const { data: dbTeam } = await supabase
+                .from('investomania_teams')
+                .select('*')
+                .eq('id', currentT.id)
+                .single();
+              if (dbTeam) {
+                setTeam((prev) => {
+                  const merged = {
+                    ...prev,
+                    id: dbTeam.id,
+                    name: dbTeam.name,
+                    cash: Number(dbTeam.cash ?? 0),
+                    holdings: dbTeam.holdings || {},
+                    isBanned: !!dbTeam.is_banned,
+                    round1Profit: Number(dbTeam.round1_profit || 0),
+                    round2Profit: Number(dbTeam.round2_profit || 0),
+                    initialBudget: Number(dbTeam.initial_budget || 100000),
+                    initialRoundBudget: Number(dbTeam.initial_budget || 100000),
+                    taxDeducted: Number(dbTeam.tax_deducted || 0),
+                    taxDeductedTotal: Number(dbTeam.tax_deducted || 0),
+                    taxShielded: Number(dbTeam.tax_shielded || 0),
+                    taxShieldedTotal: Number(dbTeam.tax_shielded || 0),
+                    taxHistory: Array.isArray(dbTeam.tax_history) ? dbTeam.tax_history : []
+                  };
+                  sessionStorage.setItem('investomania_team', JSON.stringify(merged));
+                  return merged;
+                });
+              }
             }
-          }
-        } catch {}
+          } catch {}
+        }
       }
     } catch (err) {
       console.warn('[GameContext] Supabase state fetch:', err.message);
@@ -127,7 +130,7 @@ export function GameProvider({ children }) {
           { event: '*', schema: 'public', table: 'investomania_state' },
           (payload) => {
             if (payload.new && payload.new.state_json) {
-              updateCachedGameStateDirect(payload.new.state_json);
+              updateCachedGameStateDirect(payload.new.state_json, payload.new.updated_at);
               setGameState(sanitizeParticipantGameState(payload.new.state_json));
             } else {
               fetchLatestState(true);
@@ -185,12 +188,12 @@ export function GameProvider({ children }) {
     window.addEventListener('focus', handleFocus);
     window.addEventListener('visibilitychange', handleFocus);
 
-    // Responsive failover safety heartbeat (4s) so updates are always crisp and instant
+    // Responsive failover safety heartbeat (15s) with updated_at check so egress is near zero
     const pollInterval = setInterval(() => {
       if (!document.hidden) {
         fetchLatestState(false);
       }
-    }, 4000);
+    }, 15000);
 
     return () => {
       if (channel) supabase.removeChannel(channel);

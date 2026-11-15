@@ -25,26 +25,30 @@ function formatDbError(err, fallbackMsg = 'Database operation failed') {
 let _clientGameStateCache = null;
 let _clientGameStateCachedAt = 0;
 let _clientGameStatePromise = null;
-const CLIENT_CACHE_TTL_MS = 0;
+let _clientLastKnownUpdatedAt = null;
+const CLIENT_CACHE_TTL_MS = 2500;
 
 export function invalidateClientStateCache() {
   _clientGameStateCache = null;
   _clientGameStateCachedAt = 0;
   _clientGameStatePromise = null;
+  _clientLastKnownUpdatedAt = null;
 }
 
-export function updateCachedGameStateDirect(rawState) {
+export function updateCachedGameStateDirect(rawState, updatedAt = null) {
   if (!rawState || typeof rawState !== 'object') return null;
   const sanitized = { ...rawState };
   delete sanitized.draftCrises;
   delete sanitized.crisesByRound;
   _clientGameStateCache = sanitized;
   _clientGameStateCachedAt = Date.now();
+  if (updatedAt) _clientLastKnownUpdatedAt = updatedAt;
   return sanitized;
 }
 
 /**
  * Fetch authoritative game state directly from Supabase
+ * Optimizes egress bandwidth: checks updated_at (49 bytes) before downloading full state_json (130 KB)
  */
 export async function fetchGameStateDirect(forceFresh = false) {
   if (forceFresh) {
@@ -60,13 +64,30 @@ export async function fetchGameStateDirect(forceFresh = false) {
 
   const run = async () => {
     try {
+      // Bandwidth Guard: If we already have a cached state and not forced fresh, check updated_at first
+      if (!forceFresh && _clientGameStateCache && _clientLastKnownUpdatedAt) {
+        const { data: meta, error: metaErr } = await supabase
+          .from('investomania_state')
+          .select('updated_at')
+          .eq('id', 1)
+          .single();
+
+        if (!metaErr && meta?.updated_at && meta.updated_at === _clientLastKnownUpdatedAt) {
+          _clientGameStateCachedAt = Date.now();
+          return _clientGameStateCache;
+        }
+      }
+
       const { data, error } = await supabase
         .from('investomania_state')
-        .select('state_json')
+        .select('state_json, updated_at')
         .eq('id', 1)
         .single();
 
       if (error) throw formatDbError(error, 'Failed to fetch floor state');
+      if (data?.updated_at) {
+        _clientLastKnownUpdatedAt = data.updated_at;
+      }
       const state = data?.state_json || null;
       if (state && typeof state === 'object') {
         const sanitized = { ...state };

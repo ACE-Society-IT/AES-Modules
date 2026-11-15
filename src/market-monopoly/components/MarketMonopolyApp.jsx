@@ -256,12 +256,12 @@ export default function MarketMonopolyApp() {
       )
       .subscribe();
 
-    // Responsive failover heartbeat (4s) so participant and projector views update with zero lag
+    // Responsive failover heartbeat (15s) so participant and projector views update reliably
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshStore(false);
       }
-    }, 4000);
+    }, 15000);
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
